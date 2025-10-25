@@ -12,6 +12,7 @@ const CalendarView = () => {
         selected={date}
         onSelect={setDate}
         className="rounded-md border"
+        showOutsideDays={false}
         classNames={{
           caption_label: "text-lg",
           head_cell: "text-muted-foreground rounded-md w-12 font-normal text-sm",
@@ -20,6 +21,7 @@ const CalendarView = () => {
           day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
           day_today: "bg-accent text-accent-foreground",
           day_outside: "text-muted-foreground opacity-50",
+          day_hidden: "invisible",
         }}
       />
     </div>
