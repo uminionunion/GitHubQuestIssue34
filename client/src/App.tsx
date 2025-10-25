@@ -26,9 +26,9 @@ function App() {
       <header className="p-4 border-b border-border/50 shadow-lg">
         <div className="container mx-auto flex flex-col items-center">
           <h1 className="text-4xl font-bold text-center mb-4">Welcome to the Union</h1>
-          <div className="flex items-end gap-4 self-start">
+          <div className="flex items-center gap-4 self-start">
             <Button disabled className="bg-orange-400 hover:bg-orange-500 text-black">Submit</Button>
-            <div>
+            <div className="h-[200px] flex items-center">
               {isLoading ? (
                 <span id="loading-text">loading...</span>
               ) : (
