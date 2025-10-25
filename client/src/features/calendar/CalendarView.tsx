@@ -1,29 +1,40 @@
 
 import React from 'react';
-import { Calendar } from '@/components/ui/calendar';
 
 const CalendarView = () => {
-  const [date, setDate] = React.useState<Date | undefined>(new Date(2024, 9, 1));
+  const daysInOctober = 31;
+  const emptyStartSpaces = 4;
+  const totalCells = 35; // 5 rows * 7 days
+
+  const days = Array.from({ length: daysInOctober }, (_, i) => i + 1);
+  const emptyCells = Array.from({ length: emptyStartSpaces }, (_, i) => <div key={`empty-${i}`} className="h-16 w-full rounded-md"></div>);
+  
+  const calendarDays = days.map(day => (
+    <div key={day} className="h-16 w-full flex items-center justify-center text-center text-sm p-0 rounded-md border border-border/50 bg-card">
+      {day}
+    </div>
+  ));
+
+  const cells = [...emptyCells, ...calendarDays];
+
+  // Pad with empty cells at the end if needed, though for Oct with 4 start spaces, it's exactly 35
+  while (cells.length < totalCells) {
+    cells.push(<div key={`empty-end-${cells.length}`} className="h-16 w-full rounded-md"></div>);
+  }
+
+  const weekDays = ['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday'];
 
   return (
-    <div className="flex justify-center items-center py-8">
-      <Calendar
-        month={new Date(2024, 9, 1)}
-        selected={date}
-        onSelect={setDate}
-        className="rounded-md border"
-        showOutsideDays={false}
-        classNames={{
-          caption_label: "text-lg",
-          head_cell: "text-muted-foreground rounded-md w-12 font-normal text-sm",
-          cell: "h-12 w-12 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
-          day: "h-12 w-12 p-0 font-normal aria-selected:opacity-100",
-          day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-          day_today: "bg-accent text-accent-foreground",
-          day_outside: "text-muted-foreground opacity-50",
-          day_hidden: "invisible",
-        }}
-      />
+    <div className="w-full px-4">
+      <div className="text-center text-2xl font-bold mb-4">October</div>
+      <div className="grid grid-cols-7 gap-2 text-center text-muted-foreground mb-2">
+        {weekDays.map(day => (
+          <div key={day} className="font-normal text-sm">{day}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-2">
+        {cells}
+      </div>
     </div>
   );
 };
