@@ -4,10 +4,10 @@ import React from 'react';
 const UminionMainHubVersion001 = () => {
   return (
     <div
-      className="w-[300px] h-[200px] bg-card border border-border/50 rounded-lg flex items-center justify-center"
+      className="w-[600px] h-[200px] bg-zinc-300 border border-border/50 rounded-lg flex items-center justify-center mt-[100px]"
       aria-label="main hub"
     >
-      <span className="text-2xl font-bold">Main hub</span>
+      <span className="text-2xl font-bold text-black">Main hub</span>
     </div>
   );
 };
