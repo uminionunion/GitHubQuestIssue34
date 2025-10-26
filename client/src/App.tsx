@@ -28,22 +28,25 @@ function App() {
           <h1 className="text-4xl font-bold text-center mb-4">Welcome to the Union</h1>
           <div className="flex items-center gap-4 self-start">
             <Button disabled className="bg-orange-400 hover:bg-orange-500 text-black">Submit</Button>
-            <div className="h-[200px] flex items-center">
-              {isLoading ? (
-                <span id="loading-text">loading...</span>
-              ) : (
-                <UminionMainHubVersion001 />
-              )}
-            </div>
+            {isLoading && <span id="loading-text">loading...</span>}
           </div>
         </div>
       </header>
 
-      <main className="flex-grow container mx-auto px-4 py-8 flex justify-center items-start">
-        <CalendarView />
-      </main>
+      <div className="flex-grow relative">
+        <main className="container mx-auto px-4 py-8 flex justify-center items-start">
+          <CalendarView />
+        </main>
+        
+        {!isLoading && (
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 mt-4">
+            <UminionMainHubVersion001 />
+          </div>
+        )}
+      </div>
 
-      <footer className="p-4 border-t border-border/50 shadow-lg">
+
+      <footer className="p-4 border-t border-border/50 shadow-lg mt-auto">
         <div className="container mx-auto flex justify-center items-center relative">
           <p className="text-lg">Please Come Again!</p>
           <div className="absolute bottom-0 right-0">
