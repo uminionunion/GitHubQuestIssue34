@@ -17,7 +17,7 @@ const UminionButton = ({ number }: { number: number }) => {
 const UminionMainHubVersion001 = () => {
   return (
     <div
-      className="w-[600px] h-[200px] bg-zinc-300 border border-border/50 rounded-lg flex items-center justify-center relative p-2"
+      className="w-[600px] h-[300px] bg-zinc-300 border border-border/50 rounded-lg flex items-center justify-center relative p-2"
       aria-label="main hub"
     >
       {/* Top Buttons (#01 to #06) */}
@@ -26,17 +26,17 @@ const UminionMainHubVersion001 = () => {
       </div>
 
       {/* Right Buttons (#07 to #12) */}
-      <div className="absolute right-2 top-2 bottom-2 flex flex-col justify-between pt-10 pb-10">
+      <div className="absolute right-2 top-12 bottom-12 flex flex-col justify-between">
         {[7, 8, 9, 10, 11, 12].map(n => <UminionButton key={n} number={n} />)}
       </div>
 
       {/* Bottom Buttons (#13 to #18) */}
-      <div className="absolute bottom-2 left-2 right-2 flex justify-between flex-row-reverse pl-14">
+      <div className="absolute bottom-2 left-2 right-2 flex justify-between flex-row-reverse pl-14 pr-14">
         {[13, 14, 15, 16, 17, 18].map(n => <UminionButton key={n} number={n} />)}
       </div>
 
       {/* Left Buttons (#19 to #24) */}
-      <div className="absolute left-2 top-2 bottom-2 flex flex-col justify-between pt-10 pb-10 flex-col-reverse pr-14">
+      <div className="absolute left-2 top-12 bottom-12 flex flex-col justify-between flex-col-reverse">
         {[19, 20, 21, 22, 23, 24].map(n => <UminionButton key={n} number={n} />)}
       </div>
 
