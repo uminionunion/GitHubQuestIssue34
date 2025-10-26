@@ -31,12 +31,12 @@ const UminionMainHubVersion001 = () => {
       </div>
 
       {/* Bottom Buttons (#13 to #18) */}
-      <div className="absolute bottom-2 left-2 right-2 flex justify-between flex-row-reverse">
+      <div className="absolute bottom-2 left-2 right-2 flex justify-between flex-row-reverse pl-14">
         {[13, 14, 15, 16, 17, 18].map(n => <UminionButton key={n} number={n} />)}
       </div>
 
       {/* Left Buttons (#19 to #24) */}
-      <div className="absolute left-2 top-2 bottom-2 flex flex-col justify-between pt-10 pb-10 flex-col-reverse">
+      <div className="absolute left-2 top-2 bottom-2 flex flex-col justify-between pt-10 pb-10 flex-col-reverse pr-14">
         {[19, 20, 21, 22, 23, 24].map(n => <UminionButton key={n} number={n} />)}
       </div>
 

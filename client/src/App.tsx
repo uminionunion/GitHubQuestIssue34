@@ -39,8 +39,10 @@ function App() {
         </main>
         
         {!isLoading && (
-          <div className="absolute top-0 left-0 right-0 flex justify-center" style={{ top: '50px' }}>
-            <UminionMainHubVersion001 />
+          <div className="absolute top-0 left-0 right-0" style={{ top: '50px' }}>
+            <div className="container mx-auto px-4">
+              <UminionMainHubVersion001 />
+            </div>
           </div>
         )}
       </div>
