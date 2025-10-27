@@ -14,7 +14,7 @@ const UminionButton = ({ number }: { number: number }) => {
   // Return the Button component with specific styles.
   return (
     <Button
-      className={`${buttonColor} text-white w-12 h-8 text-xs p-1`}
+      className={`${buttonColor} text-white w-10 h-6 text-xs p-1`}
     >
       {/* Display the button number, padded with a leading zero if it's a single digit. */}
       #{String(number).padStart(2, '0')}
@@ -27,7 +27,7 @@ const UminionMainHubVersion001 = () => {
   // Return the JSX for the main hub layout.
   return (
     <div
-      className="w-[600px] h-[300px] bg-zinc-300 border border-border/50 rounded-lg flex items-center justify-center relative p-2"
+      className="w-[600px] h-[150px] bg-zinc-300 border border-border/50 rounded-lg flex items-center justify-center relative p-2"
       aria-label="main hub"
     >
       {/* Container for the top row of buttons (#01 to #06). */}
@@ -37,7 +37,7 @@ const UminionMainHubVersion001 = () => {
       </div>
 
       {/* Container for the right column of buttons (#07 to #12). */}
-      <div className="absolute right-2 top-12 bottom-12 flex flex-col justify-between">
+      <div className="absolute right-2 top-10 bottom-10 flex flex-col justify-between">
         {/* Create an array of numbers from 7 to 12 and map over it to render UminionButton components. */}
         {[7, 8, 9, 10, 11, 12].map(n => <UminionButton key={n} number={n} />)}
       </div>
@@ -50,7 +50,7 @@ const UminionMainHubVersion001 = () => {
       </div>
 
       {/* Container for the left column of buttons (#19 to #24). */}
-      <div className="absolute left-2 top-12 bottom-12 flex flex-col justify-between flex-col-reverse">
+      <div className="absolute left-2 top-10 bottom-10 flex flex-col justify-between flex-col-reverse">
         {/* Create an array of numbers from 19 to 24 and map over it to render UminionButton components. */}
         {/* 'flex-col-reverse' is used to order them from bottom to top. */}
         {[19, 20, 21, 22, 23, 24].map(n => <UminionButton key={n} number={n} />)}
