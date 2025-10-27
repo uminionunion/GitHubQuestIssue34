@@ -57,13 +57,9 @@ function App() {
         </main>
         
         {/* Conditionally render the Uminion Main Hub when loading is finished. */}
-        {/* It's positioned absolutely to overlay on top of the calendar initially. */}
+        {/* It is rendered here and will be positioned by the react-rnd library. */}
         {!isLoading && (
-          <div className="absolute top-0 left-0 right-0">
-            <div className="container mx-auto px-4">
-              <UminionMainHubVersion001 />
-            </div>
-          </div>
+          <UminionMainHubVersion001 />
         )}
       </div>
 
