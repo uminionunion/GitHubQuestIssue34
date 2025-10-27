@@ -1,15 +1,19 @@
 
 // Import React and hooks like useState and useEffect.
 import React, { useState, useEffect } from 'react';
+// Import routing components from react-router-dom.
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Import the Button component from the UI library.
 import { Button } from '@/components/ui/button';
 // Import the Uminion Main Hub component.
 import UminionMainHubVersion001 from '@/features/uminion/UminionMainHubVersion001';
 // Import the Calendar View component.
 import CalendarView from '@/features/calendar/CalendarView';
+// Import the Sister Union routes.
+import SisterUnionRoutes from '@/features/uminion/SisterUnionRoutes';
 
-// The main App component.
-function App() {
+// A component for the main application layout.
+const MainLayout = () => {
   // State to manage the loading status. Initially true.
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,7 +35,6 @@ function App() {
     });
   };
 
-  // Return the JSX for the main application layout.
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-zinc-900 text-foreground">
       {/* Header section of the page. */}
@@ -53,7 +56,10 @@ function App() {
       <div className="flex-grow relative">
         {/* The main content, which is the CalendarView. */}
         <main className="container mx-auto px-4 py-8 flex justify-center items-start">
-          <CalendarView />
+          <Routes>
+            <Route path="/" element={<CalendarView />} />
+            <Route path="/*" element={<SisterUnionRoutes />} />
+          </Routes>
         </main>
         
         {/* Conditionally render the Uminion Main Hub when loading is finished. */}
@@ -77,6 +83,15 @@ function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// The main App component that sets up the router.
+function App() {
+  return (
+    <Router>
+      <MainLayout />
+    </Router>
   );
 }
 
