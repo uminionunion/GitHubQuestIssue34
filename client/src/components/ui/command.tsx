@@ -1,11 +1,19 @@
+
+// Import React and its hooks.
 import * as React from 'react';
+// Import DialogProps type from Radix UI Dialog.
 import { type DialogProps } from '@radix-ui/react-dialog';
+// Import the Command component primitive from 'cmdk'.
 import { Command as CommandPrimitive } from 'cmdk';
+// Import the Search icon from lucide-react.
 import { Search } from 'lucide-react';
 
+// Import the 'cn' utility function for merging class names.
 import { cn } from '@/lib/utils';
+// Import Dialog components for use in CommandDialog.
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
+// The main Command container component.
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive>
@@ -21,6 +29,7 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
+// A dialog version of the Command component.
 const CommandDialog = ({ children, ...props }: DialogProps) => {
   return (
     <Dialog {...props}>
@@ -33,6 +42,7 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
   );
 };
 
+// The input field for the command palette.
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
@@ -49,9 +59,9 @@ const CommandInput = React.forwardRef<
     />
   </div>
 ));
-
 CommandInput.displayName = CommandPrimitive.Input.displayName;
 
+// The list that contains command items.
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
@@ -62,9 +72,9 @@ const CommandList = React.forwardRef<
     {...props}
   />
 ));
-
 CommandList.displayName = CommandPrimitive.List.displayName;
 
+// A component to display when there are no results.
 const CommandEmpty = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Empty>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
@@ -75,9 +85,9 @@ const CommandEmpty = React.forwardRef<
     {...props}
   />
 ));
-
 CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
 
+// A component to group command items.
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
@@ -91,9 +101,9 @@ const CommandGroup = React.forwardRef<
     {...props}
   />
 ));
-
 CommandGroup.displayName = CommandPrimitive.Group.displayName;
 
+// A separator between command items or groups.
 const CommandSeparator = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
@@ -106,6 +116,7 @@ const CommandSeparator = React.forwardRef<
 ));
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
 
+// An individual item in the command list.
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
@@ -119,9 +130,9 @@ const CommandItem = React.forwardRef<
     {...props}
   />
 ));
-
 CommandItem.displayName = CommandPrimitive.Item.displayName;
 
+// A component to display a keyboard shortcut next to a command item.
 const CommandShortcut = ({
   className,
   ...props
@@ -138,6 +149,7 @@ const CommandShortcut = ({
 };
 CommandShortcut.displayName = 'CommandShortcut';
 
+// Export all the Command components.
 export {
   Command,
   CommandDialog,

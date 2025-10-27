@@ -1,15 +1,24 @@
+
+// Import React and its hooks.
 import * as React from 'react';
+// Import the Select component primitives from Radix UI.
 import * as SelectPrimitive from '@radix-ui/react-select';
+// Import icons from the lucide-react library.
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 
+// Import the 'cn' utility function for merging class names.
 import { cn } from '@/lib/utils';
 
+// The main Select container component from Radix.
 const Select = SelectPrimitive.Root;
 
+// A component to group options within the Select.
 const SelectGroup = SelectPrimitive.Group;
 
+// A component that displays the selected value.
 const SelectValue = SelectPrimitive.Value;
 
+// The trigger component that opens/closes the select dropdown.
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
@@ -30,6 +39,7 @@ const SelectTrigger = React.forwardRef<
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
+// The button for scrolling up within the select content.
 const SelectScrollUpButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
@@ -47,6 +57,7 @@ const SelectScrollUpButton = React.forwardRef<
 ));
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
 
+// The button for scrolling down within the select content.
 const SelectScrollDownButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
@@ -65,6 +76,7 @@ const SelectScrollDownButton = React.forwardRef<
 SelectScrollDownButton.displayName =
   SelectPrimitive.ScrollDownButton.displayName;
 
+// The content part of the select, which appears as a dropdown.
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
@@ -97,6 +109,7 @@ const SelectContent = React.forwardRef<
 ));
 SelectContent.displayName = SelectPrimitive.Content.displayName;
 
+// A label for a group of items in the select.
 const SelectLabel = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
@@ -109,6 +122,7 @@ const SelectLabel = React.forwardRef<
 ));
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
+// An individual item within the select dropdown.
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
@@ -131,6 +145,7 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
+// A separator line between items or groups.
 const SelectSeparator = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
@@ -143,6 +158,7 @@ const SelectSeparator = React.forwardRef<
 ));
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
+// Export all the Select components for use in other parts of the application.
 export {
   Select,
   SelectGroup,

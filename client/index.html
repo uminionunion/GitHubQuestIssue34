@@ -1,17 +1,28 @@
+
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Specifies the character encoding for the HTML document -->
     <meta charset="UTF-8" />
+    <!-- Sets the viewport to ensure the site is responsive on all devices -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Defines the favicon for the website (SVG format) -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Defines a fallback favicon (ICO format) -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <!-- Defines the icon for Apple devices when added to the home screen -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Links to the web app manifest file for PWA capabilities -->
     <link rel="manifest" href="/site.webmanifest" />
+    <!-- Sets the theme color for the browser UI, used on mobile devices -->
     <meta name="theme-color" content="#ffffff" />
+    <!-- The title of the web page, displayed in the browser tab -->
     <title>Instance app</title>
   </head>
   <body>
+    <!-- The root element where the React application will be mounted -->
     <div id="root" class="contents"></div>
+    <!-- The main JavaScript file for the application, loaded as a module -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

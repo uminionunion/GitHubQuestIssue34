@@ -1,14 +1,25 @@
+
 {
   "compilerOptions": {
+    // Set the JavaScript language version for emitted JavaScript and include compatible library declarations.
     "target": "es2020",
+    // Specify what module code is generated. 'NodeNext' supports modern Node.js features.
     "module": "NodeNext",
+    // Specify how TypeScript looks up a file from a given module specifier.
     "moduleResolution": "NodeNext",
+    // Enable compatibility with Babel's 'esModuleInterop' for smoother ES6 module imports.
     "esModuleInterop": true,
+    // Specify the output directory for compiled files.
     "outDir": "dist/server",
+    // Skip type checking of declaration files.
     "skipLibCheck": true,
+    // Enforce consistent casing in file names.
     "forceConsistentCasingInFileNames": true,
+    // Allow importing .json files.
     "resolveJsonModule": true
   },
+  // Specifies an array of filenames or patterns to include in the program.
   "include": ["server/**/*"],
+  // Specifies an array of filenames or patterns that should be skipped when resolving include.
   "exclude": ["node_modules"]
 }

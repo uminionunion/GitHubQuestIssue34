@@ -1,9 +1,12 @@
 
+/* Import Tailwind's base styles, components, and utilities. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Define a layer for base styles. */
 @layer base {
+  /* Define CSS variables for the light theme. */
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 0%;
@@ -31,6 +34,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+  /* Define CSS variables for the dark theme. These override the root variables when the .dark class is present. */
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -58,10 +62,13 @@
     --chart-5: 340 75% 55%;
   }
 }
+/* Another base layer for global element styles. */
 @layer base {
+  /* Apply the border color variable to all elements by default. */
   * {
     @apply border-border;
   }
+  /* Apply background and text colors to the body element. */
   body {
     @apply bg-background text-foreground;
   }

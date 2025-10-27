@@ -1,13 +1,18 @@
+
+// Import React and its hooks.
 import * as React from 'react';
 
+// Import the 'cn' utility function for merging class names.
 import { cn } from '@/lib/utils';
 
+// The main Card container component.
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
+    // Use 'cn' to merge default styles with any custom classes.
     className={cn(
       'rounded-xl border bg-card text-card-foreground shadow',
       className,
@@ -15,8 +20,10 @@ const Card = React.forwardRef<
     {...props}
   />
 ));
+// Set the display name for debugging.
 Card.displayName = 'Card';
 
+// The header section of the card.
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -29,6 +36,7 @@ const CardHeader = React.forwardRef<
 ));
 CardHeader.displayName = 'CardHeader';
 
+// The title of the card, typically used inside CardHeader.
 const CardTitle = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -41,6 +49,7 @@ const CardTitle = React.forwardRef<
 ));
 CardTitle.displayName = 'CardTitle';
 
+// The description text of the card, typically used inside CardHeader.
 const CardDescription = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -53,6 +62,7 @@ const CardDescription = React.forwardRef<
 ));
 CardDescription.displayName = 'CardDescription';
 
+// The main content area of the card.
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -61,6 +71,7 @@ const CardContent = React.forwardRef<
 ));
 CardContent.displayName = 'CardContent';
 
+// The footer section of the card.
 const CardFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -73,6 +84,7 @@ const CardFooter = React.forwardRef<
 ));
 CardFooter.displayName = 'CardFooter';
 
+// Export all the Card-related components.
 export {
   Card,
   CardHeader,
