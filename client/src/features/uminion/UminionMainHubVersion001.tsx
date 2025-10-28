@@ -30,10 +30,12 @@ const UminionButton = ({
   number,
   containerSize,
   onClick,
+  style,
 }: {
   number: number;
   containerSize: { width: number; height: number };
   onClick: () => void;
+  style?: React.CSSProperties;
 }) => {
   // Determine if the button should be orange or black based on its number.
   const isOrange = (number - 1) % 2 === 0;
@@ -54,6 +56,7 @@ const UminionButton = ({
         width: `${buttonWidth}px`,
         height: `${buttonHeight}px`,
         fontSize: `${fontSize}px`,
+        ...style,
       }}
     >
       {/* Display the button number, padded with a leading zero if it's a single digit. */}
@@ -79,6 +82,11 @@ const UminionMainHubVersion001 = () => {
     // Open the modal for the clicked button.
     setActiveModal(buttonNumber);
   };
+
+  const topAndBottomButtonHeight = Math.max(15, size.height / 10);
+  const sideButtonContainerPadding = topAndBottomButtonHeight + 8; // 8 is for top-2 (4px) + gap
+
+  const horizontalButtonWidth = (size.width - 4 * 2) / 6; // 4px padding on each side
 
   return (
     <>
@@ -106,31 +114,32 @@ const UminionMainHubVersion001 = () => {
         bounds="parent"
       >
         <div
-          className="w-full h-full bg-zinc-300 border border-border/50 rounded-lg flex items-center justify-center relative p-2 drag-handle"
+          className="w-full h-full bg-zinc-300 border border-border/50 rounded-lg flex items-center justify-center relative p-2 drag-handle bg-cover bg-center"
+          style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}
           aria-label="main hub"
         >
           {/* Container for the top row of buttons (#01 to #06). */}
           <div className="absolute top-2 left-2 right-2 flex justify-between">
-            {[1, 2, 3, 4, 5, 6].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} />)}
+            {[1, 2, 3, 4, 5, 6].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ width: `${horizontalButtonWidth}px` }} />)}
           </div>
 
           {/* Container for the right column of buttons (#07 to #12). */}
-          <div className="absolute right-2 flex flex-col justify-between" style={{ top: `${size.height / 8}px`, bottom: `${size.height / 8}px` }}>
+          <div className="absolute right-2 flex flex-col justify-between" style={{ top: `${sideButtonContainerPadding}px`, bottom: `${sideButtonContainerPadding}px` }}>
             {[7, 8, 9, 10, 11, 12].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} />)}
           </div>
 
           {/* Container for the bottom row of buttons (#13 to #18). */}
           <div className="absolute bottom-2 left-2 right-2 flex justify-between">
-            {[18, 17, 16, 15, 14, 13].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} />)}
+            {[18, 17, 16, 15, 14, 13].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ width: `${horizontalButtonWidth}px` }} />)}
           </div>
 
           {/* Container for the left column of buttons (#19 to #24). */}
-          <div className="absolute left-2 flex flex-col justify-between flex-col-reverse" style={{ top: `${size.height / 8}px`, bottom: `${size.height / 8}px` }}>
+          <div className="absolute left-2 flex flex-col justify-between flex-col-reverse" style={{ top: `${sideButtonContainerPadding}px`, bottom: `${sideButtonContainerPadding}px` }}>
             {[19, 20, 21, 22, 23, 24].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} />)}
           </div>
 
           {/* The central text of the hub. */}
-          <span className="text-2xl font-bold text-black" style={{ fontSize: `${Math.max(16, size.width / 25)}px` }}>Main hub</span>
+          <span className="text-2xl font-bold text-white bg-black bg-opacity-50 px-2 py-1 rounded" style={{ fontSize: `${Math.max(16, size.width / 25)}px` }}>Main hub</span>
         </div>
       </Rnd>
 
@@ -141,6 +150,7 @@ const UminionMainHubVersion001 = () => {
           onClose={() => setActiveModal(null)}
           pageName={sisterUnionPages[activeModal - 1]}
           backgroundColor={modalColors[activeModal - 1]}
+          modalNumber={activeModal}
         />
       )}
     </>

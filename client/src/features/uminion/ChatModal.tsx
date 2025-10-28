@@ -1,53 +1,106 @@
 
-// Import React and its hooks.
-import React, { useState } from 'react';
-// Import Dialog components from the UI library.
+import React, { useState, useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-// Import other UI components.
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Define the props for the ChatModal component.
 interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   pageName: string;
   backgroundColor: string;
+  modalNumber: number;
 }
 
-// The main component for the chat modal.
+interface Message {
+  id: number;
+  content: string;
+  username: string;
+  is_anonymous: boolean;
+  timestamp: string;
+}
+
+interface User {
+  username: string;
+}
+
 const ChatModal: React.FC<ChatModalProps> = ({
   isOpen,
   onClose,
   pageName,
   backgroundColor,
+  modalNumber,
 }) => {
-  // State to manage the active tab.
   const [activeTab, setActiveTab] = useState(0);
-  // State for the password input.
   const [password, setPassword] = useState('');
-  // State to track if the password for the protected tab is correct.
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [users, setUsers] = useState<User[]>([]);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [modalOptionPage, setModalOptionPage] = useState(0);
+  const socketRef = useRef<Socket | null>(null);
+  const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Hardcoded password for the third tab.
   const correctPassword = 'uminion';
+  const roomName = `${pageName}-chatroom-${activeTab + 1}`;
 
-  // Function to handle tab clicks.
+  useEffect(() => {
+    if (isOpen) {
+      socketRef.current = io('http://localhost:3001', {
+        withCredentials: true,
+      });
+
+      socketRef.current.on('connect', () => {
+        console.log('Connected to socket server');
+        socketRef.current?.emit('joinRoom', roomName);
+      });
+
+      socketRef.current.on('loadMessages', (loadedMessages: Message[]) => {
+        setMessages(loadedMessages);
+      });
+
+      socketRef.current.on('receiveMessage', (message: Message) => {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      });
+
+      socketRef.current.on('updateUserList', (userList: User[]) => {
+        setUsers(userList);
+      });
+
+      return () => {
+        socketRef.current?.emit('leaveRoom', roomName);
+        socketRef.current?.disconnect();
+      };
+    }
+  }, [isOpen, roomName]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const handleTabClick = (index: number) => {
+    socketRef.current?.emit('leaveRoom', roomName);
     setActiveTab(index);
-    // Reset password state when switching tabs.
+    setMessages([]);
+    setUsers([]);
     setPassword('');
     if (index !== 2) {
       setIsUnlocked(false);
     }
   };
 
-  // Function to handle password submission.
   const handlePasswordSubmit = () => {
     if (password === correctPassword) {
       setIsUnlocked(true);
@@ -57,8 +110,29 @@ const ChatModal: React.FC<ChatModalProps> = ({
     setPassword('');
   };
 
-  // A list of dummy usernames for the user list.
-  const users = ['User1', 'User2', 'User3', 'User4', 'User5'];
+  const handleSendMessage = () => {
+    if (newMessage.trim() && socketRef.current) {
+      socketRef.current.emit('sendMessage', {
+        room: roomName,
+        content: newMessage,
+        isAnonymous,
+      });
+      setNewMessage('');
+    }
+  };
+
+  const modalOptions = Array.from({ length: 25 }, (_, i) => {
+    if (i + 1 === 2) return "Post Anonymously?";
+    return `Modal${String(modalNumber).padStart(3, '0')}Option${String(i + 1).padStart(3, '0')}`;
+  });
+
+  const visibleOptions = modalOptions.slice(modalOptionPage * 7, modalOptionPage * 7 + 7);
+
+  const handleModalOptionClick = (option: string) => {
+    if (option === "Post Anonymously?") {
+      setIsAnonymous(prev => !prev);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -70,9 +144,7 @@ const ChatModal: React.FC<ChatModalProps> = ({
           <DialogTitle>{pageName} Chat</DialogTitle>
         </DialogHeader>
         <div className="flex-grow flex overflow-hidden">
-          {/* Main chat area */}
           <div className="flex-grow flex flex-col">
-            {/* Tabs for different chatrooms */}
             <div className="flex border-b">
               {[...Array(7)].map((_, i) => (
                 <Button
@@ -86,10 +158,8 @@ const ChatModal: React.FC<ChatModalProps> = ({
               ))}
             </div>
 
-            {/* Chat content based on active tab */}
-            <div className="flex-grow p-4 overflow-y-auto">
+            <div className="flex-grow p-4 overflow-y-auto" ref={messagesEndRef}>
               {activeTab === 2 && !isUnlocked ? (
-                // Password prompt for the protected tab
                 <div className="flex flex-col items-center justify-center h-full">
                   <h3 className="text-lg font-semibold mb-4">
                     This chatroom is password protected.
@@ -105,39 +175,56 @@ const ChatModal: React.FC<ChatModalProps> = ({
                   </div>
                 </div>
               ) : (
-                // The actual chatroom content
-                <div>
-                  <h2 className="text-xl font-bold mb-4">
-                    Welcome to Chatroom {activeTab + 1}
-                  </h2>
-                  {/* Placeholder for chat messages */}
-                  <div className="space-y-4">
-                    <p>Chat message 1...</p>
-                    <p>Chat message 2...</p>
-                    <p>Chat message 3...</p>
-                  </div>
+                <div className="space-y-4">
+                  {messages.map((msg) => (
+                    <div key={msg.id}>
+                      <span className="font-bold">{msg.username}: </span>
+                      <span className={msg.is_anonymous ? 'text-orange-500' : 'text-black'}>{msg.content}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Chat input area */}
-            <div className="p-4 border-t flex gap-2">
-              <Input
-                placeholder="Type a message..."
-                disabled={activeTab === 2 && !isUnlocked}
-              />
-              <Button disabled={activeTab === 2 && !isUnlocked}>Send</Button>
+            <div className="p-4 border-t flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  disabled={(activeTab === 2 && !isUnlocked) || !user}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                />
+                <Button onClick={handleSendMessage} disabled={(activeTab === 2 && !isUnlocked) || !user}>Send</Button>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Button size="icon" variant="ghost" onClick={() => setModalOptionPage(p => Math.max(0, p - 1))} disabled={modalOptionPage === 0}>
+                  <ChevronLeft />
+                </Button>
+                {visibleOptions.map((option, i) => (
+                  <Button
+                    key={i}
+                    variant={option === "Post Anonymously?" && isAnonymous ? "secondary" : "outline"}
+                    size="sm"
+                    onClick={() => handleModalOptionClick(option)}
+                  >
+                    {option}
+                  </Button>
+                ))}
+                <Button size="icon" variant="ghost" onClick={() => setModalOptionPage(p => Math.min(Math.ceil(25 / 7) - 1, p + 1))} disabled={modalOptionPage >= Math.floor(24 / 7)}>
+                  <ChevronRight />
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* User list on the right side */}
           <div className="w-1/4 border-l p-4 overflow-y-auto">
             <h3 className="text-lg font-bold mb-4">Users Online</h3>
             <ul className="space-y-2">
-              {users.map((user, i) => (
+              {users.map((u, i) => (
                 <li key={i} className="flex items-center gap-2">
                   <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                  {user}
+                  {u.username}
                 </li>
               ))}
             </ul>

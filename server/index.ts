@@ -3,24 +3,39 @@
 import express from 'express';
 // Import 'dotenv' to load environment variables from a .env file.
 import dotenv from 'dotenv';
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import cookieParser from 'cookie-parser';
+
 // Import the function for setting up static file serving.
 import { setupStaticServing } from './static-serve.js';
+import authRouter from './auth.js';
+import { setupChat } from './chat.js';
 
 // Load environment variables from .env file into process.env.
 dotenv.config();
 
 // Create an instance of an Express application.
 const app = express();
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: `http://localhost:${process.env.VITE_PORT || 3000}`,
+    credentials: true,
+  },
+});
 
 // Middleware to parse incoming JSON requests.
 app.use(express.json());
 // Middleware to parse incoming requests with URL-encoded payloads.
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Example of a simple API endpoint. It's currently commented out.
-// app.get('/api/hello', (req: express.Request, res: express.Response) => {
-//   res.json({ message: 'Hello World!' });
-// });
+// API routes
+app.use('/api/auth', authRouter);
+
+// Setup chat
+setupChat(io);
 
 /**
  * An asynchronous function to configure and start the Express server.
@@ -34,7 +49,7 @@ export async function startServer(port) {
       setupStaticServing(app);
     }
     // Start the server and make it listen for incoming requests on the specified port.
-    app.listen(port, () => {
+    server.listen(port, () => {
       // Log a message to the console once the server is running.
       console.log(`API Server running on port ${port}`);
     });

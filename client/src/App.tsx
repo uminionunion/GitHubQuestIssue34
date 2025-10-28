@@ -11,11 +11,15 @@ import UminionMainHubVersion001 from '@/features/uminion/UminionMainHubVersion00
 import CalendarView from '@/features/calendar/CalendarView';
 // Import the Sister Union routes.
 import SisterUnionRoutes from '@/features/uminion/SisterUnionRoutes';
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import AuthModal from './features/auth/AuthModal';
 
 // A component for the main application layout.
 const MainLayout = () => {
   // State to manage the loading status. Initially true.
   const [isLoading, setIsLoading] = useState(true);
+  const { user, logout, isLoading: isAuthLoading } = useAuth();
+  const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'signup' }>({ isOpen: false, mode: 'login' });
 
   // useEffect hook to simulate a loading period.
   useEffect(() => {
@@ -35,6 +39,10 @@ const MainLayout = () => {
     });
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-zinc-900 text-foreground">
       {/* Header section of the page. */}
@@ -44,10 +52,19 @@ const MainLayout = () => {
           <h1 className="text-4xl font-bold text-center mb-4">Welcome to the Union</h1>
           {/* Container for the submit button and loading text. */}
           <div className="flex items-center gap-4 self-start">
-            {/* A disabled submit button. */}
-            <Button disabled className="bg-orange-400 hover:bg-orange-500 text-black">Submit</Button>
-            {/* Conditionally render the loading text if isLoading is true. */}
-            {isLoading && <span id="loading-text">loading...</span>}
+            {isAuthLoading ? (
+              <span id="loading-text">loading...</span>
+            ) : user ? (
+              <>
+                <Button onClick={() => alert('My Profile clicked')}>My Profile</Button>
+                <Button onClick={handleLogout} variant="destructive">Log Out</Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={() => setAuthModal({ isOpen: true, mode: 'signup' })} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
+                <Button onClick={() => setAuthModal({ isOpen: true, mode: 'login' })}>Log In?</Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -82,6 +99,13 @@ const MainLayout = () => {
           </div>
         </div>
       </footer>
+      {authModal.isOpen && (
+        <AuthModal
+          isOpen={authModal.isOpen}
+          mode={authModal.mode}
+          onClose={() => setAuthModal({ isOpen: false, mode: 'login' })}
+        />
+      )}
     </div>
   );
 }
@@ -90,7 +114,9 @@ const MainLayout = () => {
 function App() {
   return (
     <Router>
-      <MainLayout />
+      <AuthProvider>
+        <MainLayout />
+      </AuthProvider>
     </Router>
   );
 }
