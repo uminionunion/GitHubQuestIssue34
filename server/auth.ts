@@ -3,28 +3,38 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from './db.js';
+import { jsonObjectFrom } from 'kysely/helpers/sqlite';
 
 const router = Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
 router.post('/signup', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, email, phoneNumber } = req.body;
 
-  if (!username || !password) {
-    res.status(400).json({ message: 'Username and password are required' });
+  if (!username || !password || !email || !phoneNumber) {
+    res.status(400).json({ message: 'Username, password, email, and phone number are required' });
     return;
   }
 
   try {
     const existingUser = await db
       .selectFrom('users')
-      .where('username', '=', username)
+      .where((eb) => eb.or([
+        eb('username', '=', username),
+        eb('email', '=', email),
+        eb('phone_number', '=', phoneNumber)
+      ]))
       .selectAll()
       .executeTakeFirst();
 
     if (existingUser) {
-      res.status(409).json({ message: 'Username already exists' });
+        let message = 'An account with that ';
+        if (existingUser.username === username) message += 'username';
+        else if (existingUser.email === email) message += 'email';
+        else if (existingUser.phone_number === phoneNumber) message += 'phone number';
+        message += ' already exists. Please try logging in.';
+      res.status(409).json({ message });
       return;
     }
 
@@ -32,7 +42,7 @@ router.post('/signup', async (req, res) => {
 
     const newUser = await db
       .insertInto('users')
-      .values({ username, password: hashedPassword })
+      .values({ username, password: hashedPassword, email, phone_number: phoneNumber })
       .returningAll()
       .executeTakeFirst();
 

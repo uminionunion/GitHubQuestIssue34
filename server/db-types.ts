@@ -22,6 +22,10 @@ export interface Users {
   id: Generated<number>;
   username: string;
   password: string;
+  email: string | null;
+  phone_number: string | null;
+  profile_image_url: string | null;
+  cover_photo_url: string | null;
 }
 
 export interface DB {

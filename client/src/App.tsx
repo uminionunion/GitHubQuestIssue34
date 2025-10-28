@@ -13,6 +13,7 @@ import CalendarView from '@/features/calendar/CalendarView';
 import SisterUnionRoutes from '@/features/uminion/SisterUnionRoutes';
 import { AuthProvider, useAuth } from './hooks/useAuth.tsx';
 import AuthModal from './features/auth/AuthModal';
+import MyProfileModal from './features/profile/MyProfileModal';
 
 // A component for the main application layout.
 const MainLayout = () => {
@@ -20,6 +21,7 @@ const MainLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user, logout, isLoading: isAuthLoading } = useAuth();
   const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'signup' }>({ isOpen: false, mode: 'login' });
+  const [isProfileModalOpen, setProfileModalOpen] = useState(false);
 
   // useEffect hook to simulate a loading period.
   useEffect(() => {
@@ -56,13 +58,14 @@ const MainLayout = () => {
               <span id="loading-text">loading...</span>
             ) : user ? (
               <>
-                <Button onClick={() => alert('My Profile clicked')}>My Profile</Button>
+                <Button onClick={() => setProfileModalOpen(true)}>My Profile</Button>
                 <Button onClick={handleLogout} variant="destructive">Log Out</Button>
               </>
             ) : (
               <>
                 <Button onClick={() => setAuthModal({ isOpen: true, mode: 'signup' })} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
                 <Button onClick={() => setAuthModal({ isOpen: true, mode: 'login' })}>Log In?</Button>
+                <Button onClick={() => setProfileModalOpen(true)}>MyProfile</Button>
               </>
             )}
           </div>
@@ -104,6 +107,12 @@ const MainLayout = () => {
           isOpen={authModal.isOpen}
           mode={authModal.mode}
           onClose={() => setAuthModal({ isOpen: false, mode: 'login' })}
+        />
+      )}
+      {isProfileModalOpen && (
+        <MyProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setProfileModalOpen(false)}
         />
       )}
     </div>

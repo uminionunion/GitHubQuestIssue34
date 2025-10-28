@@ -43,8 +43,8 @@ const UminionButton = ({
   const buttonColor = isOrange ? 'bg-orange-400 hover:bg-orange-500' : 'bg-black hover:bg-zinc-800';
 
   // Calculate button dimensions and font size based on the container's size.
-  const buttonWidth = Math.max(20, containerSize.width / 15);
-  const buttonHeight = Math.max(15, containerSize.height / 10);
+  const buttonWidth = style?.width || Math.max(20, containerSize.width / 15);
+  const buttonHeight = style?.height || Math.max(15, containerSize.height / 10);
   const fontSize = Math.max(8, containerSize.width / 75);
 
   // Return the Button component with dynamic styles.
@@ -88,6 +88,9 @@ const UminionMainHubVersion001 = () => {
 
   const horizontalButtonWidth = (size.width - 4 * 2) / 6; // 4px padding on each side
 
+  const verticalAvailableHeight = size.height - (2 * sideButtonContainerPadding);
+  const sideButtonHeight = verticalAvailableHeight > 0 ? verticalAvailableHeight / 6 : 0;
+
   return (
     <>
       <Rnd
@@ -124,8 +127,8 @@ const UminionMainHubVersion001 = () => {
           </div>
 
           {/* Container for the right column of buttons (#07 to #12). */}
-          <div className="absolute right-2 flex flex-col justify-between" style={{ top: `${sideButtonContainerPadding}px`, bottom: `${sideButtonContainerPadding}px` }}>
-            {[7, 8, 9, 10, 11, 12].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} />)}
+          <div className="absolute right-2 flex flex-col" style={{ top: `${sideButtonContainerPadding}px`, bottom: `${sideButtonContainerPadding}px` }}>
+            {[7, 8, 9, 10, 11, 12].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ height: `${sideButtonHeight}px` }} />)}
           </div>
 
           {/* Container for the bottom row of buttons (#13 to #18). */}
@@ -134,12 +137,12 @@ const UminionMainHubVersion001 = () => {
           </div>
 
           {/* Container for the left column of buttons (#19 to #24). */}
-          <div className="absolute left-2 flex flex-col justify-between flex-col-reverse" style={{ top: `${sideButtonContainerPadding}px`, bottom: `${sideButtonContainerPadding}px` }}>
-            {[19, 20, 21, 22, 23, 24].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} />)}
+          <div className="absolute left-2 flex flex-col" style={{ top: `${sideButtonContainerPadding}px`, bottom: `${sideButtonContainerPadding}px` }}>
+            {[24, 23, 22, 21, 20, 19].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ height: `${sideButtonHeight}px` }} />)}
           </div>
 
           {/* The central text of the hub. */}
-          <span className="text-2xl font-bold text-white bg-black bg-opacity-50 px-2 py-1 rounded" style={{ fontSize: `${Math.max(16, size.width / 25)}px` }}>Main hub</span>
+          <span className="text-2xl font-bold text-white bg-black bg-opacity-50 px-2 py-1 rounded relative" style={{ fontSize: `${Math.max(16, size.width / 25)}px`, bottom: '25px' }}>Main Hub</span>
         </div>
       </Rnd>
 

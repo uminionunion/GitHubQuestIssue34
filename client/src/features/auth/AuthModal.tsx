@@ -22,18 +22,25 @@ interface AuthModalProps {
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const url = mode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+    const isSignup = mode === 'signup';
+    const url = isSignup ? '/api/auth/signup' : '/api/auth/login';
+    const body = isSignup
+      ? { username, password, email, phoneNumber }
+      : { username, password };
+
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(body),
       });
       const data = await response.json();
       if (response.ok) {
@@ -83,7 +90,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode }) => {
                 className="col-span-3"
               />
             </div>
-            {error && <p className="text-red-500 text-sm col-span-4">{error}</p>}
+            {mode === 'signup' && (
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email" className="text-right">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="phoneNumber" className="text-right">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="col-span-3"
+                  />
+                </div>
+              </>
+            )}
+            {error && <p className="text-red-500 text-sm col-span-4 text-center">{error}</p>}
           </div>
           <DialogFooter>
             <Button type="submit">{mode === 'login' ? 'Log In' : 'Sign Up'}</Button>
