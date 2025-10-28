@@ -11,7 +11,7 @@ import UminionMainHubVersion001 from '@/features/uminion/UminionMainHubVersion00
 import CalendarView from '@/features/calendar/CalendarView';
 // Import the Sister Union routes.
 import SisterUnionRoutes from '@/features/uminion/SisterUnionRoutes';
-import { AuthProvider, useAuth } from './hooks/useAuth';
+import { AuthProvider, useAuth } from './hooks/useAuth.tsx';
 import AuthModal from './features/auth/AuthModal';
 
 // A component for the main application layout.
