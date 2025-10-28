@@ -1,7 +1,7 @@
 
 import { Kysely, SqliteDialect } from 'kysely';
 import Database from 'better-sqlite3';
-import type { DB } from 'kysely-codegen';
+import type { DB } from './db-types.js';
 import path from 'path';
 import fs from 'fs';
 
