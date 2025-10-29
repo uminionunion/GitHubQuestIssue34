@@ -33,14 +33,6 @@ const MainLayout = () => {
     return () => clearTimeout(timer);
   }, []); // The empty dependency array means this effect runs only once after the initial render.
 
-  // Function to scroll the window to the top smoothly.
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  };
-
   const handleLogout = async () => {
     await logout();
   };
@@ -50,8 +42,6 @@ const MainLayout = () => {
       {/* Header section of the page. */}
       <header className="p-4 border-b border-border/50 shadow-lg">
         <div className="container mx-auto flex flex-col items-center">
-          {/* Main title. */}
-          <h1 className="text-4xl font-bold text-center mb-4">Welcome to the Union</h1>
           {/* Container for the submit button and loading text. */}
           <div className="flex items-center gap-4 self-start">
             {isAuthLoading ? (
@@ -90,19 +80,6 @@ const MainLayout = () => {
         )}
       </div>
 
-      {/* Footer section of the page. */}
-      <footer className="p-4 border-t border-border/50 shadow-lg mt-auto">
-        <div className="container mx-auto flex justify-center items-center relative">
-          {/* A friendly message. */}
-          <p className="text-lg">Please Come Again!</p>
-          {/* A button to scroll back to the top, positioned at the bottom right of the footer. */}
-          <div className="absolute bottom-0 right-0">
-            <Button variant="link" onClick={scrollToTop} className="text-orange-400">
-              back to the top?
-            </Button>
-          </div>
-        </div>
-      </footer>
       {authModal.isOpen && (
         <AuthModal
           isOpen={authModal.isOpen}
@@ -116,10 +93,6 @@ const MainLayout = () => {
           onClose={() => setProfileModalOpen(false)}
         />
       )}
-      <div className="p-4 border-t border-border/50 mt-4">
-        <h2 className="text-xl font-bold mb-2">Regarding PHP:</h2>
-        <p>Yes, I can write PHP code. I am a large language model with knowledge across many programming languages, including PHP. I can help with tasks like writing scripts, building web applications with frameworks like Laravel or Symfony, interacting with databases, and more. If you have a specific PHP task in mind, feel free to describe it!</p>
-      </div>
     </div>
   );
 }
