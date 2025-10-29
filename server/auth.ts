@@ -17,11 +17,13 @@ router.post('/signup', async (req, res) => {
     return;
   }
 
+  const finalUsername = username.startsWith('u') ? username : `u${username}`;
+
   try {
     const existingUser = await db
       .selectFrom('users')
       .where((eb) => eb.or([
-        eb('username', '=', username),
+        eb('username', '=', finalUsername),
         eb('email', '=', email),
         eb('phone_number', '=', phoneNumber)
       ]))
@@ -30,7 +32,7 @@ router.post('/signup', async (req, res) => {
 
     if (existingUser) {
         let message = 'An account with that ';
-        if (existingUser.username === username) message += 'username';
+        if (existingUser.username === finalUsername) message += 'username';
         else if (existingUser.email === email) message += 'email';
         else if (existingUser.phone_number === phoneNumber) message += 'phone number';
         message += ' already exists. Please try logging in.';
@@ -42,7 +44,7 @@ router.post('/signup', async (req, res) => {
 
     const newUser = await db
       .insertInto('users')
-      .values({ username, password: hashedPassword, email, phone_number: phoneNumber })
+      .values({ username: finalUsername, password: hashedPassword, email, phone_number: phoneNumber })
       .returningAll()
       .executeTakeFirst();
 

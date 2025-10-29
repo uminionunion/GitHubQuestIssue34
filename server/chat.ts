@@ -10,56 +10,63 @@ interface UserPayload {
   username: string;
 }
 
+interface SocketWithUser extends Socket {
+    user?: UserPayload;
+    anonymousId?: string;
+}
+
 export function setupChat(io: SocketIOServer) {
   const usersInRooms: Record<string, Record<string, { username: string }>> = {};
+  let anonymousCounter = 0;
 
-  io.use((socket, next) => {
+  io.use((socket: SocketWithUser, next) => {
     const cookie = socket.handshake.headers.cookie;
     if (cookie) {
       const token = cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
       if (token) {
         try {
           const payload = jwt.verify(token, JWT_SECRET) as UserPayload;
-          (socket as any).user = payload;
+          socket.user = payload;
           return next();
         } catch (err) {
           // Invalid token
         }
       }
     }
-    // Allow unauthenticated users to connect but they won't be able to send messages
+    // Assign an anonymous ID if not logged in
+    anonymousCounter++;
+    socket.anonymousId = `Anonymous${String(anonymousCounter).padStart(3, '0')}`;
     next();
   });
 
-  io.on('connection', (socket: Socket) => {
-    console.log('A user connected:', socket.id);
-    const user = (socket as any).user as UserPayload | undefined;
-
+  io.on('connection', (socket: SocketWithUser) => {
+    console.log('A user connected:', socket.id, 'as', socket.user?.username || socket.anonymousId);
+    
     socket.on('joinRoom', async (room) => {
       socket.join(room);
-      console.log(`User ${user?.username || socket.id} joined room: ${room}`);
+      const displayName = socket.user?.username || socket.anonymousId;
+      console.log(`User ${displayName} joined room: ${room}`);
 
-      if (user) {
-        if (!usersInRooms[room]) {
-          usersInRooms[room] = {};
-        }
-        usersInRooms[room][socket.id] = { username: user.username };
-        io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
+      if (!usersInRooms[room]) {
+        usersInRooms[room] = {};
       }
+      usersInRooms[room][socket.id] = { username: displayName! };
+      io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
+      
 
       try {
         const messages = await db
           .selectFrom('messages')
-          .innerJoin('users', 'users.id', 'messages.user_id')
+          .leftJoin('users', 'users.id', 'messages.user_id')
           .where('room', '=', room)
           .orderBy('timestamp', 'asc')
           .limit(50)
-          .select(['messages.id', 'messages.content', 'messages.is_anonymous', 'messages.timestamp', 'users.username'])
+          .select(['messages.id', 'messages.content', 'messages.is_anonymous', 'messages.timestamp', 'users.username', 'messages.anonymous_username'])
           .execute();
         
         const formattedMessages = messages.map(msg => ({
           ...msg,
-          username: msg.is_anonymous ? 'Anonymous' : msg.username,
+          username: msg.is_anonymous ? (msg.anonymous_username || 'Anonymous') : msg.username,
         }));
 
         socket.emit('loadMessages', formattedMessages);
@@ -69,21 +76,22 @@ export function setupChat(io: SocketIOServer) {
     });
 
     socket.on('sendMessage', async (data: { room: string; content: string; isAnonymous: boolean }) => {
-      if (!user) {
-        socket.emit('error', 'You must be logged in to send messages.');
-        return;
-      }
-
       const { room, content, isAnonymous } = data;
       
+      if (!socket.user && !isAnonymous) {
+          socket.emit('error', 'You must be logged in to send non-anonymous messages.');
+          return;
+      }
+
       try {
         const newMessage = await db
           .insertInto('messages')
           .values({
             content,
             room,
-            user_id: user.userId,
-            is_anonymous: isAnonymous,
+            user_id: socket.user?.userId,
+            is_anonymous: socket.user ? isAnonymous : true,
+            anonymous_username: socket.user ? null : socket.anonymousId,
           })
           .returningAll()
           .executeTakeFirst();
@@ -92,8 +100,8 @@ export function setupChat(io: SocketIOServer) {
           const messageForClient = {
             id: newMessage.id,
             content: newMessage.content,
-            username: isAnonymous ? 'Anonymous' : user.username,
-            is_anonymous: newMessage.is_anonymous,
+            username: (socket.user && !isAnonymous) ? socket.user.username : (newMessage.anonymous_username || 'Anonymous'),
+            is_anonymous: socket.user ? isAnonymous : true,
             timestamp: newMessage.timestamp,
           };
           io.to(room).emit('receiveMessage', messageForClient);
@@ -105,21 +113,21 @@ export function setupChat(io: SocketIOServer) {
 
     socket.on('leaveRoom', (room) => {
       socket.leave(room);
-      console.log(`User ${user?.username || socket.id} left room: ${room}`);
-      if (user && usersInRooms[room]) {
+      const displayName = socket.user?.username || socket.anonymousId;
+      console.log(`User ${displayName} left room: ${room}`);
+      if (usersInRooms[room]) {
         delete usersInRooms[room][socket.id];
         io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
       }
     });
 
     socket.on('disconnect', () => {
-      console.log('User disconnected:', socket.id);
-      if (user) {
-        for (const room in usersInRooms) {
-          if (usersInRooms[room][socket.id]) {
-            delete usersInRooms[room][socket.id];
-            io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
-          }
+      const displayName = socket.user?.username || socket.anonymousId;
+      console.log('User disconnected:', socket.id, 'as', displayName);
+      for (const room in usersInRooms) {
+        if (usersInRooms[room][socket.id]) {
+          delete usersInRooms[room][socket.id];
+          io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
         }
       }
     });

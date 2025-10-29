@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search } from 'lucide-react';
 import MainHubUpgradeV001ForChatModal from '../uminion/MainHubUpgradeV001ForChatModal';
 
 interface MainHubUpgradeV001ForMyProfileModalProps {
@@ -37,9 +37,61 @@ const MainHubUpgradeV001ForSocialIcon = ({ href, children }: { href: string, chi
   </a>
 );
 
+const ProductBox = ({ product }) => {
+    const [inCart, setInCart] = useState(false);
+
+    const handleCartClick = () => {
+        setInCart(!inCart);
+        // Here you would typically call an API to update the cart
+    };
+
+    if (!product) return <div className="h-48 border rounded-md p-2 flex items-center justify-center text-muted-foreground">No Product</div>;
+
+    return (
+        <div className="border rounded-md p-2 relative h-48">
+            <div className="absolute top-1 left-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded">{product.name}</div>
+            <div className="absolute top-1 right-1">
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <Search className="h-4 w-4" />
+                </Button>
+            </div>
+            <div className="h-full bg-cover bg-center" style={{ backgroundImage: `url('${product.image_url}')` }}></div>
+            <div className="absolute bottom-1 left-1">
+                <Button variant="outline" size="icon" className="h-6 w-6" onClick={handleCartClick}>
+                    {inCart ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    <ShoppingCart className="h-4 w-4" />
+                </Button>
+            </div>
+            {product.price && (
+                <div className="absolute bottom-1 right-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded">${product.price.toFixed(2)}</div>
+            )}
+        </div>
+    );
+};
+
+
 const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfileModalProps> = ({ isOpen, onClose }) => {
   const MainHubUpgradeV001ForUHomeHubButtons = Array.from({ length: 24 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
+  const [products, setProducts] = useState([]);
+  const [centerRightView, setCenterRightView] = useState('UnionSAM#20');
+  const centerRightViews = ['UnionEvent#12', 'UnionPolitic#19', 'UnionSAM#20'];
+
+  useEffect(() => {
+    // This would fetch products from an API
+    const fetchProducts = async () => {
+        // Dummy data until API is ready
+        const dummyProducts = [
+            { id: 1, name: 'Tapestry', price: 49.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg' },
+            { id: 2, name: 'T-Shirt', price: 24.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png' },
+            { id: 3, name: 'Classic Logo', price: 19.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png' },
+            { id: 4, name: 'Ukraine Logo', price: 15.00, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png' },
+            { id: 5, name: 'Union Card', price: 9.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png' },
+        ];
+        setProducts(dummyProducts);
+    };
+    fetchProducts();
+  }, []);
 
   const MainHubUpgradeV001ForSisterUnionPages = [
     'SisterUnion001NewEngland', 'SisterUnion002CentralEastCoast', 'SisterUnion003SouthEast',
@@ -59,6 +111,48 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
 
   const handleCloseChatModal = () => {
     setActiveChatModal(null);
+  };
+
+  const navigateCenterRight = (direction: 'left' | 'right') => {
+    const currentIndex = centerRightViews.indexOf(centerRightView);
+    let nextIndex;
+    if (direction === 'right') {
+        nextIndex = (currentIndex + 1) % centerRightViews.length;
+    } else {
+        nextIndex = (currentIndex - 1 + centerRightViews.length) % centerRightViews.length;
+    }
+    setCenterRightView(centerRightViews[nextIndex]);
+  };
+
+  const renderCenterRightContent = () => {
+    switch (centerRightView) {
+        case 'UnionSAM#20':
+            return (
+                <div className="space-y-2">
+                    <ProductBox product={products[0]} />
+                    <ProductBox product={products[1]} />
+                    <ProductBox product={products[2]} />
+                    <ProductBox product={products[3]} />
+                    <ProductBox product={products[4]} />
+                </div>
+            );
+        case 'UnionPolitic#19':
+            return (
+                <div className="space-y-2">
+                    <ProductBox product={products[0]} />
+                    <ProductBox product={products[1]} />
+                    <ProductBox product={products[2]} />
+                </div>
+            );
+        case 'UnionEvent#12':
+            return (
+                <div className="space-y-2">
+                    <ProductBox product={products[0]} />
+                </div>
+            );
+        default:
+            return null;
+    }
   };
 
   return (
@@ -111,9 +205,9 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsCenterRightSection" className="w-[20%] p-4 border-l overflow-y-auto">
                 <div className="flex items-center justify-center mb-4">
-                    <Button variant="ghost" size="icon"><ChevronLeft /></Button>
-                    <h3 className="text-center font-bold mx-4">UnionSAM#20</h3>
-                    <Button variant="ghost" size="icon"><ChevronRight /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('left')}><ChevronLeft /></Button>
+                    <h3 className="text-center font-bold mx-4">{centerRightView}</h3>
+                    <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('right')}><ChevronRight /></Button>
                 </div>
                 <div className="space-y-4">
                   <div id="MainHubUpgradeV001ForMainStore" className="border rounded-md p-2">
@@ -125,7 +219,6 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                             </Button>
                         </a>
                     </div>
-                    <div className="h-32 bg-cover bg-center mt-2" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg')" }}></div>
                   </div>
                   <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
                     <div className="flex justify-between items-center">
@@ -137,20 +230,8 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                         </div>
                         {/* Placeholder for earnings */}
                     </div>
-                    <div className="h-32 bg-cover bg-center mt-2" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png')" }}></div>
                   </div>
-                  <div id="MainHubUpgradeV001ForUnionSAM20MyProfileExtras001" className="border rounded-md p-2">
-                    <h4 className="font-semibold text-center">Extras 001</h4>
-                    <div className="h-32 bg-cover bg-center mt-2" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png')" }}></div>
-                  </div>
-                  <div id="MainHubUpgradeV001ForUnionSAM20MyProfileExtras002" className="border rounded-md p-2">
-                    <h4 className="font-semibold text-center">Extras 002</h4>
-                    <div className="h-32 bg-cover bg-center mt-2" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png')" }}></div>
-                  </div>
-                  <div id="MainHubUpgradeV001ForUnionSAM20MyProfileExtras003" className="border rounded-md p-2">
-                    <h4 className="font-semibold text-center">Extras 003</h4>
-                    <div className="h-32 bg-cover bg-center mt-2" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png')" }}></div>
-                  </div>
+                  {renderCenterRightContent()}
                 </div>
               </div>
             </div>

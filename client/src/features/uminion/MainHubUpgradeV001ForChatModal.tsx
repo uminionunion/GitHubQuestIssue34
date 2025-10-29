@@ -10,9 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth.tsx';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User as UserIcon } from 'lucide-react';
 
 interface MainHubUpgradeV001ForChatModalProps {
   isOpen: boolean;
@@ -56,6 +54,8 @@ const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalPro
   const correctPassword = 'uminion';
   const roomName = `${pageName}-chatroom-${activeTab + 1}`;
 
+  const restrictedTabs = [1, 3, 4, 5, 6]; // Indices: 2, 4, 5, 6, 7
+
   useEffect(() => {
     if (isOpen) {
       socketRef.current = io('http://localhost:3001', {
@@ -91,6 +91,10 @@ const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalPro
   }, [messages]);
 
   const handleTabClick = (index: number) => {
+    if (restrictedTabs.includes(index) && !user) {
+      alert('You must be logged in to access this chatroom.');
+      return;
+    }
     socketRef.current?.emit('leaveRoom', roomName);
     setActiveTab(index);
     setMessages([]);
@@ -130,8 +134,28 @@ const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalPro
 
   const handleModalOptionClick = (option: string) => {
     if (option === "Post Anonymously?") {
+      if (!user) {
+        alert("You must be logged in to choose to post anonymously.");
+        return;
+      }
       setIsAnonymous(prev => !prev);
     }
+  };
+
+  const isChatDisabled = (activeTab === 2 && !isUnlocked) || (restrictedTabs.includes(activeTab) && !user);
+
+  const getChatTabs = () => {
+    let tabs = [...Array(7)].map((_, i) => ({
+      label: `Chatroom ${i + 1}`,
+      isProtected: i === 2,
+      isLoginRequired: restrictedTabs.includes(i),
+    }));
+
+    if (modalNumber === 10) {
+      tabs = tabs.slice(0, 3);
+      tabs.push({ label: '+ User Created Chatrooms:>', isProtected: false, isLoginRequired: true });
+    }
+    return tabs;
   };
 
   return (
@@ -146,34 +170,43 @@ const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalPro
         <div className="flex-grow flex overflow-hidden">
           <div className="flex-grow flex flex-col">
             <div className="flex border-b">
-              {[...Array(7)].map((_, i) => (
+              {getChatTabs().map((tab, i) => (
                 <Button
                   key={i}
                   variant={activeTab === i ? 'secondary' : 'ghost'}
                   className="rounded-none"
                   onClick={() => handleTabClick(i)}
+                  disabled={tab.isLoginRequired && !user}
                 >
-                  Chatroom {i + 1} {i === 2 ? ' (Protected)' : ''}
+                  {tab.label} {tab.isProtected ? ' (P)' : ''}
                 </Button>
               ))}
             </div>
 
             <div className="flex-grow p-4 overflow-y-auto" ref={messagesEndRef}>
-              {activeTab === 2 && !isUnlocked ? (
-                <div className="flex flex-col items-center justify-center h-full">
-                  <h3 className="text-lg font-semibold mb-4">
-                    This chatroom is password protected.
-                  </h3>
-                  <div className="flex gap-2">
-                    <Input
-                      type="password"
-                      placeholder="Enter password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <Button onClick={handlePasswordSubmit}>Enter</Button>
-                  </div>
-                </div>
+              {isChatDisabled ? (
+                 <div className="flex flex-col items-center justify-center h-full">
+                  {activeTab === 2 && !isUnlocked ? (
+                    <>
+                      <h3 className="text-lg font-semibold mb-4">
+                        This chatroom is password protected.
+                      </h3>
+                      <div className="flex gap-2">
+                        <Input
+                          type="password"
+                          placeholder="Enter password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <Button onClick={handlePasswordSubmit}>Enter</Button>
+                      </div>
+                    </>
+                  ) : (
+                     <h3 className="text-lg font-semibold mb-4">
+                        You must be logged in to access this chatroom.
+                      </h3>
+                  )}
+                 </div>
               ) : (
                 <div className="space-y-4">
                   {messages.map((msg) => (
@@ -192,10 +225,10 @@ const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalPro
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  disabled={(activeTab === 2 && !isUnlocked) || !user}
+                  disabled={isChatDisabled}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 />
-                <Button onClick={handleSendMessage} disabled={(activeTab === 2 && !isUnlocked) || !user}>Send</Button>
+                <Button onClick={handleSendMessage} disabled={isChatDisabled}>Send</Button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <Button size="icon" variant="ghost" onClick={() => setModalOptionPage(p => Math.max(0, p - 1))} disabled={modalOptionPage === 0}>
@@ -223,8 +256,8 @@ const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalPro
             <ul className="space-y-2">
               {users.map((u, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                  {u.username}
+                  <UserIcon className="h-5 w-5 text-muted-foreground" />
+                  <span>{u.username}</span>
                 </li>
               ))}
             </ul>
