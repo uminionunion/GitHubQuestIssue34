@@ -8,8 +8,14 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search } from 'lucide-react';
+import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play } from 'lucide-react';
 import MainHubUpgradeV001ForChatModal from '../uminion/MainHubUpgradeV001ForChatModal';
+import { useAuth } from '@/hooks/useAuth';
+import MainHubUpgradeV001ForAddProductModal from './MainHubUpgradeV001ForAddProductModal';
+import MainHubUpgradeV001ForProductDetailModal from './MainHubUpgradeV001ForProductDetailModal';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface MainHubUpgradeV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -37,50 +43,142 @@ const MainHubUpgradeV001ForSocialIcon = ({ href, children }: { href: string, chi
   </a>
 );
 
-const ProductBox = ({ product }) => {
+const ProductBox = ({ product, onMagnify }) => {
     const [inCart, setInCart] = useState(false);
 
     const handleCartClick = () => {
         setInCart(!inCart);
-        // Here you would typically call an API to update the cart
     };
 
     if (!product) return <div className="h-48 border rounded-md p-2 flex items-center justify-center text-muted-foreground">No Product</div>;
 
     return (
-        <div className="border rounded-md p-2 relative h-48">
-            <div className="absolute top-1 left-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded">{product.name}</div>
-            <div className="absolute top-1 right-1">
-                <Button variant="ghost" size="icon" className="h-6 w-6">
+        <div className="border rounded-md p-2 relative h-48 group">
+            <div className="absolute top-1 left-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded z-10">{product.name}</div>
+            <div className="absolute top-1 right-1 z-10">
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onMagnify(product)}>
                     <Search className="h-4 w-4" />
                 </Button>
             </div>
             <div className="h-full bg-cover bg-center" style={{ backgroundImage: `url('${product.image_url}')` }}></div>
-            <div className="absolute bottom-1 left-1">
+            <div className="absolute bottom-1 left-1 z-10">
                 <Button variant="outline" size="icon" className="h-6 w-6" onClick={handleCartClick}>
                     {inCart ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     <ShoppingCart className="h-4 w-4" />
                 </Button>
             </div>
             {product.price && (
-                <div className="absolute bottom-1 right-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded">${product.price.toFixed(2)}</div>
+                <div className="absolute bottom-1 right-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded z-10">${product.price.toFixed(2)}</div>
             )}
         </div>
     );
 };
 
+const MyBroadcastsView = () => (
+    <div className="grid grid-cols-2 gap-8 h-full">
+        {/* Left Side: Create Broadcast */}
+        <div className="border-r pr-8">
+            <h4 className="font-bold text-lg mb-4">Want to Broadcast something?</h4>
+            <div className="space-y-4">
+                <div>
+                    <Label htmlFor="broadcast-name">Broadcast Name</Label>
+                    <Input id="broadcast-name" placeholder="e.g., My Weekly Podcast" />
+                </div>
+                <div>
+                    <Label htmlFor="episode-name">Episode Name</Label>
+                    <Input id="episode-name" placeholder="e.g., Episode 1: The Beginning" />
+                </div>
+                <div>
+                    <Label htmlFor="media-upload">Upload Media (MP3/MP4) or Record</Label>
+                    <div className="flex gap-2">
+                        <Input id="media-upload" type="file" accept="audio/mp3,video/mp4" />
+                        <Button variant="outline">Record</Button>
+                    </div>
+                </div>
+                <div>
+                    <Label htmlFor="cover-image">Cover Image</Label>
+                    <Input id="cover-image" type="file" accept="image/*" />
+                </div>
+                <div>
+                    <Label htmlFor="extra-images">Extra Images (up to 9)</Label>
+                    <Input id="extra-images" type="file" accept="image/*" multiple />
+                </div>
+                <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description" placeholder="Describe your episode..." />
+                </div>
+                <div>
+                    <Label>Broadcast Date & Time</Label>
+                    <div className="flex gap-2">
+                        <Input type="date" />
+                        <Input type="time" />
+                    </div>
+                </div>
+                <div>
+                    <Label htmlFor="tags">Tags (up to 10)</Label>
+                    <Input id="tags" placeholder="e.g., tech, news, comedy" />
+                </div>
+                <div>
+                    <Label htmlFor="website-name">Website Name</Label>
+                    <Input id="website-name" placeholder="your-website.com" />
+                </div>
+                <Button className="w-full">Submit</Button>
+            </div>
+        </div>
+
+        {/* Right Side: Add Episode */}
+        <div className="flex flex-col items-center justify-center text-center bg-muted/50 rounded-md p-8">
+            <h4 className="font-bold text-lg mb-4">Want to Add Another Episode?</h4>
+            <p className="text-muted-foreground">Create a broadcast first to add more episodes.</p>
+        </div>
+    </div>
+);
+
+const BroadcastView = ({ broadcast }) => (
+    <div className="flex gap-6">
+        <div className="w-1/3">
+            <div className="aspect-square bg-muted rounded-md mb-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
+            <div className="flex justify-between items-center">
+                <Button variant="ghost" size="icon"><ChevronLeft /></Button>
+                <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
+                <Button variant="ghost" size="icon"><ChevronRight /></Button>
+            </div>
+        </div>
+        <div className="w-2/3">
+            <div className="flex items-center gap-2 mb-2">
+                <Button variant="outline" size="icon"><Play /></Button>
+                <h4 className="font-semibold">{broadcast.subtitle}</h4>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+                {broadcast.extraImages.slice(0,3).map((img, i) => <div key={i} className="aspect-square bg-muted rounded-md bg-cover bg-center" style={{backgroundImage: `url(${img})`}}></div>)}
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">{broadcast.description}</p>
+            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
+        </div>
+    </div>
+);
+
 
 const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfileModalProps> = ({ isOpen, onClose }) => {
+  const { user } = useAuth();
   const MainHubUpgradeV001ForUHomeHubButtons = Array.from({ length: 24 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
   const [products, setProducts] = useState([]);
   const [centerRightView, setCenterRightView] = useState('UnionSAM#20');
   const centerRightViews = ['UnionEvent#12', 'UnionPolitic#19', 'UnionSAM#20'];
+  const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
+
+  const [broadcastView, setBroadcastView] = useState('UnionNews#14');
+  const broadcasts = {
+      'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'uAdmin', subtitle: 'The latest news from the Union.', logo: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', extraImages: ['https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png'], description: 'This week, we cover the latest developments in Union infrastructure and upcoming community events. Stay tuned for special announcements!', website: 'https://uminion.com' },
+      'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'uDJ', subtitle: '24/7 tunes for the Union.', logo: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', extraImages: [], description: 'Non-stop music curated for our members. Send in your requests!', website: 'https://uminion.com' },
+  };
+  const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
   useEffect(() => {
-    // This would fetch products from an API
     const fetchProducts = async () => {
-        // Dummy data until API is ready
         const dummyProducts = [
             { id: 1, name: 'Tapestry', price: 49.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg' },
             { id: 2, name: 'T-Shirt', price: 24.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png' },
@@ -93,6 +191,11 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     fetchProducts();
   }, []);
 
+  const handleMagnify = (product) => {
+    setSelectedProduct(product);
+    setProductDetailModalOpen(true);
+  };
+
   const MainHubUpgradeV001ForSisterUnionPages = [
     'SisterUnion001NewEngland', 'SisterUnion002CentralEastCoast', 'SisterUnion003SouthEast',
     'SisterUnion004TheGreatLakesAndAppalachia', 'SisterUnion005CentralSouth', 'SisterUnion006CentralNorth',
@@ -103,56 +206,34 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     'SisterUnion019UnionPolitic', 'SisterUnion020UnionSAM', 'SisterUnion021UnionUkraineAndTheCrystalPalace',
     'SisterUnion022FestyLove', 'SisterUnion023UnionLegal', 'SisterUnion024UnionMarket',
   ];
-  const MainHubUpgradeV001ForModalColors = Array.from({ length: 24 }, (_, i) => `hsl(${i * 15}, 70%, 80%)`);
+  const MainHubUpgradeV001ForModalColors = Array.from({ length: 24 }, (_, i) => `hsl(${i * 15}, 70%, 50%)`);
 
-  const handleUHomeHubClick = (buttonNumber: number) => {
-    setActiveChatModal(buttonNumber);
-  };
-
-  const handleCloseChatModal = () => {
-    setActiveChatModal(null);
-  };
+  const handleUHomeHubClick = (buttonNumber: number) => setActiveChatModal(buttonNumber);
+  const handleCloseChatModal = () => setActiveChatModal(null);
 
   const navigateCenterRight = (direction: 'left' | 'right') => {
     const currentIndex = centerRightViews.indexOf(centerRightView);
-    let nextIndex;
-    if (direction === 'right') {
-        nextIndex = (currentIndex + 1) % centerRightViews.length;
-    } else {
-        nextIndex = (currentIndex - 1 + centerRightViews.length) % centerRightViews.length;
-    }
+    const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + centerRightViews.length) % centerRightViews.length;
     setCenterRightView(centerRightViews[nextIndex]);
   };
 
+  const navigateBroadcast = (direction: 'left' | 'right') => {
+    const currentIndex = broadcastKeys.indexOf(broadcastView);
+    const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + broadcastKeys.length) % broadcastKeys.length;
+    setBroadcastView(broadcastKeys[nextIndex]);
+  };
+
   const renderCenterRightContent = () => {
-    switch (centerRightView) {
-        case 'UnionSAM#20':
-            return (
-                <div className="space-y-2">
-                    <ProductBox product={products[0]} />
-                    <ProductBox product={products[1]} />
-                    <ProductBox product={products[2]} />
-                    <ProductBox product={products[3]} />
-                    <ProductBox product={products[4]} />
-                </div>
-            );
-        case 'UnionPolitic#19':
-            return (
-                <div className="space-y-2">
-                    <ProductBox product={products[0]} />
-                    <ProductBox product={products[1]} />
-                    <ProductBox product={products[2]} />
-                </div>
-            );
-        case 'UnionEvent#12':
-            return (
-                <div className="space-y-2">
-                    <ProductBox product={products[0]} />
-                </div>
-            );
-        default:
-            return null;
-    }
+    const productSlices = {
+        'UnionSAM#20': products.slice(0, 5),
+        'UnionPolitic#19': products.slice(0, 3),
+        'UnionEvent#12': products.slice(0, 1),
+    };
+    return (
+        <div className="space-y-2">
+            {(productSlices[centerRightView] || []).map((p, i) => <ProductBox key={i} product={p} onMagnify={handleMagnify} />)}
+        </div>
+    );
   };
 
   return (
@@ -176,12 +257,16 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
               <div id="MainHubUpgradeV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
                 <Button className="absolute">Change Cover</Button>
               </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4">
+              <div id="MainHubUpgradeV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4 relative">
                 <Avatar className="h-32 w-32">
                   <AvatarImage src="https://uminion.com/wp-content/uploads/2025/02/iArt06532.png" alt="Profile" />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <Button size="sm" className="absolute">Edit</Button>
+                <Button size="sm" className="absolute top-0 right-0">Edit</Button>
+                <div className="absolute bottom-0 right-0 flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                    <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
+                </div>
               </div>
             </div>
 
@@ -197,11 +282,15 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsCenterCenterSection" className="w-[60%] p-4 overflow-y-auto">
                 <div className="flex items-center justify-center mb-4">
-                  <Button variant="ghost" size="icon"><ChevronLeft /></Button>
-                  <h3 className="text-center font-bold mx-4">Broadcasts- UnionNews#14</h3>
-                  <Button variant="ghost" size="icon"><ChevronRight /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')} disabled={broadcastView === 'MyBroadcasts'}>
+                    <ChevronLeft />
+                  </Button>
+                  <h3 className="text-center font-bold mx-4">{broadcasts[broadcastView]?.title || 'MyBroadcasts'}</h3>
+                  <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
+                    <ChevronRight />
+                  </Button>
                 </div>
-                {/* Content for center section goes here */}
+                {broadcastView === 'MyBroadcasts' ? <MyBroadcastsView /> : <BroadcastView broadcast={broadcasts[broadcastView]} />}
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsCenterRightSection" className="w-[20%] p-4 border-l overflow-y-auto">
                 <div className="flex items-center justify-center mb-4">
@@ -223,7 +312,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                   <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
-                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2">
+                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => setAddProductModalOpen(true)}>
                                 <Eye />
                             </Button>
                             <h4 className="font-semibold text-center">Your Store:</h4>
@@ -271,6 +360,12 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
           backgroundColor={MainHubUpgradeV001ForModalColors[activeChatModal - 1]}
           modalNumber={activeChatModal}
         />
+      )}
+      {isAddProductModalOpen && (
+        <MainHubUpgradeV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
+      )}
+      {isProductDetailModalOpen && (
+        <MainHubUpgradeV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
       )}
     </>
   );

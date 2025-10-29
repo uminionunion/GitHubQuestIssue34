@@ -23,7 +23,14 @@ const MainHubUpgradeV001ForSisterUnionPages = [
 ];
 
 // Generate a list of 24 distinct background colors.
-const MainHubUpgradeV001ForModalColors = Array.from({ length: 24 }, (_, i) => `hsl(${i * 15}, 70%, 80%)`);
+const MainHubUpgradeV001ForModalColors = [
+    `hsl(210, 40%, 35%)`, `hsl(10, 60%, 45%)`, `hsl(140, 40%, 40%)`,
+    `hsl(30, 65%, 48%)`, `hsl(260, 45%, 42%)`, `hsl(340, 55%, 50%)`,
+    `hsl(50, 50%, 45%)`, `hsl(190, 50%, 40%)`, `hsl(300, 40%, 45%)`,
+    `hsl(80, 40%, 40%)`, `hsl(230, 50%, 55%)`, `hsl(0, 0%, 25%)`,
+    `hsl(160, 50%, 35%)`, `hsl(320, 50%, 50%)`, `hsl(200, 60%, 40%)`,
+    ...Array.from({ length: 9 }, (_, i) => `hsl(${(i + 15) * 15}, 70%, 80%)`)
+];
 
 // A reusable component for the numbered buttons around the hub.
 const MainHubUpgradeV001ForUminionButton = ({

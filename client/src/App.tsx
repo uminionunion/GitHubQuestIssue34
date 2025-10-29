@@ -54,6 +54,7 @@ const MainLayout = () => {
             ) : (
               <>
                 <span className="mr-2">MainHubUpgradeV001ForLoading002</span>
+                <span className="mr-2">MainHubUpgradeV001ForLoading003</span>
                 <Button onClick={() => setAuthModal({ isOpen: true, mode: 'signup' })} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
                 <Button onClick={() => setAuthModal({ isOpen: true, mode: 'login' })}>Log In?</Button>
                 <Button onClick={() => setProfileModalOpen(true)}>MyProfile</Button>
