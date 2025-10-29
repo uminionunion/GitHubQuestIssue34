@@ -6,12 +6,12 @@ import { Rnd } from 'react-rnd';
 // Import the Button component from the UI library.
 import { Button } from '@/components/ui/button';
 // Import the ChatModal component.
-import ChatModal from './ChatModal';
+import MainHubUpgradeV001ForChatModal from './MainHubUpgradeV001ForChatModal';
 // Import the useNavigate hook for navigation.
 import { useNavigate } from 'react-router-dom';
 
 // An array of page names for the Sister Unions.
-const sisterUnionPages = [
+const MainHubUpgradeV001ForSisterUnionPages = [
   'SisterUnion001NewEngland', 'SisterUnion002CentralEastCoast', 'SisterUnion003SouthEast',
   'SisterUnion004TheGreatLakesAndAppalachia', 'SisterUnion005CentralSouth', 'SisterUnion006CentralNorth',
   'SisterUnion007SouthWest', 'SisterUnion008NorthWest', 'SisterUnion009International',
@@ -23,10 +23,10 @@ const sisterUnionPages = [
 ];
 
 // Generate a list of 24 distinct background colors.
-const modalColors = Array.from({ length: 24 }, (_, i) => `hsl(${i * 15}, 70%, 80%)`);
+const MainHubUpgradeV001ForModalColors = Array.from({ length: 24 }, (_, i) => `hsl(${i * 15}, 70%, 80%)`);
 
 // A reusable component for the numbered buttons around the hub.
-const UminionButton = ({
+const MainHubUpgradeV001ForUminionButton = ({
   number,
   containerSize,
   onClick,
@@ -66,7 +66,7 @@ const UminionButton = ({
 };
 
 // The main component for the Uminion Hub.
-const UminionMainHubVersion001 = () => {
+const MainHubUpgradeV001ForUminionMainHub = () => {
   // State to hold the size of the Rnd component.
   const [size, setSize] = useState({ width: 600, height: 150 });
   // State to manage which modal is open.
@@ -76,7 +76,7 @@ const UminionMainHubVersion001 = () => {
 
   // Function to handle button clicks.
   const handleButtonClick = (buttonNumber: number) => {
-    const pageName = sisterUnionPages[buttonNumber - 1];
+    const pageName = MainHubUpgradeV001ForSisterUnionPages[buttonNumber - 1];
     // Navigate to the corresponding page.
     navigate(`/${pageName}`);
     // Open the modal for the clicked button.
@@ -123,36 +123,36 @@ const UminionMainHubVersion001 = () => {
         >
           {/* Container for the top row of buttons (#01 to #06). */}
           <div className="absolute top-2 left-2 right-2 flex justify-between">
-            {[1, 2, 3, 4, 5, 6].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ width: `${horizontalButtonWidth}px` }} />)}
+            {[1, 2, 3, 4, 5, 6].map(n => <MainHubUpgradeV001ForUminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ width: `${horizontalButtonWidth}px` }} />)}
           </div>
 
           {/* Container for the right column of buttons (#07 to #12). */}
           <div className="absolute right-2 flex flex-col" style={{ top: `${sideButtonContainerPadding}px`, bottom: `${sideButtonContainerPadding}px` }}>
-            {[7, 8, 9, 10, 11, 12].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ height: `${sideButtonHeight}px` }} />)}
+            {[7, 8, 9, 10, 11, 12].map(n => <MainHubUpgradeV001ForUminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ height: `${sideButtonHeight}px` }} />)}
           </div>
 
           {/* Container for the bottom row of buttons (#13 to #18). */}
           <div className="absolute bottom-2 left-2 right-2 flex justify-between">
-            {[18, 17, 16, 15, 14, 13].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ width: `${horizontalButtonWidth}px` }} />)}
+            {[18, 17, 16, 15, 14, 13].map(n => <MainHubUpgradeV001ForUminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ width: `${horizontalButtonWidth}px` }} />)}
           </div>
 
           {/* Container for the left column of buttons (#19 to #24). */}
           <div className="absolute left-2 flex flex-col" style={{ top: `${sideButtonContainerPadding}px`, bottom: `${sideButtonContainerPadding}px` }}>
-            {[24, 23, 22, 21, 20, 19].map(n => <UminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ height: `${sideButtonHeight}px` }} />)}
+            {[24, 23, 22, 21, 20, 19].map(n => <MainHubUpgradeV001ForUminionButton key={n} number={n} containerSize={size} onClick={() => handleButtonClick(n)} style={{ height: `${sideButtonHeight}px` }} />)}
           </div>
 
           {/* The central text of the hub. */}
-          <span className="text-2xl font-bold text-white bg-black bg-opacity-50 px-2 py-1 rounded relative" style={{ fontSize: `${Math.max(16, size.width / 25)}px`, bottom: '25px' }}>Main Hub</span>
+          <span className="text-2xl font-bold text-white bg-black bg-opacity-50 px-2 py-1 rounded relative" style={{ fontSize: `${Math.max(16, size.width / 25)}px`, bottom: '75px' }}>Main Hub</span>
         </div>
       </Rnd>
 
       {/* Render the ChatModal if a modal is active. */}
       {activeModal !== null && (
-        <ChatModal
+        <MainHubUpgradeV001ForChatModal
           isOpen={activeModal !== null}
           onClose={() => setActiveModal(null)}
-          pageName={sisterUnionPages[activeModal - 1]}
-          backgroundColor={modalColors[activeModal - 1]}
+          pageName={MainHubUpgradeV001ForSisterUnionPages[activeModal - 1]}
+          backgroundColor={MainHubUpgradeV001ForModalColors[activeModal - 1]}
           modalNumber={activeModal}
         />
       )}
@@ -161,4 +161,4 @@ const UminionMainHubVersion001 = () => {
 };
 
 // Export the component as the default export.
-export default UminionMainHubVersion001;
+export default MainHubUpgradeV001ForUminionMainHub;

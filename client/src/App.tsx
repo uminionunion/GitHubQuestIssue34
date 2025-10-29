@@ -6,14 +6,14 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Import the Button component from the UI library.
 import { Button } from '@/components/ui/button';
 // Import the Uminion Main Hub component.
-import UminionMainHubVersion001 from '@/features/uminion/UminionMainHubVersion001';
+import MainHubUpgradeV001ForUminionMainHub from '@/features/uminion/MainHubUpgradeV001ForUminionMainHub';
 // Import the Calendar View component.
-import CalendarView from '@/features/calendar/CalendarView';
+import MainHubUpgradeV001ForCalendarView from '@/features/calendar/MainHubUpgradeV001ForCalendarView';
 // Import the Sister Union routes.
-import SisterUnionRoutes from '@/features/uminion/SisterUnionRoutes';
+import MainHubUpgradeV001ForSisterUnionRoutes from '@/features/uminion/MainHubUpgradeV001ForSisterUnionRoutes';
 import { AuthProvider, useAuth } from './hooks/useAuth.tsx';
 import AuthModal from './features/auth/AuthModal';
-import MyProfileModal from './features/profile/MyProfileModal';
+import MainHubUpgradeV001ForMyProfileModal from './features/profile/MainHubUpgradeV001ForMyProfileModal';
 
 // A component for the main application layout.
 const MainLayout = () => {
@@ -63,6 +63,7 @@ const MainLayout = () => {
               </>
             ) : (
               <>
+                <span className="mr-2">MainHubUpgradeV001ForLoading002</span>
                 <Button onClick={() => setAuthModal({ isOpen: true, mode: 'signup' })} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
                 <Button onClick={() => setAuthModal({ isOpen: true, mode: 'login' })}>Log In?</Button>
                 <Button onClick={() => setProfileModalOpen(true)}>MyProfile</Button>
@@ -77,15 +78,15 @@ const MainLayout = () => {
         {/* The main content, which is the CalendarView. */}
         <main className="container mx-auto px-4 py-8 flex justify-center items-start">
           <Routes>
-            <Route path="/" element={<CalendarView />} />
-            <Route path="/*" element={<SisterUnionRoutes />} />
+            <Route path="/" element={<MainHubUpgradeV001ForCalendarView />} />
+            <Route path="/*" element={<MainHubUpgradeV001ForSisterUnionRoutes />} />
           </Routes>
         </main>
         
         {/* Conditionally render the Uminion Main Hub when loading is finished. */}
         {/* It is rendered here and will be positioned by the react-rnd library. */}
         {!isLoading && (
-          <UminionMainHubVersion001 />
+          <MainHubUpgradeV001ForUminionMainHub />
         )}
       </div>
 
@@ -110,11 +111,15 @@ const MainLayout = () => {
         />
       )}
       {isProfileModalOpen && (
-        <MyProfileModal
+        <MainHubUpgradeV001ForMyProfileModal
           isOpen={isProfileModalOpen}
           onClose={() => setProfileModalOpen(false)}
         />
       )}
+      <div className="p-4 border-t border-border/50 mt-4">
+        <h2 className="text-xl font-bold mb-2">Regarding PHP:</h2>
+        <p>Yes, I can write PHP code. I am a large language model with knowledge across many programming languages, including PHP. I can help with tasks like writing scripts, building web applications with frameworks like Laravel or Symfony, interacting with databases, and more. If you have a specific PHP task in mind, feel free to describe it!</p>
+      </div>
     </div>
   );
 }

@@ -14,7 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface ChatModalProps {
+interface MainHubUpgradeV001ForChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   pageName: string;
@@ -34,7 +34,7 @@ interface User {
   username: string;
 }
 
-const ChatModal: React.FC<ChatModalProps> = ({
+const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalProps> = ({
   isOpen,
   onClose,
   pageName,
@@ -235,4 +235,4 @@ const ChatModal: React.FC<ChatModalProps> = ({
   );
 };
 
-export default ChatModal;
+export default MainHubUpgradeV001ForChatModal;

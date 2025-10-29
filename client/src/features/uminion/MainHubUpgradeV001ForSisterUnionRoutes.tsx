@@ -5,7 +5,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // An array of page names for the Sister Unions.
-const sisterUnionPages = [
+const MainHubUpgradeV001ForSisterUnionPages = [
   'SisterUnion001NewEngland',
   'SisterUnion002CentralEastCoast',
   'SisterUnion003SouthEast',
@@ -33,7 +33,7 @@ const sisterUnionPages = [
 ];
 
 // A generic component for a Sister Union page.
-const SisterUnionPage = ({ pageName }: { pageName: string }) => (
+const MainHubUpgradeV001ForSisterUnionPage = ({ pageName }: { pageName: string }) => (
   <div className="p-4">
     <h1 className="text-2xl font-bold">{pageName}</h1>
     <p>Welcome to the {pageName} page.</p>
@@ -41,15 +41,15 @@ const SisterUnionPage = ({ pageName }: { pageName: string }) => (
 );
 
 // A component that defines all the routes for the Sister Union pages.
-const SisterUnionRoutes = () => {
+const MainHubUpgradeV001ForSisterUnionRoutes = () => {
   return (
     <Routes>
       {/* Map over the page names to create a Route for each one. */}
-      {sisterUnionPages.map((pageName, index) => (
+      {MainHubUpgradeV001ForSisterUnionPages.map((pageName, index) => (
         <Route
           key={index}
           path={`/${pageName}`}
-          element={<SisterUnionPage pageName={pageName} />}
+          element={<MainHubUpgradeV001ForSisterUnionPage pageName={pageName} />}
         />
       ))}
     </Routes>
@@ -57,4 +57,4 @@ const SisterUnionRoutes = () => {
 };
 
 // Export the component for use in other parts of the application.
-export default SisterUnionRoutes;
+export default MainHubUpgradeV001ForSisterUnionRoutes;

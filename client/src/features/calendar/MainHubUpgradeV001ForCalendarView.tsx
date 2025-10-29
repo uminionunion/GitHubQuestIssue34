@@ -3,7 +3,7 @@
 import React from 'react';
 
 // The main component for displaying the calendar view.
-const CalendarView = () => {
+const MainHubUpgradeV001ForCalendarView = () => {
   // Define the number of days in October.
   const daysInOctober = 31;
   // Define the number of empty cells needed at the start of the month (October 1st is a Wednesday, so we need 4 empty spots for Sun-Tue).
@@ -55,4 +55,4 @@ const CalendarView = () => {
 };
 
 // Export the component as the default export.
-export default CalendarView;
+export default MainHubUpgradeV001ForCalendarView;
