@@ -13,9 +13,8 @@ import MainHubUpgradeV001ForChatModal from '../uminion/MainHubUpgradeV001ForChat
 import { useAuth } from '@/hooks/useAuth';
 import MainHubUpgradeV001ForAddProductModal from './MainHubUpgradeV001ForAddProductModal';
 import MainHubUpgradeV001ForProductDetailModal from './MainHubUpgradeV001ForProductDetailModal';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import MainHubUpgradeV001ForFriendsView from './MainHubUpgradeV001ForFriendsView';
+import MainHubUpgradeV001ForSettingsView from './MainHubUpgradeV001ForSettingsView';
 
 interface MainHubUpgradeV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -79,51 +78,8 @@ const MyBroadcastsView = () => (
         {/* Left Side: Create Broadcast */}
         <div className="border-r pr-8">
             <h4 className="font-bold text-lg mb-4">Want to Broadcast something?</h4>
-            <div className="space-y-4">
-                <div>
-                    <Label htmlFor="broadcast-name">Broadcast Name</Label>
-                    <Input id="broadcast-name" placeholder="e.g., My Weekly Podcast" />
-                </div>
-                <div>
-                    <Label htmlFor="episode-name">Episode Name</Label>
-                    <Input id="episode-name" placeholder="e.g., Episode 1: The Beginning" />
-                </div>
-                <div>
-                    <Label htmlFor="media-upload">Upload Media (MP3/MP4) or Record</Label>
-                    <div className="flex gap-2">
-                        <Input id="media-upload" type="file" accept="audio/mp3,video/mp4" />
-                        <Button variant="outline">Record</Button>
-                    </div>
-                </div>
-                <div>
-                    <Label htmlFor="cover-image">Cover Image</Label>
-                    <Input id="cover-image" type="file" accept="image/*" />
-                </div>
-                <div>
-                    <Label htmlFor="extra-images">Extra Images (up to 9)</Label>
-                    <Input id="extra-images" type="file" accept="image/*" multiple />
-                </div>
-                <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" placeholder="Describe your episode..." />
-                </div>
-                <div>
-                    <Label>Broadcast Date & Time</Label>
-                    <div className="flex gap-2">
-                        <Input type="date" />
-                        <Input type="time" />
-                    </div>
-                </div>
-                <div>
-                    <Label htmlFor="tags">Tags (up to 10)</Label>
-                    <Input id="tags" placeholder="e.g., tech, news, comedy" />
-                </div>
-                <div>
-                    <Label htmlFor="website-name">Website Name</Label>
-                    <Input id="website-name" placeholder="your-website.com" />
-                </div>
-                <Button className="w-full">Submit</Button>
-            </div>
+            {/* Form fields would go here */}
+            <p className="text-muted-foreground">Broadcast creation form coming soon.</p>
         </div>
 
         {/* Right Side: Add Episode */}
@@ -169,6 +125,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
+  const [centerView, setCenterView] = useState('broadcasts'); // 'broadcasts', 'friends', 'settings'
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -236,6 +193,31 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     );
   };
 
+  const renderCenterContent = () => {
+    switch (centerView) {
+        case 'friends':
+            return <MainHubUpgradeV001ForFriendsView />;
+        case 'settings':
+            return <MainHubUpgradeV001ForSettingsView />;
+        case 'broadcasts':
+        default:
+            return (
+                <>
+                    <div className="flex items-center justify-center mb-4">
+                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')} disabled={broadcastView === 'MyBroadcasts'}>
+                            <ChevronLeft />
+                        </Button>
+                        <h3 className="text-center font-bold mx-4">{broadcasts[broadcastView]?.title || 'MyBroadcasts'}</h3>
+                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
+                            <ChevronRight />
+                        </Button>
+                    </div>
+                    {broadcastView === 'MyBroadcasts' ? <MyBroadcastsView /> : <BroadcastView broadcast={broadcasts[broadcastView]} />}
+                </>
+            );
+    }
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -247,12 +229,12 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
             {/* Top Section */}
             <div className="flex p-4 border-b">
               <div id="MainHubUpgradeV001ForMyProfileSettingsTopLeftSection" className="w-1/5 grid grid-cols-2 grid-rows-2 gap-2 pr-4">
-                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="FriendsFam&Others"><Users className="mb-1" /> Friends</Button>
-                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Broadcast"><Megaphone className="mb-1" /> Broadcast</Button>
+                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="FriendsFam&Others" onClick={() => setCenterView('friends')}><Users className="mb-1" /> Friends</Button>
+                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1" /> Broadcast</Button>
                 <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full h-full">
                   <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center" title="Code"><Code className="mb-1" /> Code</Button>
                 </a>
-                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings"><Settings className="mb-1" /> Settings</Button>
+                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings" onClick={() => setCenterView('settings')}><Settings className="mb-1" /> Settings</Button>
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
                 <Button className="absolute">Change Cover</Button>
@@ -281,16 +263,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                 </div>
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsCenterCenterSection" className="w-[60%] p-4 overflow-y-auto">
-                <div className="flex items-center justify-center mb-4">
-                  <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')} disabled={broadcastView === 'MyBroadcasts'}>
-                    <ChevronLeft />
-                  </Button>
-                  <h3 className="text-center font-bold mx-4">{broadcasts[broadcastView]?.title || 'MyBroadcasts'}</h3>
-                  <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
-                    <ChevronRight />
-                  </Button>
-                </div>
-                {broadcastView === 'MyBroadcasts' ? <MyBroadcastsView /> : <BroadcastView broadcast={broadcasts[broadcastView]} />}
+                {renderCenterContent()}
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsCenterRightSection" className="w-[20%] p-4 border-l overflow-y-auto">
                 <div className="flex items-center justify-center mb-4">
@@ -312,7 +285,13 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                   <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
-                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => setAddProductModalOpen(true)}>
+                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => {
+                                if (!user) {
+                                    alert('You must be logged in to add a product.');
+                                    return;
+                                }
+                                setAddProductModalOpen(true)
+                            }}>
                                 <Eye />
                             </Button>
                             <h4 className="font-semibold text-center">Your Store:</h4>
