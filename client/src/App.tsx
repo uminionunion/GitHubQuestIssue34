@@ -14,41 +14,89 @@ import MainHubUpgradeV001ForSisterUnionRoutes from '@/features/uminion/MainHubUp
 import { AuthProvider, useAuth } from './hooks/useAuth.tsx';
 import AuthModal from './features/auth/AuthModal';
 import MainHubUpgradeV001ForMyProfileModal from './features/profile/MainHubUpgradeV001ForMyProfileModal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const UHubButton = () => {
+const UHubButton = ({ onOpenAuthModal }) => {
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [autoLaunch, setAutoLaunch] = useState(true);
 
-  const handleOpenModal = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+  // Effect to read the auto-launch setting from localStorage on component mount.
+  useEffect(() => {
+    const savedAutoLaunch = localStorage.getItem('uHubAutoLaunch');
+    // If a setting is found in localStorage, use it. Otherwise, it defaults to true.
+    if (savedAutoLaunch !== null) {
+      setAutoLaunch(JSON.parse(savedAutoLaunch));
     }
+  }, []);
+
+  // Effect to handle the auto-launch sequence when the component mounts or the setting changes.
+  useEffect(() => {
+    // Only start the auto-launch if the setting is enabled.
+    if (autoLaunch) {
+      handleAutoLaunch();
+    }
+    // Cleanup function to clear any running timers when the component unmounts.
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [autoLaunch]);
+
+  // Function to start the auto-launch countdown.
+  const handleAutoLaunch = () => {
+    // Clear any existing timer to prevent multiple countdowns.
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    // Start the countdown from 3.
     setCountdown(3);
+    // Set an interval to decrement the countdown every second.
     timerRef.current = setInterval(() => {
       setCountdown(prev => {
+        // When the countdown reaches 1 or less, open the modal.
         if (prev === null || prev <= 1) {
           if(timerRef.current) clearInterval(timerRef.current);
           setProfileModalOpen(true);
+          setCountdown(null); // Reset countdown display.
           return null;
         }
+        // Otherwise, just decrement the countdown.
         return prev - 1;
       });
     }, 1000);
   };
 
+  // Function to manually open the modal, e.g., when the uHub button is clicked.
+  const handleOpenModalManually = () => {
+    // Stop any active auto-launch countdown.
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      setCountdown(null);
+    }
+    // Open the profile modal.
+    setProfileModalOpen(true);
+  };
+
   return (
     <>
-      <Button onClick={handleOpenModal} className="relative">
+      <Button onClick={handleOpenModalManually} className="relative">
         uHub
-        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-          {countdown !== null ? countdown : 10}
-        </div>
+        {/* Display the countdown number on the button if it's active. */}
+        {countdown !== null && (
+          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {countdown}
+          </div>
+        )}
       </Button>
+      {/* Render the profile modal if it's set to be open. */}
       {isProfileModalOpen && (
         <MainHubUpgradeV001ForMyProfileModal
           isOpen={isProfileModalOpen}
           onClose={() => setProfileModalOpen(false)}
+          onOpenAuthModal={onOpenAuthModal}
         />
       )}
     </>
@@ -77,28 +125,45 @@ const MainLayout = () => {
     await logout();
   };
 
+  const handleOpenAuthModal = (mode: 'login' | 'signup') => {
+    setAuthModal({ isOpen: true, mode });
+  };
+
+  const handleProfileImageClick = () => {
+    if (!user) {
+      handleOpenAuthModal('login');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-zinc-900 text-foreground">
       {/* Header section of the page. */}
       <header className="p-4 border-b border-border/50 shadow-lg">
-        <div className="container mx-auto flex flex-col items-center">
-          {/* Container for the submit button and loading text. */}
-          <div className="flex items-center gap-4 self-start">
+        <div className="container mx-auto flex justify-between items-center">
+          {/* Container for the uHub button and auth controls. */}
+          <div className="flex items-center gap-4">
             {isAuthLoading ? (
               <span id="loading-text">loading...</span>
             ) : (
               <>
-                <UHubButton />
+                <UHubButton onOpenAuthModal={handleOpenAuthModal} />
                 {!user ? (
                   <>
-                    <Button onClick={() => setAuthModal({ isOpen: true, mode: 'signup' })} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
-                    <Button onClick={() => setAuthModal({ isOpen: true, mode: 'login' })}>Log In?</Button>
+                    <Button onClick={() => handleOpenAuthModal('signup')} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
+                    <Button onClick={() => handleOpenAuthModal('login')}>Log In?</Button>
                   </>
                 ) : (
                   <Button onClick={handleLogout} variant="destructive">Log Out</Button>
                 )}
               </>
             )}
+          </div>
+          {/* Profile image avatar on the right side of the header. */}
+          <div onClick={handleProfileImageClick} className="cursor-pointer">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
           </div>
         </div>
       </header>
@@ -125,6 +190,7 @@ const MainLayout = () => {
           isOpen={authModal.isOpen}
           mode={authModal.mode}
           onClose={() => setAuthModal({ isOpen: false, mode: 'login' })}
+          onSwitchMode={(newMode) => setAuthModal({ isOpen: true, mode: newMode })}
         />
       )}
     </div>

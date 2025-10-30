@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Facebook, Youtube, Twitch, Instagram, Github, MessageSquare } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 const socialLinks = [
   { id: 'facebook', icon: <Facebook />, defaultLink: 'https://www.facebook.com/groups/1615679026489537' },
@@ -22,8 +23,30 @@ const socialLinks = [
 ];
 
 const MainHubUpgradeV001ForSettingsView = () => {
+  const [autoLaunch, setAutoLaunch] = useState(true);
+
+  useEffect(() => {
+    const savedAutoLaunch = localStorage.getItem('uHubAutoLaunch');
+    if (savedAutoLaunch !== null) {
+      setAutoLaunch(JSON.parse(savedAutoLaunch));
+    }
+  }, []);
+
+  const handleAutoLaunchChange = (checked: boolean) => {
+    setAutoLaunch(checked);
+    localStorage.setItem('uHubAutoLaunch', JSON.stringify(checked));
+  };
+
   return (
     <div className="space-y-8">
+      <div>
+        <h4 className="font-bold text-lg mb-4">General Settings</h4>
+        <div className="flex items-center space-x-2">
+          <Switch id="auto-launch-toggle" checked={autoLaunch} onCheckedChange={handleAutoLaunchChange} />
+          <Label htmlFor="auto-launch-toggle">Should the uHub auto-launch when website launches/refreshes?</Label>
+        </div>
+      </div>
+
       <div>
         <h4 className="font-bold text-lg mb-4">Social Media Links</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

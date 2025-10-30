@@ -20,25 +20,31 @@ import { CreateBroadcastView } from './CreateBroadcastView';
 interface MainHubUpgradeV001ForMyProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenAuthModal: (mode: 'login' | 'signup') => void;
 }
 
-const MainHubUpgradeV001ForSocialLinks = {
-  facebook: 'https://www.facebook.com/groups/1615679026489537',
-  bluesky: 'https://bsky.app/profile/uminion.bsky.social',
-  github: 'https://github.com/uminionunion/uminionswebsite',
-  youtube: 'https://www.youtube.com/@UminionUnion',
-  twitch: 'https://www.twitch.tv/theuminionunion',
-  discord: 'https://discord.com/login?redirect_to=%2Flogin%3Fredirect_to%3D%252Fchannels%252F1357919291428573204%252F1357919292280144075',
-  instagram: 'https://www.instagram.com/theuminionunion/?igsh=ajdjeGUycHRmczVs&ut-m_source=qr#',
-  mastodon: 'https://mastodon.social/@uminion',
-  threads: 'https://www.threads.com/@theuminionunion',
-  patreon: 'https://www.patreon.com/uminion',
-  githubDiscussions: 'https://github.com/uminionunion/UminionsWebsite/discussions',
-  githubIssues: 'https://github.com/uminionunion/UminionsWebsite/issues',
-};
+const socialLinksPage1 = [
+  { id: 'facebook', href: 'https://www.facebook.com/groups/1615679026489537', icon: <Facebook /> },
+  { id: 'bluesky', href: 'https://bsky.app/profile/uminion.bsky.social', icon: <MessageSquare /> },
+  { id: 'github', href: 'https://github.com/uminionunion/uminionswebsite', icon: <Github /> },
+  { id: 'youtube', href: 'https://www.youtube.com/@UminionUnion', icon: <Youtube /> },
+  { id: 'twitch', href: 'https://www.twitch.tv/theuminionunion', icon: <Twitch /> },
+  { id: 'discord', href: 'https://discord.com/login?redirect_to=%2Flogin%3Fredirect_to%3D%252Fchannels%252F1357919291428573204%252F1357919292280144075', icon: 'D' },
+];
 
-const MainHubUpgradeV001ForSocialIcon = ({ href, children }: { href: string, children: React.ReactNode }) => (
-  <a href={href} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+const socialLinksPage2 = [
+  { id: 'instagram', href: 'https://www.instagram.com/theuminionunion/?igsh=ajdjeGUycHRmczVs&ut-m_source=qr#', icon: <Instagram /> },
+  { id: 'mastodon', href: 'https://mastodon.social/@uminion', icon: 'M' },
+  { id: 'githubDiscussions', href: 'https://github.com/uminionunion/UminionsWebsite/discussions', icon: <Github /> },
+  { id: 'threads', href: 'https://www.threads.com/@theuminionunion', icon: '@' },
+  { id: 'patreon', href: 'https://www.patreon.com/uminion', icon: 'P' },
+  { id: 'githubIssues', href: 'https://github.com/uminionunion/UminionsWebsite/issues', icon: <Github /> },
+];
+
+const socialLinkPages = [socialLinksPage1, socialLinksPage2, socialLinksPage2]; // Page 3 is same as 2
+
+const MainHubUpgradeV001ForSocialIcon = ({ href, children, disabled }: { href: string, children: React.ReactNode, disabled?: boolean }) => (
+  <a href={disabled ? '#' : href} target="_blank" rel="noopener noreferrer" className={`text-muted-foreground ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:text-foreground'}`}>
     {children}
   </a>
 );
@@ -62,16 +68,24 @@ const ProductBox = ({ product, onMagnify }) => {
         <div className="border rounded-md p-2 relative h-48 group">
             <div className="absolute top-1 left-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded z-10">{product.name}</div>
             <div className="absolute top-1 right-1 z-10">
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onMagnify(product)}>
-                    <Search className="h-4 w-4" />
-                </Button>
+                {product.time ? (
+                    <span className="text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded">{product.time}</span>
+                ) : (
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onMagnify(product)}>
+                        <Search className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
             <div className="h-full bg-cover bg-center cursor-pointer" style={{ backgroundImage: `url('${product.image_url}')` }} onClick={handleImageClick}></div>
             <div className="absolute bottom-1 left-1 z-10">
-                <Button variant="outline" size="icon" className="h-6 w-6" onClick={handleCartClick}>
-                    {inCart ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                    <ShoppingCart className="h-4 w-4" />
-                </Button>
+                {product.location ? (
+                    <span className="text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded">{product.location}</span>
+                ) : (
+                    <Button variant="outline" size="icon" className="h-6 w-6" onClick={handleCartClick}>
+                        {inCart ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                        <ShoppingCart className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
             {product.price && (
                 <div className="absolute bottom-1 right-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded z-10">${product.price.toFixed(2)}</div>
@@ -83,7 +97,8 @@ const ProductBox = ({ product, onMagnify }) => {
 const BroadcastView = ({ broadcast }) => (
     <div className="flex gap-6">
         <div className="w-1/3">
-            <div className="aspect-square bg-muted rounded-md mb-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
+            <h4 className="font-semibold">{broadcast.subtitle}</h4>
+            <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
             <div className="flex justify-between items-center">
                 <Button variant="ghost" size="icon"><ChevronLeft /></Button>
                 <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
@@ -93,23 +108,22 @@ const BroadcastView = ({ broadcast }) => (
         <div className="w-2/3">
             <div className="flex items-center gap-2 mb-2">
                 <Button variant="outline" size="icon"><Play /></Button>
-                <h4 className="font-semibold">{broadcast.subtitle}</h4>
+                <p className="text-sm text-muted-foreground flex-grow">{broadcast.description}</p>
             </div>
             <div className="grid grid-cols-3 gap-2 mb-4">
                 {broadcast.extraImages.slice(0,3).map((img, i) => <div key={i} className="aspect-square bg-muted rounded-md bg-cover bg-center" style={{backgroundImage: `url(${img})`}}></div>)}
             </div>
-            <p className="text-sm text-muted-foreground mb-4">{broadcast.description}</p>
             <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
         </div>
     </div>
 );
 
 
-const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfileModalProps> = ({ isOpen, onClose }) => {
+const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
   const { user } = useAuth();
   const MainHubUpgradeV001ForUHomeHubButtons = Array.from({ length: 24 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<any>({});
   const [centerRightView, setCenterRightView] = useState('UnionSAM#20');
   const centerRightViews = ['UnionEvent#12', 'UnionPolitic#19', 'UnionSAM#20'];
   const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
@@ -117,6 +131,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
   const [centerView, setCenterView] = useState('broadcasts'); // 'broadcasts', 'friends', 'settings'
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
+  const [socialPage, setSocialPage] = useState(0);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -139,14 +154,25 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
 
   useEffect(() => {
     const fetchProducts = async () => {
-        const dummyProducts = [
-            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/' },
-            { id: 2, name: 'T-Shirt', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/' },
-            { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/' },
-            { id: 4, name: 'Ukraine Logo', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png', url: 'https://u24.gov.ua/' },
-            { id: 5, name: 'Union Card', price: 14.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/' },
-        ];
-        setProducts(dummyProducts);
+        const allProducts = {
+            'UnionSAM#20': [
+                { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/' },
+                { id: 2, name: 'uT-Shirt', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/' },
+                { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/' },
+                { id: 4, name: 'Ukraine', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png', url: 'https://u24.gov.ua/' },
+                { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/' },
+            ],
+            'UnionPolitic#19': [
+                { id: 6, name: 'Support unionCandidates as a WHOLE', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+                { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+                { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+                { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+            ],
+            'UnionEvent#12': [
+                { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo012.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-12-2024-poster/' },
+            ],
+        };
+        setProducts(allProducts);
     };
     fetchProducts();
   }, []);
@@ -184,12 +210,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   };
 
   const renderCenterRightContent = () => {
-    const productSlices = {
-        'UnionSAM#20': products.slice(0, 5),
-        'UnionPolitic#19': products.slice(0, 3),
-        'UnionEvent#12': products.slice(0, 1),
-    };
-    const currentProducts = productSlices[centerRightView] || [];
+    const currentProducts = products[centerRightView] || [];
     return (
         <div className="space-y-2">
             {currentProducts.length > 0 && <ProductBox product={currentProducts[0]} onMagnify={handleMagnify} />}
@@ -223,18 +244,19 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
             return <MainHubUpgradeV001ForSettingsView />;
         case 'broadcasts':
         default:
+            const currentBroadcast = broadcasts[broadcastView];
             return (
                 <>
                     <div className="flex items-center justify-center mb-4">
                         <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')}>
                             <ChevronLeft />
                         </Button>
-                        <h3 className="text-center font-bold mx-4">{broadcasts[broadcastView]?.title || 'MyBroadcasts'}</h3>
+                        <h3 className="text-center font-bold mx-4">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
                         <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
                             <ChevronRight />
                         </Button>
                     </div>
-                    {broadcastView === 'MyBroadcasts' ? <CreateBroadcastView /> : <BroadcastView broadcast={broadcasts[broadcastView]} />}
+                    {broadcastView === 'MyBroadcasts' ? <CreateBroadcastView /> : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
                 </>
             );
     }
@@ -246,6 +268,22 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
       return;
     }
     setCenterView(view);
+  };
+
+  const handleProfileImageClick = () => {
+    if (!user) {
+      onClose(); // Close this modal first
+      onOpenAuthModal('login');
+    }
+  };
+
+  const handleSocialNav = (dir: 'left' | 'right') => {
+    setSocialPage(prev => {
+      const newPage = prev + (dir === 'right' ? 1 : -1);
+      if (newPage < 0) return socialLinkPages.length - 1;
+      if (newPage >= socialLinkPages.length) return 0;
+      return newPage;
+    });
   };
 
   return (
@@ -273,10 +311,12 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                 {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4 relative">
-                <Avatar className="h-32 w-32">
-                  <AvatarImage src="https://uminion.com/wp-content/uploads/2025/02/iArt06532.png" alt="Profile" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
+                <div onClick={handleProfileImageClick} className="cursor-pointer">
+                  <Avatar className="h-32 w-32">
+                    <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                </div>
                 {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
                 <div className="absolute bottom-0 right-0 flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
@@ -322,26 +362,28 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
 
             {/* Bottom Section */}
             <div className="flex border-t">
-              <div id="MainHubUpgradeV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-4 border-r grid grid-cols-3 gap-4 place-items-center">
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.facebook}><Facebook /></MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.bluesky}><MessageSquare /></MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.github}><Github /></MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.youtube}><Youtube /></MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.twitch}><Twitch /></MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.discord}>D</MainHubUpgradeV001ForSocialIcon>
+              <div id="MainHubUpgradeV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-4 border-r flex items-center">
+                <Button variant="ghost" size="icon" onClick={() => handleSocialNav('left')}><ChevronLeft /></Button>
+                <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
+                  {socialLinkPages[socialPage].map(link => (
+                    <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPage > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
+                  ))}
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => handleSocialNav('right')}><ChevronRight /></Button>
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-4 flex items-center justify-center">
                 <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
                   Become an Official Member of the Union via getting your Union Card Today!
                 </a>
               </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-4 border-l grid grid-cols-3 gap-4 place-items-center">
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.instagram}><Instagram /></MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.mastodon}>M</MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.githubDiscussions}><Github /></MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.threads}>@</MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.patreon}>P</MainHubUpgradeV001ForSocialIcon>
-                <MainHubUpgradeV001ForSocialIcon href={MainHubUpgradeV001ForSocialLinks.githubIssues}><Github /></MainHubUpgradeV001ForSocialIcon>
+              <div id="MainHubUpgradeV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-4 border-l flex items-center">
+                 <Button variant="ghost" size="icon" onClick={() => handleSocialNav('left')}><ChevronLeft /></Button>
+                <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
+                  {socialLinkPages[socialPage].map(link => (
+                    <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPage > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
+                  ))}
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => handleSocialNav('right')}><ChevronRight /></Button>
               </div>
             </div>
           </div>

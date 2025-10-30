@@ -17,9 +17,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'login' | 'signup';
+  onSwitchMode: (mode: 'login' | 'signup') => void;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMode }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -65,6 +66,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode }) => {
               : 'Create an account to get started.'}
           </DialogDescription>
         </DialogHeader>
+        <div className="text-center mb-4">
+          {mode === 'login' ? (
+            <p>
+              Don't have an account?{' '}
+              <Button variant="link" onClick={() => onSwitchMode('signup')} className="p-0 h-auto">
+                Sign Up
+              </Button>
+            </p>
+          ) : (
+            <p>
+              Already have an account?{' '}
+              <Button variant="link" onClick={() => onSwitchMode('login')} className="p-0 h-auto">
+                Log In
+              </Button>
+            </p>
+          )}
+        </div>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
