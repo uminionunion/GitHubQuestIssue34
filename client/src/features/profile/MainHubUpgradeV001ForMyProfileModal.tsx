@@ -1,8 +1,11 @@
 
+// PHP Conversion: This entire file would be a single template file, e.g., `uhub.php`, included in the main layout.
+// The complex state management would be handled by a dedicated JavaScript file, e.g., `uhub.js`.
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play } from 'lucide-react';
+import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X } from 'lucide-react';
+// PHP Conversion: These are component imports. In PHP, you would `include` or `require` template parts or function files.
 import MainHubUpgradeV001ForChatModal from '../uminion/MainHubUpgradeV001ForChatModal';
 import { useAuth } from '@/hooks/useAuth';
 import MainHubUpgradeV001ForAddProductModal from './MainHubUpgradeV001ForAddProductModal';
@@ -17,8 +20,9 @@ interface MainHubUpgradeV001ForMyProfileModalProps {
   onOpenAuthModal: (mode: 'login' | 'signup') => void;
 }
 
-// Social media links for the first page of icons.
-const socialLinksPage1 = [
+// PHP Conversion: This data would be stored in a PHP array or fetched from a database.
+// Social media links for the bottom-left section.
+const socialLinksLeftPage1 = [
   { id: 'facebook', href: 'https://www.facebook.com/groups/1615679026489537', icon: <Facebook /> },
   { id: 'bluesky', href: 'https://bsky.app/profile/uminion.bsky.social', icon: <MessageSquare /> },
   { id: 'github', href: 'https://github.com/uminionunion/uminionswebsite', icon: <Github /> },
@@ -26,9 +30,12 @@ const socialLinksPage1 = [
   { id: 'twitch', href: 'https://www.twitch.tv/theuminionunion', icon: <Twitch /> },
   { id: 'discord', href: 'https://discord.com/login?redirect_to=%2Flogin%3Fredirect_to%3D%252Fchannels%252F1357919291428573204%252F1357919292280144075', icon: 'D' },
 ];
+const socialLinksLeftPage2 = [...socialLinksLeftPage1]; // Dummy data
+const socialLinksLeftPage3 = [...socialLinksLeftPage1]; // Dummy data
+const socialLinkPagesLeft = [socialLinksLeftPage1, socialLinksLeftPage2, socialLinksLeftPage3];
 
-// Social media links for the second and third pages.
-const socialLinksPage2 = [
+// Social media links for the bottom-right section.
+const socialLinksRightPage1 = [
   { id: 'instagram', href: 'https://www.instagram.com/theuminionunion/?igsh=ajdjeGUycHRmczVs&ut-m_source=qr#', icon: <Instagram /> },
   { id: 'mastodon', href: 'https://mastodon.social/@uminion', icon: 'M' },
   { id: 'githubDiscussions', href: 'https://github.com/uminionunion/UminionsWebsite/discussions', icon: <Github /> },
@@ -36,9 +43,10 @@ const socialLinksPage2 = [
   { id: 'patreon', href: 'https://www.patreon.com/uminion', icon: 'P' },
   { id: 'githubIssues', href: 'https://github.com/uminionunion/UminionsWebsite/issues', icon: <Github /> },
 ];
+const socialLinksRightPage2 = [...socialLinksRightPage1]; // Dummy data
+const socialLinksRightPage3 = [...socialLinksRightPage1]; // Dummy data
+const socialLinkPagesRight = [socialLinksRightPage1, socialLinksRightPage2, socialLinksRightPage3];
 
-// An array containing all pages of social links for pagination.
-const socialLinkPages = [socialLinksPage1, socialLinksPage2, socialLinksPage2]; // Page 3 is a copy of page 2.
 
 // A reusable component for rendering a social media icon link.
 const MainHubUpgradeV001ForSocialIcon = ({ href, children, disabled }: { href: string, children: React.ReactNode, disabled?: boolean }) => (
@@ -120,6 +128,8 @@ const BroadcastView = ({ broadcast }) => (
 
 // The main modal component for the uHub.
 const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
+  // PHP Conversion: All these `useState` calls manage the component's internal state. In a JS/PHP app, this state would be held in plain JavaScript variables in `uhub.js`.
+  // When state changes, JS functions would manually update the DOM (e.g., changing innerHTML, adding/removing classes).
   const { user } = useAuth();
   const MainHubUpgradeV001ForUHomeHubButtons = Array.from({ length: 24 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
@@ -131,7 +141,8 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
   const [centerView, setCenterView] = useState('broadcasts');
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
-  const [socialPage, setSocialPage] = useState(0);
+  const [socialPageLeft, setSocialPageLeft] = useState(0);
+  const [socialPageRight, setSocialPageRight] = useState(0);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -141,6 +152,8 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
   // Effect to fetch pending friend requests when the modal is open and a user is logged in.
+  // PHP Conversion: This `useEffect` would be an AJAX call in `uhub.js`. `fetch('api/friends.php?action=get_pending').then(...)`.
+  // The PHP script would query the database and return JSON. The JS `then` block would parse the JSON and update the DOM to show the requests.
   useEffect(() => {
     if (user && isOpen) {
       fetch('/api/friends/requests/pending')
@@ -258,11 +271,20 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     }
   };
 
-  const handleSocialNav = (dir: 'left' | 'right') => {
-    setSocialPage(prev => {
+  const handleSocialNavLeft = (dir: 'left' | 'right') => {
+    setSocialPageLeft(prev => {
       const newPage = prev + (dir === 'right' ? 1 : -1);
-      if (newPage < 0) return socialLinkPages.length - 1;
-      if (newPage >= socialLinkPages.length) return 0;
+      if (newPage < 0) return socialLinkPagesLeft.length - 1;
+      if (newPage >= socialLinkPagesLeft.length) return 0;
+      return newPage;
+    });
+  };
+  
+  const handleSocialNavRight = (dir: 'left' | 'right') => {
+    setSocialPageRight(prev => {
+      const newPage = prev + (dir === 'right' ? 1 : -1);
+      if (newPage < 0) return socialLinkPagesRight.length - 1;
+      if (newPage >= socialLinkPagesRight.length) return 0;
       return newPage;
     });
   };
@@ -271,15 +293,11 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
 
   return (
     <>
-      {/* 
-        PHP Conversion Instructions:
-        This entire modal structure would be a single `uhub.php` template file, initially hidden with CSS (`display: none`).
-        JavaScript in `uhub.js` would toggle its visibility.
-        The internal state (like `centerView`, `broadcastView`) would be managed with JS variables, and content sections
-        would be shown/hidden by manipulating their `display` style.
-        Data like products and friend requests would be fetched via AJAX calls to PHP API endpoints (`api/products.php`, `api/friends.php`).
-      */}
-      <div className="bg-background text-foreground w-full h-full flex flex-col">
+      <div className="bg-background text-foreground w-full h-full flex flex-col relative">
+        <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-50" onClick={onClose}>
+          <X className="h-6 w-6" />
+          <span className="sr-only">Close</span>
+        </Button>
         {/* Top Section */}
         <div className="flex p-4 border-b">
           <div id="MainHubUpgradeV001ForMyProfileSettingsTopLeftSection" className="w-1/5 grid grid-cols-2 grid-rows-2 gap-2 pr-4">
@@ -365,13 +383,13 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
         {/* Bottom Section */}
         <div className="flex border-t">
           <div id="MainHubUpgradeV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-4 border-r flex items-center">
-            <Button variant="ghost" size="icon" onClick={() => handleSocialNav('left')}><ChevronLeft /></Button>
+            <Button variant="ghost" size="icon" onClick={() => handleSocialNavLeft('left')}><ChevronLeft /></Button>
             <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
-              {socialLinkPages[socialPage].map(link => (
-                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPage > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
+              {socialLinkPagesLeft[socialPageLeft].map(link => (
+                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPageLeft > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
               ))}
             </div>
-            <Button variant="ghost" size="icon" onClick={() => handleSocialNav('right')}><ChevronRight /></Button>
+            <Button variant="ghost" size="icon" onClick={() => handleSocialNavLeft('right')}><ChevronRight /></Button>
           </div>
           <div id="MainHubUpgradeV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-4 flex items-center justify-center">
             <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
@@ -379,13 +397,13 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
             </a>
           </div>
           <div id="MainHubUpgradeV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-4 border-l flex items-center">
-             <Button variant="ghost" size="icon" onClick={() => handleSocialNav('left')}><ChevronLeft /></Button>
+             <Button variant="ghost" size="icon" onClick={() => handleSocialNavRight('left')}><ChevronLeft /></Button>
             <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
-              {socialLinkPages[socialPage].map(link => (
-                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPage > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
+              {socialLinkPagesRight[socialPageRight].map(link => (
+                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPageRight > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
               ))}
             </div>
-            <Button variant="ghost" size="icon" onClick={() => handleSocialNav('right')}><ChevronRight /></Button>
+            <Button variant="ghost" size="icon" onClick={() => handleSocialNavRight('right')}><ChevronRight /></Button>
           </div>
         </div>
       </div>

@@ -6,12 +6,21 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, Mic } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 export const CreateBroadcastView = () => {
-    // State for the selected time.
+    // State for the selected date and time.
+    // PHP Conversion: In a PHP form, these would just be standard form inputs (`<input type="date">`, `<select>`).
+    // The selected values would be sent in the `$_POST` request.
+    const [date, setDate] = React.useState<Date>();
     const [time, setTime] = React.useState<string>('');
 
     // Generate time options for the dropdown.
+    // PHP Conversion: This loop could be done in PHP to generate the `<option>` tags for the time select dropdown.
     const timeOptions = [];
     for (let h = 0; h < 24; h++) {
         for (let m = 0; m < 60; m += 15) {
@@ -26,9 +35,9 @@ export const CreateBroadcastView = () => {
             {/* 
               PHP Conversion Instructions:
               This form would be a standard HTML `<form>` in a `create_broadcast.php` template.
-              On submission, it would post data to a PHP script (e.g., `api/broadcasts.php?action=create`).
-              File uploads (MP3/MP4, images) would be handled using PHP's `$_FILES` superglobal.
-              The time picker is a simple `<select>` dropdown, which is standard HTML.
+              It would have `method="POST"` and `action="api/broadcasts.php?action=create"`.
+              File uploads (MP3/MP4, images) require `enctype="multipart/form-data"` on the form tag and would be handled using PHP's `$_FILES` superglobal on the server.
+              The date and time pickers are standard HTML elements.
             */}
             {/* Left Side: Create Broadcast / First Episode */}
             <div className="border-r pr-8 space-y-4 overflow-y-auto">
@@ -58,8 +67,8 @@ export const CreateBroadcastView = () => {
                 </div>
 
                 <div>
-                    <Label htmlFor="cover-image">Cover Image URL</Label>
-                    <Input id="cover-image" placeholder="https://example.com/cover.png" />
+                    <Label htmlFor="cover-image">Attach image for Cover Image/Logo?</Label>
+                    <Input id="cover-image" type="file" accept="image/*" />
                 </div>
 
                 <div>
@@ -68,15 +77,39 @@ export const CreateBroadcastView = () => {
                 </div>
 
                 <div>
-                    <Label>Pick a time you want the episode to air?</Label>
-                    <Select onValueChange={setTime} value={time}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {timeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
+                    <Label>Broadcast Date & Time</Label>
+                    <div className="flex gap-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-[280px] justify-start text-left font-normal",
+                                    !date && "text-muted-foreground"
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                mode="single"
+                                selected={date}
+                                onSelect={setDate}
+                                initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        <Select onValueChange={setTime} value={time}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select a time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {timeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
 
                 <div>
@@ -94,9 +127,9 @@ export const CreateBroadcastView = () => {
 
             {/* 
               PHP Conversion Instructions:
-              This section would be conditionally rendered using a PHP `if` statement.
-              `if (user_has_broadcasts()) { ... } else { ... }`.
-              The dropdown to select a broadcast would be populated by a PHP loop over the user's broadcasts fetched from the database.
+              This section would be conditionally rendered using a PHP `if` statement in the template.
+              Example: `if (user_has_broadcasts($_SESSION['user_id'])) { ... } else { ... }`.
+              The dropdown to select a broadcast would be populated by a PHP loop (`foreach`) over the user's broadcasts fetched from the database via a function like `get_user_broadcasts()`.
             */}
             {/* Right Side: Add Another Episode (conditionally rendered) */}
             <div className="flex flex-col space-y-4 text-muted-foreground">
