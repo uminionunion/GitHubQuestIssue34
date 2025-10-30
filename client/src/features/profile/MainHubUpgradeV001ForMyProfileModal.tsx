@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -250,6 +252,9 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-full w-full h-full p-0 m-0 flex flex-col">
+          <DialogHeader className="sr-only">
+            <DialogTitle>uHub Profile and Settings</DialogTitle>
+          </DialogHeader>
           <div className="flex-grow flex flex-col overflow-hidden">
             {/* Top Section */}
             <div className="flex p-4 border-b">

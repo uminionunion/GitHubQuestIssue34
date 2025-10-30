@@ -22,7 +22,7 @@ const MainHubUpgradeV001ForUserProfileModal: React.FC<MainHubUpgradeV001ForUserP
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-4 border-b">
+        <DialogHeader>
           <DialogTitle>{user.username}'s Profile</DialogTitle>
         </DialogHeader>
         <div className="flex-grow flex flex-col overflow-hidden">
