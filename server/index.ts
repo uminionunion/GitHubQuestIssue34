@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser';
 // Import the function for setting up static file serving.
 import { setupStaticServing } from './static-serve.js';
 import authRouter from './auth.js';
+import friendsRouter from './friends.js';
 import { setupChat } from './chat.js';
 
 // Load environment variables from .env file into process.env.
@@ -33,6 +34,7 @@ app.use(cookieParser());
 
 // API routes
 app.use('/api/auth', authRouter);
+app.use('/api/friends', friendsRouter);
 
 // Setup chat
 setupChat(io);

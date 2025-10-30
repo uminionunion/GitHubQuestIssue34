@@ -1,56 +1,136 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, UserPlus, UserX, ShieldAlert } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
-// Dummy data for friends list
-const friends = [
-  { id: 1, username: 'uMary', avatar: 'https://i.pravatar.cc/150?u=uMary', online: true },
-  { id: 2, username: 'uJohn', avatar: 'https://i.pravatar.cc/150?u=uJohn', online: false },
-  { id: 3, username: 'uPeter', avatar: 'https://i.pravatar.cc/150?u=uPeter', online: true },
-];
+const FriendRequestItem = ({ request, onAccept, onReject, onBlock, onReport }) => (
+  <div className="flex items-center justify-between p-2 rounded-md bg-accent/50">
+    <div className="flex items-center gap-3">
+      <Avatar className="h-10 w-10">
+        <AvatarImage src={request.user1_profile_image_url} />
+        <AvatarFallback>{request.user1_username.charAt(1).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div>
+        <p className="font-semibold">{request.user1_username}</p>
+        <p className="text-xs text-muted-foreground">Wants to be your friend</p>
+      </div>
+    </div>
+    <div className="flex gap-1">
+      <Button size="sm" onClick={() => onAccept(request.id)}>Accept</Button>
+      <Button size="sm" variant="destructive" onClick={() => onReject(request.id)}>Deny</Button>
+      <Button size="sm" variant="outline" onClick={() => onBlock(request.user_id1)}>Block</Button>
+      <Button size="sm" variant="outline" onClick={() => onReport(request.user_id1)}>Report</Button>
+    </div>
+  </div>
+);
 
-// Dummy data for messages
-const messages = [
-    { id: 1, sender: 'uMary', content: 'Hey, how are you?', timestamp: '10:30 AM' },
-    { id:2, sender: 'me', content: 'I am good, thanks! How about you?', timestamp: '10:31 AM' },
-    { id: 3, sender: 'uMary', content: 'Doing great! Just working on the new broadcast.', timestamp: '10:32 AM' },
-];
+const MainHubUpgradeV001ForFriendsView = ({ pendingRequests, setPendingRequests }) => {
+  const { user } = useAuth();
+  const [friends, setFriends] = useState([]);
+  const [selectedFriend, setSelectedFriend] = useState(null);
 
-const MainHubUpgradeV001ForFriendsView = () => {
-  const [selectedFriend, setSelectedFriend] = React.useState(friends[0]);
+  useEffect(() => {
+    if (user) {
+      fetch('/api/friends')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setFriends(data);
+          }
+        });
+    }
+  }, [user]);
+
+  const handleAccept = async (requestId) => {
+    await fetch('/api/friends/accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId }),
+    });
+    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+    // Re-fetch friends list
+    fetch('/api/friends').then(res => res.json()).then(setFriends);
+  };
+
+  const handleReject = async (requestId) => {
+    await fetch('/api/friends/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId }),
+    });
+    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+  };
+
+  const handleBlock = async (userId) => {
+    await fetch('/api/friends/block', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    alert(`User ${userId} blocked.`);
+    // Optionally remove from lists
+  };
+
+  const handleReport = (userId) => {
+    const reason = prompt("Please provide a reason for reporting this user:");
+    if (reason) {
+      fetch('/api/friends/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportedId: userId, reason }),
+      });
+      alert(`User ${userId} reported.`);
+    }
+  };
 
   return (
     <div className="grid grid-cols-3 h-full gap-4">
       {/* Friends List */}
       <div className="col-span-1 border-r pr-4 overflow-y-auto">
+        <h4 className="font-bold text-lg mb-4">Friend Requests</h4>
+        <div className="space-y-2 mb-4">
+          {pendingRequests.length > 0 ? (
+            pendingRequests.map(req => (
+              <FriendRequestItem 
+                key={req.id} 
+                request={req} 
+                onAccept={handleAccept}
+                onReject={handleReject}
+                onBlock={handleBlock}
+                onReport={handleReport}
+              />
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">No new friend requests.</p>
+          )}
+        </div>
+
         <h4 className="font-bold text-lg mb-4">Friends List</h4>
         <div className="space-y-2">
-          {friends.map(friend => (
+          {friends.length > 0 ? friends.map(friend => (
             <div
               key={friend.id}
-              className={`flex items-center justify-between p-2 rounded-md cursor-pointer ${selectedFriend.id === friend.id ? 'bg-accent' : 'hover:bg-muted/50'}`}
+              className={`flex items-center justify-between p-2 rounded-md cursor-pointer ${selectedFriend?.id === friend.id ? 'bg-accent' : 'hover:bg-muted/50'}`}
               onClick={() => setSelectedFriend(friend)}
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={friend.avatar} />
+                  <AvatarImage src={friend.profile_image_url} />
                   <AvatarFallback>{friend.username.charAt(1).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-semibold">{friend.username}</p>
-                  <p className={`text-xs ${friend.online ? 'text-green-500' : 'text-muted-foreground'}`}>
-                    {friend.online ? 'Online' : 'Offline'}
-                  </p>
+                  {/* Online status can be implemented with WebSockets */}
                 </div>
               </div>
               <Button variant="ghost" size="icon">
                 <MessageSquare className="h-5 w-5" />
               </Button>
             </div>
-          ))}
+          )) : <p className="text-sm text-muted-foreground">No friends yet.</p>}
         </div>
       </div>
 
@@ -62,14 +142,10 @@ const MainHubUpgradeV001ForFriendsView = () => {
               <h4 className="font-bold text-lg">Chat with {selectedFriend.username}</h4>
             </div>
             <div className="flex-grow overflow-y-auto space-y-4 pr-2">
-                {messages.map(msg => (
-                    <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.sender === 'me' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                            <p className="text-sm">{msg.content}</p>
-                            <p className="text-xs text-right mt-1 opacity-70">{msg.timestamp}</p>
-                        </div>
-                    </div>
-                ))}
+              {/* Chat messages would be loaded here */}
+              <div className="text-center text-muted-foreground p-8">
+                Direct messaging is under construction.
+              </div>
             </div>
             <div className="mt-4 flex gap-2">
               <Input placeholder={`Message ${selectedFriend.username}...`} />

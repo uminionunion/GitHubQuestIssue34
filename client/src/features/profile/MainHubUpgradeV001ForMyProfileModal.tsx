@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +13,7 @@ import MainHubUpgradeV001ForAddProductModal from './MainHubUpgradeV001ForAddProd
 import MainHubUpgradeV001ForProductDetailModal from './MainHubUpgradeV001ForProductDetailModal';
 import MainHubUpgradeV001ForFriendsView from './MainHubUpgradeV001ForFriendsView';
 import MainHubUpgradeV001ForSettingsView from './MainHubUpgradeV001ForSettingsView';
+import { CreateBroadcastView } from './CreateBroadcastView';
 
 interface MainHubUpgradeV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -51,6 +50,12 @@ const ProductBox = ({ product, onMagnify }) => {
 
     if (!product) return <div className="h-48 border rounded-md p-2 flex items-center justify-center text-muted-foreground">No Product</div>;
 
+    const handleImageClick = () => {
+        if (product.url) {
+            window.open(product.url, '_blank');
+        }
+    };
+
     return (
         <div className="border rounded-md p-2 relative h-48 group">
             <div className="absolute top-1 left-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded z-10">{product.name}</div>
@@ -59,7 +64,7 @@ const ProductBox = ({ product, onMagnify }) => {
                     <Search className="h-4 w-4" />
                 </Button>
             </div>
-            <div className="h-full bg-cover bg-center" style={{ backgroundImage: `url('${product.image_url}')` }}></div>
+            <div className="h-full bg-cover bg-center cursor-pointer" style={{ backgroundImage: `url('${product.image_url}')` }} onClick={handleImageClick}></div>
             <div className="absolute bottom-1 left-1 z-10">
                 <Button variant="outline" size="icon" className="h-6 w-6" onClick={handleCartClick}>
                     {inCart ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -72,23 +77,6 @@ const ProductBox = ({ product, onMagnify }) => {
         </div>
     );
 };
-
-const MyBroadcastsView = () => (
-    <div className="grid grid-cols-2 gap-8 h-full">
-        {/* Left Side: Create Broadcast */}
-        <div className="border-r pr-8">
-            <h4 className="font-bold text-lg mb-4">Want to Broadcast something?</h4>
-            {/* Form fields would go here */}
-            <p className="text-muted-foreground">Broadcast creation form coming soon.</p>
-        </div>
-
-        {/* Right Side: Add Episode */}
-        <div className="flex flex-col items-center justify-center text-center bg-muted/50 rounded-md p-8">
-            <h4 className="font-bold text-lg mb-4">Want to Add Another Episode?</h4>
-            <p className="text-muted-foreground">Create a broadcast first to add more episodes.</p>
-        </div>
-    </div>
-);
 
 const BroadcastView = ({ broadcast }) => (
     <div className="flex gap-6">
@@ -126,6 +114,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
   const [centerView, setCenterView] = useState('broadcasts'); // 'broadcasts', 'friends', 'settings'
+  const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -135,13 +124,25 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
   useEffect(() => {
+    if (user && isOpen) {
+      fetch('/api/friends/requests/pending')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setPendingFriendRequests(data);
+          }
+        });
+    }
+  }, [user, isOpen]);
+
+  useEffect(() => {
     const fetchProducts = async () => {
         const dummyProducts = [
-            { id: 1, name: 'Tapestry', price: 49.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg' },
-            { id: 2, name: 'T-Shirt', price: 24.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png' },
-            { id: 3, name: 'Classic Logo', price: 19.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png' },
-            { id: 4, name: 'Ukraine Logo', price: 15.00, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png' },
-            { id: 5, name: 'Union Card', price: 9.99, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png' },
+            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/' },
+            { id: 2, name: 'T-Shirt', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/' },
+            { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/' },
+            { id: 4, name: 'Ukraine Logo', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png', url: 'https://u24.gov.ua/' },
+            { id: 5, name: 'Union Card', price: 14.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/' },
         ];
         setProducts(dummyProducts);
     };
@@ -186,9 +187,28 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
         'UnionPolitic#19': products.slice(0, 3),
         'UnionEvent#12': products.slice(0, 1),
     };
+    const currentProducts = productSlices[centerRightView] || [];
     return (
         <div className="space-y-2">
-            {(productSlices[centerRightView] || []).map((p, i) => <ProductBox key={i} product={p} onMagnify={handleMagnify} />)}
+            {currentProducts.length > 0 && <ProductBox product={currentProducts[0]} onMagnify={handleMagnify} />}
+            <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => {
+                            if (!user) {
+                                alert('You must be logged in to add a product.');
+                                return;
+                            }
+                            setAddProductModalOpen(true)
+                        }}>
+                            <Eye />
+                        </Button>
+                        <h4 className="font-semibold text-center">Your Store:</h4>
+                    </div>
+                    {/* Placeholder for earnings */}
+                </div>
+            </div>
+            {currentProducts.slice(1).map((p, i) => <ProductBox key={i} product={p} onMagnify={handleMagnify} />)}
         </div>
     );
   };
@@ -196,7 +216,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   const renderCenterContent = () => {
     switch (centerView) {
         case 'friends':
-            return <MainHubUpgradeV001ForFriendsView />;
+            return <MainHubUpgradeV001ForFriendsView pendingRequests={pendingFriendRequests} setPendingRequests={setPendingFriendRequests} />;
         case 'settings':
             return <MainHubUpgradeV001ForSettingsView />;
         case 'broadcasts':
@@ -204,7 +224,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
             return (
                 <>
                     <div className="flex items-center justify-center mb-4">
-                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')} disabled={broadcastView === 'MyBroadcasts'}>
+                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')}>
                             <ChevronLeft />
                         </Button>
                         <h3 className="text-center font-bold mx-4">{broadcasts[broadcastView]?.title || 'MyBroadcasts'}</h3>
@@ -212,39 +232,47 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                             <ChevronRight />
                         </Button>
                     </div>
-                    {broadcastView === 'MyBroadcasts' ? <MyBroadcastsView /> : <BroadcastView broadcast={broadcasts[broadcastView]} />}
+                    {broadcastView === 'MyBroadcasts' ? <CreateBroadcastView /> : <BroadcastView broadcast={broadcasts[broadcastView]} />}
                 </>
             );
     }
   };
 
+  const handleTopLeftButtonClick = (view: string) => {
+    if (!user) {
+      alert("You must be logged in to use this feature.");
+      return;
+    }
+    setCenterView(view);
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-7xl h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-4 border-b">
-            <DialogTitle>My Profile</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-full w-full h-full p-0 m-0 flex flex-col">
           <div className="flex-grow flex flex-col overflow-hidden">
             {/* Top Section */}
             <div className="flex p-4 border-b">
               <div id="MainHubUpgradeV001ForMyProfileSettingsTopLeftSection" className="w-1/5 grid grid-cols-2 grid-rows-2 gap-2 pr-4">
-                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="FriendsFam&Others" onClick={() => setCenterView('friends')}><Users className="mb-1" /> Friends</Button>
+                <Button variant="outline" className="flex flex-col h-full items-center justify-center relative" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+                  {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
+                  <Users className="mb-1" /> Friends
+                </Button>
                 <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1" /> Broadcast</Button>
                 <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full h-full">
-                  <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center" title="Code"><Code className="mb-1" /> Code</Button>
+                  <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center" title="Code" disabled={!user}><Code className="mb-1" /> Code</Button>
                 </a>
-                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings" onClick={() => setCenterView('settings')}><Settings className="mb-1" /> Settings</Button>
+                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1" /> Settings</Button>
               </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
-                <Button className="absolute">Change Cover</Button>
+              <div id="MainHubUpgradeV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+                {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
               </div>
               <div id="MainHubUpgradeV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4 relative">
                 <Avatar className="h-32 w-32">
                   <AvatarImage src="https://uminion.com/wp-content/uploads/2025/02/iArt06532.png" alt="Profile" />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <Button size="sm" className="absolute top-0 right-0">Edit</Button>
+                {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
                 <div className="absolute bottom-0 right-0 flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
                     <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
@@ -280,23 +308,6 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                                 <ShoppingCart />
                             </Button>
                         </a>
-                    </div>
-                  </div>
-                  <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => {
-                                if (!user) {
-                                    alert('You must be logged in to add a product.');
-                                    return;
-                                }
-                                setAddProductModalOpen(true)
-                            }}>
-                                <Eye />
-                            </Button>
-                            <h4 className="font-semibold text-center">Your Store:</h4>
-                        </div>
-                        {/* Placeholder for earnings */}
                     </div>
                   </div>
                   {renderCenterRightContent()}

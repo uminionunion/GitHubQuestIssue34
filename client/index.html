@@ -7,41 +7,76 @@
 
       To convert this project to a traditional PHP, HTML, CSS, and JavaScript stack without React/Vite/Node.js, follow these steps:
 
-      1.  **Setup PHP Environment**:
-          -   Assume a standard web server environment (like Apache or Nginx) with PHP installed.
-          -   The project will consist of .php, .html, .css, and .js files.
+      **Project Goal**: Replicate the existing application's features, including user authentication, chatrooms, a dynamic user hub (uHub), and product displays, using a classic server-rendered architecture.
 
-      2.  **File Structure**:
-          -   `index.php`: The main entry point of the application.
-          -   `assets/css/style.css`: A single stylesheet for all CSS.
-          -   `assets/js/main.js`: A single JavaScript file for all client-side logic.
-          -   `includes/`: A directory for reusable PHP parts like headers, footers, and database connections.
-          -   `api/`: A directory to handle AJAX requests (e.g., `api/auth.php`, `api/chat.php`).
-          -   `templates/`: A directory for different page templates (e.g., `templates/profile.php`).
+      **1. Core Technology Stack**:
+          -   **Backend**: PHP (latest stable version)
+          -   **Database**: SQLite (using the existing `database.sqlite` file) via PHP's PDO extension.
+          -   **Frontend**: HTML5, CSS3 (using the compiled Tailwind CSS output), and Vanilla JavaScript (ES6+).
+          -   **Web Server**: Apache or Nginx with PHP support.
 
-      3.  **Backend (PHP & SQL)**:
-          -   **Database Connection**: Create a `db.php` file to establish a connection to the SQLite database using PHP's PDO extension.
-          -   **API Endpoints**: Convert all Express routes (from `server/auth.ts`, `server/chat.ts`, etc.) into individual PHP files inside the `api/` directory. For example, `server/auth.ts`'s `/login` route becomes `api/login.php`. These PHP files will handle POST/GET requests, interact with the database, and `echo json_encode(...)` the response.
-          -   **Authentication**: Manage user sessions using PHP's `session_start()` and the `$_SESSION` superglobal. The login script will set session variables upon successful authentication.
-          -   **WebSockets**: The real-time chat functionality (Socket.IO) is the most complex part to convert. A pure PHP solution is difficult. The best approach is to use a dedicated WebSocket server library for PHP (like Ratchet) or a third-party service (like Pusher). For the purpose of conversion, you can simulate it with repeated AJAX polling in JavaScript (`setInterval` calling a `fetch` to get new messages), which is less efficient but avoids complex WebSocket server setup.
+      **2. File Structure**:
+          -   `/` (Root Directory):
+              -   `index.php`: Main entry point. Handles routing for different pages.
+              -   `login.php`, `signup.php`, `logout.php`: Handle user authentication forms and logic.
+          -   `/assets/`:
+              -   `css/style.css`: The single, compiled CSS file. Start with the output of the current project's `index.css`.
+              -   `js/main.js`: Main JavaScript file for global interactivity (e.g., header buttons, modal triggers).
+              -   `js/uhub.js`: Specific JavaScript for the uHub modal's complex interactions.
+              -   `js/chat.js`: JavaScript for handling chat functionality (AJAX polling).
+          -   `/includes/`:
+              -   `db.php`: Establishes the PDO connection to the SQLite database.
+              -   `header.php`, `footer.php`: Reusable HTML layout components.
+              -   `functions.php`: Core PHP functions (e.g., `is_logged_in()`, `get_user_data()`).
+          -   `/api/`:
+              -   `friends.php`: Handles friend requests (send, accept, reject, block).
+              -   `chat.php`: Handles fetching/sending chat messages.
+              -   `products.php`: Handles product-related actions.
+              -   `users.php`: Handles user profile data fetching.
+          -   `/templates/`:
+              -   `uhub.php`: The complete HTML/PHP structure for the uHub modal.
+              -   `calendar.php`: The HTML/PHP for the main calendar view.
+              -   `sister_union_page.php`: A template for the 24 Sister Union pages.
 
-      4.  **Frontend (HTML, CSS, JS)**:
-          -   **Component Conversion**: Convert each React component (`.tsx` file) into a combination of PHP functions, HTML snippets, and JavaScript logic.
-              -   **Structure (HTML/PHP)**: A React component's JSX becomes a PHP file or function that `echo`s HTML. For example, `MyProfileModal.tsx` could become `templates/profile_modal.php`, which is then included in `index.php`.
-              -   **Styling (CSS)**: Copy all Tailwind CSS classes from the JSX `className` attributes directly into the `class` attributes of the corresponding HTML elements. The final, compiled `index.css` from the React project should be used as the starting point for `assets/css/style.css`.
-              -   **Interactivity (JavaScript)**: Convert React state management (`useState`, `useEffect`) and event handlers (`onClick`, etc.) into vanilla JavaScript or jQuery.
-                  -   Use `document.getElementById` or `document.querySelector` to select elements.
-                  -   Use `element.addEventListener('click', ...)` for event handling.
-                  -   Manage state using global JavaScript variables or by storing data in HTML `data-*` attributes.
-                  -   AJAX calls will be made using the `fetch()` API to the PHP endpoints in the `api/` directory.
+      **3. Backend Implementation (PHP & SQLite)**:
+          -   **Database (`db.php`)**: Create a singleton or a simple include file for the PDO connection: `new PDO('sqlite:/path/to/data/database.sqlite');`.
+          -   **Routing (`index.php`)**: Use a simple `$_GET` parameter for routing, e.g., `index.php?page=SisterUnion001NewEngland`. The `index.php` will use a `switch` or `if/else` block to `include` the correct template from `/templates/`.
+          -   **Authentication**:
+              -   Use PHP sessions (`session_start()`).
+              -   `signup.php`: Hashes passwords with `password_hash()`, inserts new user into the `users` table.
+              -   `login.php`: Verifies credentials with `password_verify()`, sets `$_SESSION['user_id']` on success.
+              -   `logout.php`: Destroys the session.
+          -   **API Endpoints (`/api/*.php`)**:
+              -   These files will be the target for JavaScript `fetch` calls.
+              -   They must include `db.php` and `functions.php`.
+              -   They will check for `$_SESSION['user_id']` for protected actions.
+              -   They will process `$_POST` or `$_GET` data, query the database, and `echo json_encode(...)` the result.
+              -   Example `api/friends.php`: `if ($_POST['action'] === 'accept') { ...SQL to update friends table... }`.
+          -   **Chat Simulation**: Since pure PHP doesn't handle WebSockets easily, simulate real-time chat with AJAX polling.
+              -   `chat.js` will use `setInterval` to call `fetch('api/chat.php?room=ROOM_NAME&latest_id=LAST_MESSAGE_ID')` every 2-3 seconds.
+              -   `api/chat.php` will query for new messages since `LAST_MESSAGE_ID` and return them as JSON.
 
-      5.  **Example Conversion (`App.tsx` to `index.php`)**:
-          -   `index.php` will contain the main HTML structure (`<html>`, `<body>`, etc.).
-          -   It will `include 'includes/header.php';`.
-          -   The main content area will be a `<div>`.
-          -   It will `include 'includes/footer.php';`.
-          -   The modals (like `AuthModal` and `ProfileModal`) will be HTML structures initially hidden with CSS (`display: none;`) and shown with JavaScript by changing their style.
-          -   All necessary JavaScript will be in `<script src="assets/js/main.js"></script>` at the end of the `<body>`.
+      **4. Frontend Implementation (HTML, CSS, JS)**:
+          -   **Component Conversion**:
+              -   **React JSX to PHP/HTML**: Convert `.tsx` components into `.php` files in `/templates/`. State-dependent rendering in React becomes PHP `if/else` blocks. E.g., `user ? <Button /> : null` becomes `<?php if (is_logged_in()): ?><button>...</button><?php endif; ?>`.
+              -   **Styling**: All `className` attributes from JSX are transferred directly to `class` attributes in the HTML. Use the fully compiled CSS file.
+              -   **Interactivity (`main.js`, `uhub.js`)**:
+                  -   Replace React hooks (`useState`, `useEffect`) with vanilla JS.
+                  -   State can be managed in global JS variables or stored in `data-*` attributes on HTML elements.
+                  -   Event handlers (`onClick`) become `element.addEventListener('click', ...)`.
+          -   **uHub Modal (`uhub.php` & `uhub.js`)**:
+              -   The modal is a hidden `<div>` in `uhub.php`.
+              -   `uhub.js` controls its visibility by changing its `display` style.
+              -   All internal tabs (Friends, Broadcasts, Settings) are separate `<div>`s within the modal, and JS will show/hide them based on which button is clicked.
+              -   Data for friends, products, etc., is fetched via AJAX calls to the `/api/` endpoints and dynamically inserted into the DOM.
+          -   **Draggable Hub**: The `react-rnd` functionality must be replicated. Use a lightweight vanilla JS drag-and-drop library or write a custom implementation using `mousedown`, `mousemove`, and `mouseup` events to update the element's `style.top` and `style.left`.
+
+      **5. Detailed Conversion Example: Friend Request Notification**:
+          1.  **PHP (`header.php`)**: When rendering the "uHub" button, run a PHP query: `get_pending_friend_requests($_SESSION['user_id'])`. If the count > 0, add a specific class (e.g., `has-notification`) to the button.
+          2.  **CSS (`style.css`)**: Create a style for `.has-notification::after` to display the orange dot.
+          3.  **JS (`uhub.js`)**: When the uHub modal opens, it fetches pending requests from `api/friends.php?action=get_pending` and renders them at the top of the friends list `<div>`.
+          4.  **HTML/PHP (`uhub.php`)**: The "Accept" button for a request will have `data-request-id="<?php echo $request['id']; ?>"`.
+          5.  **JS (`uhub.js`)**: The click listener for the "Accept" button reads the `data-request-id`, then makes a `fetch` call: `fetch('api/friends.php', { method: 'POST', body: new FormData(...) })`. On success, it updates the UI to move the user to the main friends list.
     -->
     <!-- Specifies the character encoding for the HTML document -->
     <meta charset="UTF-8" />

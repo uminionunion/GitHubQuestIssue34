@@ -103,7 +103,7 @@ const MainHubUpgradeV001ForUminionMainHub = () => {
       <Rnd
         // Default size and position of the component.
         default={{
-          x: (window.innerWidth - 600) / 2 - 100, // Center horizontally then shift left
+          x: (window.innerWidth - 600) / 2 - 150, // Center horizontally then shift left
           y: 100, // Position from the top
           width: 600,
           height: 150,

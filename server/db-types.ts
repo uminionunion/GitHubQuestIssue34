@@ -9,6 +9,19 @@ export type Boolean = 0 | 1;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface BlockedUsers {
+  id: Generated<number>;
+  blocker_id: number;
+  blocked_id: number;
+}
+
+export interface Friends {
+  id: Generated<number>;
+  user_id1: number;
+  user_id2: number;
+  status: "pending" | "accepted" | "rejected";
+}
+
 export interface MainHubUpgradeV001ForBroadcasts {
   id: Generated<number>;
   user_id: number;
@@ -66,6 +79,27 @@ export interface Messages {
   anonymous_username: string | null;
 }
 
+export interface Reports {
+  id: Generated<number>;
+  reporter_id: number;
+  reported_id: number | null;
+  reason: string;
+  images: string | null;
+  created_at: Generated<string | null>;
+}
+
+export interface UserChatrooms {
+  id: Generated<number>;
+  creator_id: number;
+  title: string;
+  password: string | null;
+  allow_anonymous: Generated<Boolean>;
+  background_color: string | null;
+  font_color: string | null;
+  created_at: Generated<string | null>;
+  last_active_at: Generated<string | null>;
+}
+
 export interface Users {
   id: Generated<number>;
   username: string;
@@ -77,6 +111,8 @@ export interface Users {
 }
 
 export interface DB {
+  blocked_users: BlockedUsers;
+  friends: Friends;
   MainHubUpgradeV001ForBroadcasts: MainHubUpgradeV001ForBroadcasts;
   MainHubUpgradeV001ForCartItems: MainHubUpgradeV001ForCartItems;
   MainHubUpgradeV001ForEpisodeImages: MainHubUpgradeV001ForEpisodeImages;
@@ -84,5 +120,7 @@ export interface DB {
   MainHubUpgradeV001ForEpisodeTags: MainHubUpgradeV001ForEpisodeTags;
   MainHubUpgradeV001ForProducts: MainHubUpgradeV001ForProducts;
   messages: Messages;
+  reports: Reports;
+  user_chatrooms: UserChatrooms;
   users: Users;
 }

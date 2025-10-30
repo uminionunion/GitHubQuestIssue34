@@ -1,6 +1,6 @@
 
 // Import React and hooks like useState and useEffect.
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // Import routing components from react-router-dom.
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Import the Button component from the UI library.
@@ -15,13 +15,53 @@ import { AuthProvider, useAuth } from './hooks/useAuth.tsx';
 import AuthModal from './features/auth/AuthModal';
 import MainHubUpgradeV001ForMyProfileModal from './features/profile/MainHubUpgradeV001ForMyProfileModal';
 
+const UHubButton = () => {
+  const [isProfileModalOpen, setProfileModalOpen] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleOpenModal = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setCountdown(3);
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          if(timerRef.current) clearInterval(timerRef.current);
+          setProfileModalOpen(true);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  return (
+    <>
+      <Button onClick={handleOpenModal} className="relative">
+        uHub
+        <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          {countdown !== null ? countdown : 10}
+        </div>
+      </Button>
+      {isProfileModalOpen && (
+        <MainHubUpgradeV001ForMyProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setProfileModalOpen(false)}
+        />
+      )}
+    </>
+  );
+};
+
+
 // A component for the main application layout.
 const MainLayout = () => {
   // State to manage the loading status. Initially true.
   const [isLoading, setIsLoading] = useState(true);
   const { user, logout, isLoading: isAuthLoading } = useAuth();
   const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'signup' }>({ isOpen: false, mode: 'login' });
-  const [isProfileModalOpen, setProfileModalOpen] = useState(false);
 
   // useEffect hook to simulate a loading period.
   useEffect(() => {
@@ -46,18 +86,17 @@ const MainLayout = () => {
           <div className="flex items-center gap-4 self-start">
             {isAuthLoading ? (
               <span id="loading-text">loading...</span>
-            ) : user ? (
-              <>
-                <Button onClick={() => setProfileModalOpen(true)}>My Profile</Button>
-                <Button onClick={handleLogout} variant="destructive">Log Out</Button>
-              </>
             ) : (
               <>
-                <span className="mr-2">MainHubUpgradeV001ForLoading002</span>
-                <span className="mr-2">MainHubUpgradeV001ForLoading003</span>
-                <Button onClick={() => setAuthModal({ isOpen: true, mode: 'signup' })} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
-                <Button onClick={() => setAuthModal({ isOpen: true, mode: 'login' })}>Log In?</Button>
-                <Button onClick={() => setProfileModalOpen(true)}>MyProfile</Button>
+                <UHubButton />
+                {!user ? (
+                  <>
+                    <Button onClick={() => setAuthModal({ isOpen: true, mode: 'signup' })} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
+                    <Button onClick={() => setAuthModal({ isOpen: true, mode: 'login' })}>Log In?</Button>
+                  </>
+                ) : (
+                  <Button onClick={handleLogout} variant="destructive">Log Out</Button>
+                )}
               </>
             )}
           </div>
@@ -86,12 +125,6 @@ const MainLayout = () => {
           isOpen={authModal.isOpen}
           mode={authModal.mode}
           onClose={() => setAuthModal({ isOpen: false, mode: 'login' })}
-        />
-      )}
-      {isProfileModalOpen && (
-        <MainHubUpgradeV001ForMyProfileModal
-          isOpen={isProfileModalOpen}
-          onClose={() => setProfileModalOpen(false)}
         />
       )}
     </div>
