@@ -5,13 +5,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, Mic } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export const CreateBroadcastView = () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
+    // State for the selected time.
+    const [time, setTime] = React.useState<string>('');
+
+    // Generate time options for the dropdown.
+    const timeOptions = [];
+    for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 15) {
+            const hour = String(h).padStart(2, '0');
+            const minute = String(m).padStart(2, '0');
+            timeOptions.push(`${hour}:${minute}`);
+        }
+    }
 
     return (
         <div className="grid grid-cols-2 gap-8 h-full">
+            {/* 
+              PHP Conversion Instructions:
+              This form would be a standard HTML `<form>` in a `create_broadcast.php` template.
+              On submission, it would post data to a PHP script (e.g., `api/broadcasts.php?action=create`).
+              File uploads (MP3/MP4, images) would be handled using PHP's `$_FILES` superglobal.
+              The time picker is a simple `<select>` dropdown, which is standard HTML.
+            */}
             {/* Left Side: Create Broadcast / First Episode */}
             <div className="border-r pr-8 space-y-4 overflow-y-auto">
                 <h4 className="font-bold text-lg">Want to Broadcast something?</h4>
@@ -50,11 +68,15 @@ export const CreateBroadcastView = () => {
                 </div>
 
                 <div>
-                    <Label>Broadcast Date & Time</Label>
-                    <div className="flex gap-2">
-                        <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md border" />
-                        <Input type="time" className="w-full" />
-                    </div>
+                    <Label>Pick a time you want the episode to air?</Label>
+                    <Select onValueChange={setTime} value={time}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {timeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <div>
@@ -70,6 +92,12 @@ export const CreateBroadcastView = () => {
                 <Button>Submit</Button>
             </div>
 
+            {/* 
+              PHP Conversion Instructions:
+              This section would be conditionally rendered using a PHP `if` statement.
+              `if (user_has_broadcasts()) { ... } else { ... }`.
+              The dropdown to select a broadcast would be populated by a PHP loop over the user's broadcasts fetched from the database.
+            */}
             {/* Right Side: Add Another Episode (conditionally rendered) */}
             <div className="flex flex-col space-y-4 text-muted-foreground">
                 <h4 className="font-bold text-lg text-foreground">Want to Add Another Episode?</h4>

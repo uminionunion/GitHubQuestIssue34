@@ -1,11 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play } from 'lucide-react';
@@ -23,6 +17,7 @@ interface MainHubUpgradeV001ForMyProfileModalProps {
   onOpenAuthModal: (mode: 'login' | 'signup') => void;
 }
 
+// Social media links for the first page of icons.
 const socialLinksPage1 = [
   { id: 'facebook', href: 'https://www.facebook.com/groups/1615679026489537', icon: <Facebook /> },
   { id: 'bluesky', href: 'https://bsky.app/profile/uminion.bsky.social', icon: <MessageSquare /> },
@@ -32,6 +27,7 @@ const socialLinksPage1 = [
   { id: 'discord', href: 'https://discord.com/login?redirect_to=%2Flogin%3Fredirect_to%3D%252Fchannels%252F1357919291428573204%252F1357919292280144075', icon: 'D' },
 ];
 
+// Social media links for the second and third pages.
 const socialLinksPage2 = [
   { id: 'instagram', href: 'https://www.instagram.com/theuminionunion/?igsh=ajdjeGUycHRmczVs&ut-m_source=qr#', icon: <Instagram /> },
   { id: 'mastodon', href: 'https://mastodon.social/@uminion', icon: 'M' },
@@ -41,14 +37,17 @@ const socialLinksPage2 = [
   { id: 'githubIssues', href: 'https://github.com/uminionunion/UminionsWebsite/issues', icon: <Github /> },
 ];
 
-const socialLinkPages = [socialLinksPage1, socialLinksPage2, socialLinksPage2]; // Page 3 is same as 2
+// An array containing all pages of social links for pagination.
+const socialLinkPages = [socialLinksPage1, socialLinksPage2, socialLinksPage2]; // Page 3 is a copy of page 2.
 
+// A reusable component for rendering a social media icon link.
 const MainHubUpgradeV001ForSocialIcon = ({ href, children, disabled }: { href: string, children: React.ReactNode, disabled?: boolean }) => (
   <a href={disabled ? '#' : href} target="_blank" rel="noopener noreferrer" className={`text-muted-foreground ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:text-foreground'}`}>
     {children}
   </a>
 );
 
+// A component to display a single product in a box.
 const ProductBox = ({ product, onMagnify }) => {
     const [inCart, setInCart] = useState(false);
 
@@ -77,9 +76,9 @@ const ProductBox = ({ product, onMagnify }) => {
                 )}
             </div>
             <div className="h-full bg-cover bg-center cursor-pointer" style={{ backgroundImage: `url('${product.image_url}')` }} onClick={handleImageClick}></div>
-            <div className="absolute bottom-1 left-1 z-10">
+            <div className="absolute bottom-1 left-1 z-10 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded">
                 {product.location ? (
-                    <span className="text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded">{product.location}</span>
+                    <span>{product.location}</span>
                 ) : (
                     <Button variant="outline" size="icon" className="h-6 w-6" onClick={handleCartClick}>
                         {inCart ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -94,6 +93,7 @@ const ProductBox = ({ product, onMagnify }) => {
     );
 };
 
+// A component to display a broadcast's details.
 const BroadcastView = ({ broadcast }) => (
     <div className="flex gap-6">
         <div className="w-1/3">
@@ -118,7 +118,7 @@ const BroadcastView = ({ broadcast }) => (
     </div>
 );
 
-
+// The main modal component for the uHub.
 const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
   const { user } = useAuth();
   const MainHubUpgradeV001ForUHomeHubButtons = Array.from({ length: 24 }, (_, i) => i + 1);
@@ -129,7 +129,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
-  const [centerView, setCenterView] = useState('broadcasts'); // 'broadcasts', 'friends', 'settings'
+  const [centerView, setCenterView] = useState('broadcasts');
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
   const [socialPage, setSocialPage] = useState(0);
 
@@ -140,6 +140,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
+  // Effect to fetch pending friend requests when the modal is open and a user is logged in.
   useEffect(() => {
     if (user && isOpen) {
       fetch('/api/friends/requests/pending')
@@ -152,29 +153,27 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     }
   }, [user, isOpen]);
 
+  // Effect to set up the product data for different views.
   useEffect(() => {
-    const fetchProducts = async () => {
-        const allProducts = {
-            'UnionSAM#20': [
-                { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/' },
-                { id: 2, name: 'uT-Shirt', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/' },
-                { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/' },
-                { id: 4, name: 'Ukraine', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png', url: 'https://u24.gov.ua/' },
-                { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/' },
-            ],
-            'UnionPolitic#19': [
-                { id: 6, name: 'Support unionCandidates as a WHOLE', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
-                { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
-                { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
-                { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
-            ],
-            'UnionEvent#12': [
-                { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo012.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-12-2024-poster/' },
-            ],
-        };
-        setProducts(allProducts);
+    const allProducts = {
+        'UnionSAM#20': [
+            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/' },
+            { id: 2, name: 'uT-Shirt', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/' },
+            { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/' },
+            { id: 4, name: 'Ukraine', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png', url: 'https://u24.gov.ua/' },
+            { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/' },
+        ],
+        'UnionPolitic#19': [
+            { id: 6, name: 'Support unionCandidates as a WHOLE', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+            { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+            { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+            { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+        ],
+        'UnionEvent#12': [
+            { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo012.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-12-2024-poster/' },
+        ],
     };
-    fetchProducts();
+    setProducts(allProducts);
   }, []);
 
   const handleMagnify = (product) => {
@@ -213,25 +212,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     const currentProducts = products[centerRightView] || [];
     return (
         <div className="space-y-2">
-            {currentProducts.length > 0 && <ProductBox product={currentProducts[0]} onMagnify={handleMagnify} />}
-            <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => {
-                            if (!user) {
-                                alert('You must be logged in to add a product.');
-                                return;
-                            }
-                            setAddProductModalOpen(true)
-                        }}>
-                            <Eye />
-                        </Button>
-                        <h4 className="font-semibold text-center">Your Store:</h4>
-                    </div>
-                    {/* Placeholder for earnings */}
-                </div>
-            </div>
-            {currentProducts.slice(1).map((p, i) => <ProductBox key={i} product={p} onMagnify={handleMagnify} />)}
+            {currentProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} />)}
         </div>
     );
   };
@@ -272,7 +253,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
 
   const handleProfileImageClick = () => {
     if (!user) {
-      onClose(); // Close this modal first
+      onClose();
       onOpenAuthModal('login');
     }
   };
@@ -286,109 +267,129 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     });
   };
 
+  if (!isOpen) return null;
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-full w-full h-full p-0 m-0 flex flex-col">
-          <DialogHeader className="sr-only">
-            <DialogTitle>uHub Profile and Settings</DialogTitle>
-          </DialogHeader>
-          <div className="flex-grow flex flex-col overflow-hidden">
-            {/* Top Section */}
-            <div className="flex p-4 border-b">
-              <div id="MainHubUpgradeV001ForMyProfileSettingsTopLeftSection" className="w-1/5 grid grid-cols-2 grid-rows-2 gap-2 pr-4">
-                <Button variant="outline" className="flex flex-col h-full items-center justify-center relative" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
-                  {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
-                  <Users className="mb-1" /> Friends
-                </Button>
-                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1" /> Broadcast</Button>
-                <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full h-full">
-                  <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center" title="Code" disabled={!user}><Code className="mb-1" /> Code</Button>
-                </a>
-                <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1" /> Settings</Button>
-              </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
-                {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
-              </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4 relative">
-                <div onClick={handleProfileImageClick} className="cursor-pointer">
-                  <Avatar className="h-32 w-32">
-                    <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
-                </div>
-                {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
-                <div className="absolute bottom-0 right-0 flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                    <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
-                </div>
-              </div>
+      {/* 
+        PHP Conversion Instructions:
+        This entire modal structure would be a single `uhub.php` template file, initially hidden with CSS (`display: none`).
+        JavaScript in `uhub.js` would toggle its visibility.
+        The internal state (like `centerView`, `broadcastView`) would be managed with JS variables, and content sections
+        would be shown/hidden by manipulating their `display` style.
+        Data like products and friend requests would be fetched via AJAX calls to PHP API endpoints (`api/products.php`, `api/friends.php`).
+      */}
+      <div className="bg-background text-foreground w-full h-full flex flex-col">
+        {/* Top Section */}
+        <div className="flex p-4 border-b">
+          <div id="MainHubUpgradeV001ForMyProfileSettingsTopLeftSection" className="w-1/5 grid grid-cols-2 grid-rows-2 gap-2 pr-4">
+            <Button variant="outline" className="flex flex-col h-full items-center justify-center relative" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+              {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
+              <Users className="mb-1" /> Friends
+            </Button>
+            <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1" /> Broadcast</Button>
+            <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full h-full">
+              <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center" title="Code" disabled={!user}><Code className="mb-1" /> Code</Button>
+            </a>
+            <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1" /> Settings</Button>
+          </div>
+          <div id="MainHubUpgradeV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+            {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
+          </div>
+          <div id="MainHubUpgradeV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4 relative">
+            <div onClick={handleProfileImageClick} className="cursor-pointer">
+              <Avatar className="h-32 w-32">
+                <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
             </div>
-
-            {/* Center Section */}
-            <div className="flex-grow flex overflow-hidden">
-              <div id="MainHubUpgradeV001ForMyProfileSettingsCenterLeftSection" className="w-[20%] p-4 border-r overflow-y-auto">
-                <h3 className="text-center font-bold mb-4">uHome-Hub:</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {MainHubUpgradeV001ForUHomeHubButtons.map(num => (
-                    <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
-                  ))}
-                </div>
-              </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsCenterCenterSection" className="w-[60%] p-4 overflow-y-auto">
-                {renderCenterContent()}
-              </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsCenterRightSection" className="w-[20%] p-4 border-l overflow-y-auto">
-                <div className="flex items-center justify-center mb-4">
-                    <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('left')}><ChevronLeft /></Button>
-                    <h3 className="text-center font-bold mx-4">{centerRightView}</h3>
-                    <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('right')}><ChevronRight /></Button>
-                </div>
-                <div className="space-y-4">
-                  <div id="MainHubUpgradeV001ForMainStore" className="border rounded-md p-2">
-                    <div className="flex justify-between items-center">
-                        <h4 className="font-semibold text-center">Main Store</h4>
-                        <a href="https://uminion.com/cart/" target="_blank" rel="noopener noreferrer">
-                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500" id="MainHubUpgradeV001ForUnionSAM#20ViewCart">
-                                <ShoppingCart />
-                            </Button>
-                        </a>
-                    </div>
-                  </div>
-                  {renderCenterRightContent()}
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Section */}
-            <div className="flex border-t">
-              <div id="MainHubUpgradeV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-4 border-r flex items-center">
-                <Button variant="ghost" size="icon" onClick={() => handleSocialNav('left')}><ChevronLeft /></Button>
-                <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
-                  {socialLinkPages[socialPage].map(link => (
-                    <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPage > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
-                  ))}
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => handleSocialNav('right')}><ChevronRight /></Button>
-              </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-4 flex items-center justify-center">
-                <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
-                  Become an Official Member of the Union via getting your Union Card Today!
-                </a>
-              </div>
-              <div id="MainHubUpgradeV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-4 border-l flex items-center">
-                 <Button variant="ghost" size="icon" onClick={() => handleSocialNav('left')}><ChevronLeft /></Button>
-                <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
-                  {socialLinkPages[socialPage].map(link => (
-                    <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPage > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
-                  ))}
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => handleSocialNav('right')}><ChevronRight /></Button>
-              </div>
+            {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
+            <div className="absolute bottom-0 right-0 flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+
+        {/* Center Section */}
+        <div className="flex-grow flex overflow-hidden">
+          <div id="MainHubUpgradeV001ForMyProfileSettingsCenterLeftSection" className="w-[20%] p-4 border-r overflow-y-auto">
+            <h3 className="text-center font-bold mb-4">uHome-Hub:</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {MainHubUpgradeV001ForUHomeHubButtons.map(num => (
+                <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
+              ))}
+            </div>
+          </div>
+          <div id="MainHubUpgradeV001ForMyProfileSettingsCenterCenterSection" className="w-[60%] p-4 overflow-y-auto">
+            {renderCenterContent()}
+          </div>
+          <div id="MainHubUpgradeV001ForMyProfileSettingsCenterRightSection" className="w-[20%] p-4 border-l overflow-y-auto">
+            <div className="flex items-center justify-center mb-4">
+                <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('left')}><ChevronLeft /></Button>
+                <h3 className="text-center font-bold mx-4">{centerRightView}</h3>
+                <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('right')}><ChevronRight /></Button>
+            </div>
+            <div className="space-y-4">
+              <div id="MainHubUpgradeV001ForMainStore" className="border rounded-md p-2">
+                <div className="flex justify-between items-center">
+                    <h4 className="font-semibold text-center">Main Store</h4>
+                    <a href="https://uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500" id="MainHubUpgradeV001ForUnionSAM#20ViewCart">
+                            <ShoppingCart />
+                        </Button>
+                    </a>
+                </div>
+              </div>
+              <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => {
+                            if (!user) {
+                                alert('You must be logged in to add a product.');
+                                return;
+                            }
+                            setAddProductModalOpen(true)
+                        }}>
+                            <Eye />
+                        </Button>
+                        <h4 className="font-semibold text-center">Your Store:</h4>
+                    </div>
+                </div>
+              </div>
+              {renderCenterRightContent()}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Section */}
+        <div className="flex border-t">
+          <div id="MainHubUpgradeV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-4 border-r flex items-center">
+            <Button variant="ghost" size="icon" onClick={() => handleSocialNav('left')}><ChevronLeft /></Button>
+            <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
+              {socialLinkPages[socialPage].map(link => (
+                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPage > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
+              ))}
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => handleSocialNav('right')}><ChevronRight /></Button>
+          </div>
+          <div id="MainHubUpgradeV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-4 flex items-center justify-center">
+            <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
+              Become an Official Member of the Union via getting your Union Card Today!
+            </a>
+          </div>
+          <div id="MainHubUpgradeV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-4 border-l flex items-center">
+             <Button variant="ghost" size="icon" onClick={() => handleSocialNav('left')}><ChevronLeft /></Button>
+            <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
+              {socialLinkPages[socialPage].map(link => (
+                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPage > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
+              ))}
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => handleSocialNav('right')}><ChevronRight /></Button>
+          </div>
+        </div>
+      </div>
+      
       {activeChatModal !== null && (
         <MainHubUpgradeV001ForChatModal
           isOpen={activeChatModal !== null}
