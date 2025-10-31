@@ -1,6 +1,69 @@
 
-// PHP Conversion: This entire file would be a single template file, e.g., `uhub.php`, included in the main layout.
-// The complex state management would be handled by a dedicated JavaScript file, e.g., `uhub.js`.
+// FILE: client/src/features/profile/MainHubUpgradeV001ForMyProfileModal.tsx
+// =================================================================================================
+//
+// This file defines the main "uHub" modal component, which serves as the central user interface
+// for interacting with the application's features. It's a complex component that manages state
+// for various views like friends, broadcasts, settings, and product displays.
+//
+// Main Features:
+// - A multi-panel layout (top, center, bottom sections with left, middle, right columns).
+// - Displays user profile information (avatar, cover photo).
+// - Provides navigation to different sections: Friends, Broadcasts, Code, Settings.
+// - Contains the "uHome-Hub" buttons (#01-#24) which open individual chat modals.
+// - Shows product listings and store information in the right-hand panel.
+// - Includes social media links in the footer.
+// - Manages opening and closing of other modals (Chat, Add Product, Product Detail).
+//
+// State Management (React Hooks):
+// - `useState` is used extensively to manage the active view, selected items, modal visibility,
+//   and paginated content (e.g., social media links).
+// - `useEffect` is used to fetch data from the server (like friend requests and products) when
+//   the component loads or when the user logs in.
+// - `useAuth` custom hook is used to get the current logged-in user's state.
+//
+// CSS Styling:
+// - Styling is done using Tailwind CSS classes. The class names are descriptive of the layout
+//   and appearance (e.g., `flex`, `grid`, `p-4`, `border-b`, `w-1/5`).
+// - The layout is responsive and uses flexbox and grid for structure.
+//
+// Backend/Server Connection (Express.js & Kysely):
+// - This component makes API calls to the Express server using `fetch`.
+// - Example: `fetch('/api/friends/requests/pending')` retrieves pending friend requests.
+// - The server-side logic for these endpoints is located in `server/friends.ts`, `server/auth.ts`, etc.
+// - These server files use the Kysely query builder to interact with the SQLite database.
+//
+// ---
+//
+// PHP & MySQL Conversion Guide:
+//
+// To convert this component to a traditional PHP/MySQL stack:
+//
+// 1.  **File Structure**:
+//     - This entire component would become a single PHP template file, e.g., `templates/uhub.php`.
+//     - The complex state management and interactivity would be moved to a dedicated JavaScript file, e.g., `assets/js/uhub.js`.
+//
+// 2.  **Backend (PHP & MySQL)**:
+//     -   **Data Fetching**: Instead of `useEffect` and `fetch`, the initial data (like user info, products) would be fetched directly in PHP before rendering the template.
+//         -   PHP Example: `$user = get_user_data($_SESSION['user_id']); $products = get_products('UnionSAM#20');`
+//     -   **API Endpoints**: The `fetch` calls for dynamic actions (like accepting a friend request) would point to dedicated PHP API files (e.g., `api/friends.php`).
+//         -   JS Example: `fetch('api/friends.php', { method: 'POST', body: formData })`
+//         -   `api/friends.php` would process `$_POST` data, run a MySQL query (`UPDATE friends SET status = 'accepted' WHERE ...`), and `echo json_encode(['status' => 'success']);`.
+//
+// 3.  **Frontend (HTML, CSS, JavaScript)**:
+//     -   **Component to HTML**: The JSX structure would be converted to plain HTML within `uhub.php`.
+//     -   **State Management**: React's `useState` would be replaced by JavaScript variables in `uhub.js`. DOM manipulations would be done manually.
+//         -   JS Example: `let currentView = 'broadcasts'; function showView(view) { ... document.getElementById('friends-view').style.display = 'none'; ... }`
+//     -   **Conditional Rendering**: React's `{user && <Button />}` would become PHP `if` blocks.
+//         -   PHP Example: `<?php if (is_logged_in()): ?><button>Edit</button><?php endif; ?>`
+//     -   **Styling**: All `className` attributes are directly converted to `class` attributes in HTML. The final compiled Tailwind CSS file would be linked in the main layout.
+//
+// 4.  **Database (MySQL)**:
+//     - The Kysely schema in `server/db-types.ts` would be translated into a MySQL `CREATE TABLE` script. Data types would be mapped (e.g., `INTEGER` -> `INT`, `TEXT` -> `VARCHAR(255)` or `TEXT`).
+//     - Kysely queries would be rewritten as standard SQL queries executed via PHP's PDO or MySQLi extension.
+//
+// =================================================================================================
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,8 +93,22 @@ const socialLinksLeftPage1 = [
   { id: 'twitch', href: 'https://www.twitch.tv/theuminionunion', icon: <Twitch /> },
   { id: 'discord', href: 'https://discord.com/login?redirect_to=%2Flogin%3Fredirect_to%3D%252Fchannels%252F1357919291428573204%252F1357919292280144075', icon: 'D' },
 ];
-const socialLinksLeftPage2 = [...socialLinksLeftPage1]; // Dummy data
-const socialLinksLeftPage3 = [...socialLinksLeftPage1]; // Dummy data
+const socialLinksLeftPage2 = [
+    { id: 'page2-1', href: 'https://example.com/page2-1', icon: 'L1' },
+    { id: 'page2-2', href: 'https://example.com/page2-2', icon: 'L2' },
+    { id: 'page2-3', href: 'https://example.com/page2-3', icon: 'L3' },
+    { id: 'page2-4', href: 'https://example.com/page2-4', icon: 'L4' },
+    { id: 'page2-5', href: 'https://example.com/page2-5', icon: 'L5' },
+    { id: 'page2-6', href: 'https://example.com/page2-6', icon: 'L6' },
+];
+const socialLinksLeftPage3 = [
+    { id: 'page3-1', href: 'https://example.com/page3-1', icon: 'L7' },
+    { id: 'page3-2', href: 'https://example.com/page3-2', icon: 'L8' },
+    { id: 'page3-3', href: 'https://example.com/page3-3', icon: 'L9' },
+    { id: 'page3-4', href: 'https://example.com/page3-4', icon: 'L10' },
+    { id: 'page3-5', href: 'https://example.com/page3-5', icon: 'L11' },
+    { id: 'page3-6', href: 'https://example.com/page3-6', icon: 'L12' },
+];
 const socialLinkPagesLeft = [socialLinksLeftPage1, socialLinksLeftPage2, socialLinksLeftPage3];
 
 // Social media links for the bottom-right section.
@@ -43,14 +120,28 @@ const socialLinksRightPage1 = [
   { id: 'patreon', href: 'https://www.patreon.com/uminion', icon: 'P' },
   { id: 'githubIssues', href: 'https://github.com/uminionunion/UminionsWebsite/issues', icon: <Github /> },
 ];
-const socialLinksRightPage2 = [...socialLinksRightPage1]; // Dummy data
-const socialLinksRightPage3 = [...socialLinksRightPage1]; // Dummy data
+const socialLinksRightPage2 = [
+    { id: 'page2-r1', href: 'https://example.com/page2-r1', icon: 'R1' },
+    { id: 'page2-r2', href: 'https://example.com/page2-r2', icon: 'R2' },
+    { id: 'page2-r3', href: 'https://example.com/page2-r3', icon: 'R3' },
+    { id: 'page2-r4', href: 'https://example.com/page2-r4', icon: 'R4' },
+    { id: 'page2-r5', href: 'https://example.com/page2-r5', icon: 'R5' },
+    { id: 'page2-r6', href: 'https://example.com/page2-r6', icon: 'R6' },
+];
+const socialLinksRightPage3 = [
+    { id: 'page3-r1', href: 'https://example.com/page3-r1', icon: 'R7' },
+    { id: 'page3-r2', href: 'https://example.com/page3-r2', icon: 'R8' },
+    { id: 'page3-r3', href: 'https://example.com/page3-r3', icon: 'R9' },
+    { id: 'page3-r4', href: 'https://example.com/page3-r4', icon: 'R10' },
+    { id: 'page3-r5', href: 'https://example.com/page3-r5', icon: 'R11' },
+    { id: 'page3-r6', href: 'https://example.com/page3-r6', icon: 'R12' },
+];
 const socialLinkPagesRight = [socialLinksRightPage1, socialLinksRightPage2, socialLinksRightPage3];
 
 
 // A reusable component for rendering a social media icon link.
-const MainHubUpgradeV001ForSocialIcon = ({ href, children, disabled }: { href: string, children: React.ReactNode, disabled?: boolean }) => (
-  <a href={disabled ? '#' : href} target="_blank" rel="noopener noreferrer" className={`text-muted-foreground ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:text-foreground'}`}>
+const MainHubUpgradeV001ForSocialIcon = ({ href, children }: { href: string, children: React.ReactNode }) => (
+  <a href={href} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
     {children}
   </a>
 );
@@ -250,7 +341,9 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                             <ChevronRight />
                         </Button>
                     </div>
-                    {broadcastView === 'MyBroadcasts' ? <CreateBroadcastView /> : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
+                    {broadcastView === 'MyBroadcasts' ? 
+                        (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
+                        : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
                 </>
             );
     }
@@ -294,7 +387,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   return (
     <>
       <div className="bg-background text-foreground w-full h-full flex flex-col relative">
-        <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-50" onClick={onClose}>
+        <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-50" onClick={onClose}>
           <X className="h-6 w-6" />
           <span className="sr-only">Close</span>
         </Button>
@@ -386,7 +479,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
             <Button variant="ghost" size="icon" onClick={() => handleSocialNavLeft('left')}><ChevronLeft /></Button>
             <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
               {socialLinkPagesLeft[socialPageLeft].map(link => (
-                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPageLeft > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
+                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
               ))}
             </div>
             <Button variant="ghost" size="icon" onClick={() => handleSocialNavLeft('right')}><ChevronRight /></Button>
@@ -400,7 +493,7 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
              <Button variant="ghost" size="icon" onClick={() => handleSocialNavRight('left')}><ChevronLeft /></Button>
             <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
               {socialLinkPagesRight[socialPageRight].map(link => (
-                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href} disabled={socialPageRight > 0}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
+                <MainHubUpgradeV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainHubUpgradeV001ForSocialIcon>
               ))}
             </div>
             <Button variant="ghost" size="icon" onClick={() => handleSocialNavRight('right')}><ChevronRight /></Button>

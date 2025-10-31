@@ -1,19 +1,72 @@
 
-// Import React and hooks like useState and useEffect.
-// PHP Conversion: These are core React library imports. In a PHP project, you would not use these. Instead, you'd have PHP files that generate HTML.
+// FILE: client/src/App.tsx
+// =================================================================================================
+//
+// This file is the root component of the React application. It sets up the main structure,
+// including routing, authentication context, and the overall layout (header, main content, footer).
+//
+// Main Features:
+// -   **Routing**: Uses `react-router-dom` to manage client-side navigation. It defines the
+//     main routes for the application, such as the home page and the Sister Union pages.
+// -   **Authentication**: Wraps the application in an `AuthProvider` to provide authentication
+//     state (like the current user) to all child components. It handles showing login/signup
+//     buttons or a logout button based on the user's status.
+// -   **Layout**: Defines the main layout with a header, a main content area, and a footer.
+// -   **Modal Management**: Controls the visibility of the primary modals, including the
+//     authentication modal (`AuthModal`) and the main user hub (`MainHubUpgradeV001ForMyProfileModal`).
+//
+// State Management (React Hooks):
+// -   `useState` is used to manage the visibility and state of modals (e.g., `authModal`, `isProfileModalOpen`).
+// -   `useEffect` is used for side effects, such as setting a loading timer and managing the
+//     auto-launch countdown for the uHub.
+// -   `useRef` is used to hold a reference to the countdown timer to clear it when needed.
+// -   `useAuth` custom hook is used to access user data and authentication functions (`login`, `logout`).
+//
+// CSS Styling:
+// -   Styling is done using Tailwind CSS classes applied via the `className` prop.
+// -   The main layout uses Flexbox (`flex`, `flex-col`) to structure the header, main, and footer.
+// -   The background is a gradient defined with Tailwind's `from-` and `to-` utility classes.
+//
+// Backend/Server Connection (Express.js):
+// -   The `logout` function makes a POST request to `/api/auth/logout`.
+// -   The `AuthModal` component (used here) handles the login/signup API calls.
+// -   The server-side logic for these authentication routes is in `server/auth.ts`.
+//
+// ---
+//
+// PHP & MySQL Conversion Guide:
+//
+// To convert this component to a traditional PHP/MySQL stack:
+//
+// 1.  **File Structure**:
+//     -   This file's layout logic would be split into `header.php`, `footer.php`, and a main layout file (e.g., `index.php`).
+//     -   `index.php` would be the main entry point, including the header and footer, and then including the content for the specific page requested via a URL parameter (e.g., `index.php?page=home`).
+//
+// 2.  **Backend (PHP & MySQL)**:
+//     -   **Routing**: Instead of `react-router-dom`, you'd use server-side routing. A simple `switch` statement in `index.php` based on `$_GET['page']` would determine which template to load.
+//     -   **Authentication**: The `useAuth` hook would be replaced by PHP sessions.
+//         -   In `header.php`, you would check `if (isset($_SESSION['user_id']))` to decide whether to show the user's avatar and a "Logout" link, or "Login" and "Sign Up" links.
+//         -   The "Logout" link would point to `logout.php`, which calls `session_destroy()`.
+//
+// 3.  **Frontend (HTML, CSS, JavaScript)**:
+//     -   **Layout**: The JSX for the header, main, and footer would be converted to plain HTML in `header.php` and `footer.php`.
+//     -   **Modal Management**: The logic for opening and closing modals would be handled in a global JavaScript file (e.g., `assets/js/main.js`).
+//         -   The modals themselves (`AuthModal`, `MainHubUpgradeV001ForMyProfileModal`) would be HTML `<div>`s (defined in included PHP files like `templates/auth_modal.php`) that are hidden by default (`display: none;`).
+//         -   JavaScript event listeners on buttons (`document.getElementById('login-btn').addEventListener('click', ...)` would change the modal's style to `display: block;`.
+//     -   **Countdown Timer**: The `useEffect` for the countdown would be replicated in `main.js` using `setInterval` and `setTimeout` to update the text content of a `<span>` in the footer.
+//
+// 4.  **Database (MySQL)**:
+//     -   No direct database interaction in this file, but the components it uses (like `MainHubUpgradeV001ForMyProfileModal`) would rely on data fetched from a MySQL database via PHP.
+//
+// =================================================================================================
+
 import React, { useState, useEffect, useRef } from 'react';
 // Import routing components from react-router-dom.
 // PHP Conversion: This is React's client-side router. In PHP, routing is typically handled on the server-side. A common approach is using a single entry point (e.g., `index.php`) with a URL parameter (`?page=...`) or a more advanced router that uses `.htaccess` to create clean URLs.
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 // Import the Button component from the UI library.
 // PHP Conversion: This is a reusable React component. In PHP, this would be a PHP function `render_button('text', 'class')` in `functions.php` that echoes HTML, or simply a styled `<button>` tag in your template files.
 import { Button } from '@/components/ui/button';
-// Import the Uminion Main Hub component.
-// PHP Conversion: This component would be converted to a `main_hub.php` template file, included conditionally in your main layout.
-import MainHubUpgradeV001ForUminionMainHub from '@/features/uminion/MainHubUpgradeV001ForUminionMainHub';
-// Import the Calendar View component.
-// PHP Conversion: This would be a `calendar.php` template, responsible for generating the HTML grid for the calendar.
-import MainHubUpgradeV001ForCalendarView from '@/features/calendar/MainHubUpgradeV001ForCalendarView';
 // Import the Sister Union routes.
 // PHP Conversion: This component defines multiple routes. In PHP, this logic would be inside your main router (`index.php`) to include the correct page template.
 import MainHubUpgradeV001ForSisterUnionRoutes from '@/features/uminion/MainHubUpgradeV001ForSisterUnionRoutes';
@@ -36,11 +89,10 @@ const MainLayout = () => {
   // PHP Conversion: Loading states are client-side concepts. You might show a loading spinner with JS while waiting for an AJAX call to complete.
   const [isLoading, setIsLoading] = useState(true);
   // State for user authentication, modals, and hub visibility.
-  // PHP Conversion: `user` would be a PHP variable from `$_SESSION`. Modal visibility (`authModal`, `isProfileModalOpen`, `isMainHubOpen`) would be managed by JavaScript variables in `main.js`.
+  // PHP Conversion: `user` would be a PHP variable from `$_SESSION`. Modal visibility (`authModal`, `isProfileModalOpen`) would be managed by JavaScript variables in `main.js`.
   const { user, logout, isLoading: isAuthLoading } = useAuth();
   const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'signup' }>({ isOpen: false, mode: 'login' });
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
-  const [isMainHubOpen, setMainHubOpen] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [autoLaunch, setAutoLaunch] = useState(true);
@@ -111,6 +163,8 @@ const MainLayout = () => {
   const handleProfileImageClick = () => {
     if (!user) {
       handleOpenAuthModal('login');
+    } else {
+      setProfileModalOpen(true);
     }
   };
 
@@ -153,17 +207,23 @@ const MainLayout = () => {
       {/* 
         PHP Conversion Instructions:
         This is the main content area. In a PHP app, this would be where `index.php` includes different page templates
-        (e.g., `calendar.php`, `sister_union_page.php`) based on a URL parameter like `?page=...`.
-        The uHub modal and Main Hub would be absolutely positioned `<div>`s inside this container, with their visibility toggled by JavaScript.
+        (e.g., `welcome.php`, `sister_union_page.php`) based on a URL parameter like `?page=...`.
+        The uHub modal would be an absolutely positioned `<div>` inside this container, with its visibility toggled by JavaScript.
       */}
       <main className="flex-grow relative container mx-auto px-4 py-8 flex justify-center items-start">
         <Routes>
-          <Route path="/" element={<MainHubUpgradeV001ForCalendarView />} />
+          <Route path="/" element={
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-4">Welcome to the uminion</h1>
+              <p className="text-lg text-muted-foreground">Click the uHub button below to get started.</p>
+              <Link to="/SisterUnion001NewEngland">
+                <Button className="mt-4">Go to a Sister Union Page</Button>
+              </Link>
+            </div>
+          } />
           <Route path="/*" element={<MainHubUpgradeV001ForSisterUnionRoutes />} />
         </Routes>
         
-        {isMainHubOpen && <MainHubUpgradeV001ForUminionMainHub />}
-
         {isProfileModalOpen && (
           <div className="absolute inset-0 z-40 bg-black/50">
             <MainHubUpgradeV001ForMyProfileModal
@@ -191,7 +251,6 @@ const MainLayout = () => {
               </div>
             )}
           </Button>
-          <Button onClick={() => setMainHubOpen(prev => !prev)}>Main-Hub</Button>
         </div>
       </footer>
 
