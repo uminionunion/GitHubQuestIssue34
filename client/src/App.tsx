@@ -58,6 +58,17 @@
 // 4.  **Database (MySQL)**:
 //     -   No direct database interaction in this file, but the components it uses (like `MainHubUpgradeV001ForMyProfileModal`) would rely on data fetched from a MySQL database via PHP.
 //
+// ---
+//
+// AI Prompting Guide for Recreation:
+//
+// To recreate this component with an AI, you could use a prompt like this:
+// "Create the main App component for a React application. It should use React Router for navigation. The layout should consist of a header, main content area, and a footer.
+// - The header should contain authentication buttons ('Sign Up', 'Log In', 'Log Out') and a user avatar that opens a profile modal.
+// - The main content area should render different pages based on the URL.
+// - The footer should have a 'uHub' button that opens the main profile modal, with a countdown timer for auto-launching it.
+// - Use an AuthProvider to manage user state across the app. Manage modal visibility using React's useState hook."
+//
 // =================================================================================================
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -278,3 +289,44 @@ function App() {
 }
 
 export default App;
+
+// =================================================================================================
+// Deployment Instructions
+// =================================================================================================
+//
+// To deploy this application, you will need a server environment (like a VPS) with Node.js installed.
+//
+// 1.  **GitHub**:
+//     -   Create a new repository on GitHub.
+//     -   In your local project folder, initialize a git repository: `git init`.
+//     -   Add the remote repository: `git remote add origin <your-github-repo-url>`.
+//     -   Add all files: `git add .`.
+//     -   Commit the files: `git commit -m "Initial commit"`.
+//     -   Push to GitHub: `git push -u origin main`.
+//
+// 2.  **VPS (Virtual Private Server) Setup**:
+//     -   Connect to your VPS via SSH.
+//     -   Install Node.js and npm (Node Package Manager).
+//     -   Install a process manager like `pm2` to keep your app running: `npm install -g pm2`.
+//     -   Clone your repository from GitHub: `git clone <your-github-repo-url>`.
+//     -   Navigate into your project directory: `cd <your-repo-name>`.
+//
+// 3.  **Building and Running the Application**:
+//     -   Install dependencies: `npm install`.
+//     -   Build the application for production: `npm run build`. This will create a `dist` directory.
+//     -   Start the application using pm2: `pm2 start dist/server/index.js --name my-app`.
+//
+// 4.  **FTP (File Transfer Protocol)**:
+//     -   If you prefer FTP over Git, you can use an FTP client (like FileZilla) to upload your files.
+//     -   First, run the `npm run build` command on your local machine to generate the `dist` folder.
+//     -   Connect to your server using your FTP client.
+//     -   Upload the entire project folder, including `node_modules`, `dist`, and `package.json`, to your server.
+//     -   Once uploaded, connect to your server via SSH and run the application using pm2 as described above.
+//
+// 5.  **Web Server (Nginx/Apache) - Optional but Recommended**:
+//     -   It's best practice to run your Node.js app behind a reverse proxy like Nginx.
+//     -   Install Nginx on your VPS.
+//     -   Configure Nginx to listen on port 80 and forward requests to your Node.js app's port (e.g., 3001 or 4000).
+//     -   This allows you to handle SSL certificates, serve static files more efficiently, and manage multiple sites on one server.
+//
+// =================================================================================================

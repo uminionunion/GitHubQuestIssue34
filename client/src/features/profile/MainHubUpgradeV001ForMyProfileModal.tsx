@@ -62,6 +62,18 @@
 //     - The Kysely schema in `server/db-types.ts` would be translated into a MySQL `CREATE TABLE` script. Data types would be mapped (e.g., `INTEGER` -> `INT`, `TEXT` -> `VARCHAR(255)` or `TEXT`).
 //     - Kysely queries would be rewritten as standard SQL queries executed via PHP's PDO or MySQLi extension.
 //
+// ---
+//
+// AI Prompting Guide for Recreation:
+//
+// To recreate this component with an AI, you could use a prompt like this:
+// "Create a React component for a complex user profile modal called 'uHub'. It should have a three-section layout (top, center, bottom), each with three columns (left, middle, right).
+// - The top section shows user profile info, navigation buttons, and a cover image.
+// - The center section has a main content area in the middle, a list of 'uHome-Hub' buttons on the left, and a product display area on the right.
+// - The bottom section contains social media links.
+// - The component should manage state for different views (friends, broadcasts, settings) and handle opening other modals for chat and product details.
+// - Use Tailwind CSS for styling and `lucide-react` for icons. Fetch data from API endpoints like '/api/friends/requests/pending'."
+//
 // =================================================================================================
 
 import React, { useState, useEffect } from 'react';
@@ -261,11 +273,11 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
   useEffect(() => {
     const allProducts = {
         'UnionSAM#20': [
-            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/' },
-            { id: 2, name: 'uT-Shirt', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/' },
-            { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/' },
-            { id: 4, name: 'Ukraine', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png', url: 'https://u24.gov.ua/' },
-            { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/' },
+            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/', store: 'main' },
+            { id: 2, name: 'uT-Shirt', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/', store: 'user' },
+            { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/', store: 'user' },
+            { id: 4, name: 'Ukraine', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png', url: 'https://u24.gov.ua/', store: 'user' },
+            { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/', store: 'user' },
         ],
         'UnionPolitic#19': [
             { id: 6, name: 'Support unionCandidates as a WHOLE', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
@@ -314,10 +326,44 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
 
   const renderCenterRightContent = () => {
     const currentProducts = products[centerRightView] || [];
+    const mainStoreProducts = currentProducts.filter(p => p.store === 'main');
+    const userStoreProducts = currentProducts.filter(p => p.store !== 'main');
+
     return (
-        <div className="space-y-2">
-            {currentProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} />)}
-        </div>
+        <>
+            <div id="MainHubUpgradeV001ForMainStore" className="border rounded-md p-2">
+                <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-semibold text-center">Main Store</h4>
+                    <a href="https://uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500" id="MainHubUpgradeV001ForUnionSAM#20ViewCart">
+                            <ShoppingCart />
+                        </Button>
+                    </a>
+                </div>
+                <div className="space-y-2">
+                    {mainStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} />)}
+                </div>
+            </div>
+            <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
+                <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center">
+                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => {
+                            if (!user) {
+                                alert('You must be logged in to add a product.');
+                                return;
+                            }
+                            setAddProductModalOpen(true)
+                        }}>
+                            <Eye />
+                        </Button>
+                        <h4 className="font-semibold text-center">Your Store:</h4>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    {userStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} />)}
+                </div>
+            </div>
+        </>
     );
   };
 
@@ -442,32 +488,6 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
                 <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('right')}><ChevronRight /></Button>
             </div>
             <div className="space-y-4">
-              <div id="MainHubUpgradeV001ForMainStore" className="border rounded-md p-2">
-                <div className="flex justify-between items-center">
-                    <h4 className="font-semibold text-center">Main Store</h4>
-                    <a href="https://uminion.com/cart/" target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500" id="MainHubUpgradeV001ForUnionSAM#20ViewCart">
-                            <ShoppingCart />
-                        </Button>
-                    </a>
-                </div>
-              </div>
-              <div id="MainHubUpgradeV001ForYourStore" className="border rounded-md p-2">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => {
-                            if (!user) {
-                                alert('You must be logged in to add a product.');
-                                return;
-                            }
-                            setAddProductModalOpen(true)
-                        }}>
-                            <Eye />
-                        </Button>
-                        <h4 className="font-semibold text-center">Your Store:</h4>
-                    </div>
-                </div>
-              </div>
               {renderCenterRightContent()}
             </div>
           </div>
@@ -521,3 +541,44 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
 };
 
 export default MainHubUpgradeV001ForMyProfileModal;
+
+// =================================================================================================
+// Deployment Instructions
+// =================================================================================================
+//
+// To deploy this application, you will need a server environment (like a VPS) with Node.js installed.
+//
+// 1.  **GitHub**:
+//     -   Create a new repository on GitHub.
+//     -   In your local project folder, initialize a git repository: `git init`.
+//     -   Add the remote repository: `git remote add origin <your-github-repo-url>`.
+//     -   Add all files: `git add .`.
+//     -   Commit the files: `git commit -m "Initial commit"`.
+//     -   Push to GitHub: `git push -u origin main`.
+//
+// 2.  **VPS (Virtual Private Server) Setup**:
+//     -   Connect to your VPS via SSH.
+//     -   Install Node.js and npm (Node Package Manager).
+//     -   Install a process manager like `pm2` to keep your app running: `npm install -g pm2`.
+//     -   Clone your repository from GitHub: `git clone <your-github-repo-url>`.
+//     -   Navigate into your project directory: `cd <your-repo-name>`.
+//
+// 3.  **Building and Running the Application**:
+//     -   Install dependencies: `npm install`.
+//     -   Build the application for production: `npm run build`. This will create a `dist` directory.
+//     -   Start the application using pm2: `pm2 start dist/server/index.js --name my-app`.
+//
+// 4.  **FTP (File Transfer Protocol)**:
+//     -   If you prefer FTP over Git, you can use an FTP client (like FileZilla) to upload your files.
+//     -   First, run the `npm run build` command on your local machine to generate the `dist` folder.
+//     -   Connect to your server using your FTP client.
+//     -   Upload the entire project folder, including `node_modules`, `dist`, and `package.json`, to your server.
+//     -   Once uploaded, connect to your server via SSH and run the application using pm2 as described above.
+//
+// 5.  **Web Server (Nginx/Apache) - Optional but Recommended**:
+//     -   It's best practice to run your Node.js app behind a reverse proxy like Nginx.
+//     -   Install Nginx on your VPS.
+//     -   Configure Nginx to listen on port 80 and forward requests to your Node.js app's port (e.g., 3001 or 4000).
+//     -   This allows you to handle SSL certificates, serve static files more efficiently, and manage multiple sites on one server.
+//
+// =================================================================================================
