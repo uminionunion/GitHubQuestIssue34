@@ -473,8 +473,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-         {/* Bottom Section */}
-         <div className="flex border-t md:h-auto h-12">
+          {/* Bottom Section */}
+          <div className="flex border-t md:h-6 h-12">
            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-4 border-r flex items-center">
              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
