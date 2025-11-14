@@ -55,27 +55,29 @@ const backgroundGradients = [
 const fontColors = ['#FFFFFF', '#E0E0E0', '#F5F5F5', '#B0BEC5', '#CFD8DC', '#ECEFF1', '#FFD180', '#C8E6C9', '#B3E5FC', '#D1C4E9'];
 
 const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalProps> = ({
-  isOpen,
-  onClose,
-  pageName,
-  backgroundColor,
-  modalNumber,
-}) => {
-  const [activeTab, setActiveTab] = useState(0);
-  const [password, setPassword] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [users, setUsers] = useState<User[]>([]);
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [modalOptionPage, setModalOptionPage] = useState(0);
-  const [currentBg, setCurrentBg] = useState(backgroundColor);
-  const [currentFontColor, setCurrentFontColor] = useState('#FFFFFF');
-  const [viewedUser, setViewedUser] = useState<any>(null);
-  const [isProfileViewOpen, setProfileViewOpen] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
-  const { user } = useAuth();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+   isOpen,
+   onClose,
+   pageName,
+   backgroundColor,
+   modalNumber,
+ }) => {
+   const [activeTab, setActiveTab] = useState(0);
+   const [password, setPassword] = useState('');
+   const [isUnlocked, setIsUnlocked] = useState(false);
+   const [messages, setMessages] = useState<Message[]>([]);
+   const [newMessage, setNewMessage] = useState('');
+   const [users, setUsers] = useState<User[]>([]);
+   const [isAnonymous, setIsAnonymous] = useState(false);
+   const [modalOptionPage, setModalOptionPage] = useState(0);
+   const [currentBg, setCurrentBg] = useState(backgroundColor);
+   const [currentFontColor, setCurrentFontColor] = useState('#FFFFFF');
+   const [viewedUser, setViewedUser] = useState<any>(null);
+   const [isProfileViewOpen, setProfileViewOpen] = useState(false);
+   const [leftWidth, setLeftWidth] = useState(25);
+   const [isDragging, setIsDragging] = useState(false);
+   const socketRef = useRef<Socket | null>(null);
+   const { user } = useAuth();
+   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const correctPassword = 'uminion';
   const roomName = `${pageName}-chatroom-${activeTab + 1}`;
@@ -203,11 +205,42 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
     setProfileViewOpen(true);
   };
 
+  const handleMouseDown = () => {
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const container = document.querySelector('[role="dialog"]');
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const newLeft = ((e.clientX - rect.left) / rect.width) * 100;
+      if (newLeft > 15 && newLeft < 85) {
+        setLeftWidth(newLeft);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
          <DialogContent
-           className="max-w-4xl md:max-w-4xl h-[80vh] md:h-[80vh] flex flex-col p-0 text-white"
+           className="max-w-2xl md:max-w-4xl h-[50vh] md:h-[80vh] flex flex-col p-0 text-white"
            style={{ background: currentBg }}
          >
           <DialogHeader className="p-4 border-b border-white/20 flex-row justify-between items-center">

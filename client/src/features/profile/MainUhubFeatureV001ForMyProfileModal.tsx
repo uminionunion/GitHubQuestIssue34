@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X } from 'lucide-react';
@@ -407,55 +407,59 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             </div>
           </div>
 
-        {/* Center Section */}
-        <div className="flex-grow flex overflow-hidden">
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:w-[20%] w-[25%] p-4 border-r overflow-y-auto">
-            <h3 className="text-center font-bold mb-4 text-sm md:text-base">uHome-Hub:</h3>
-            <div className="grid grid-cols-2 gap-1 md:gap-2">
-              {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
-                <Button key={num} variant="outline" size="sm" className="md:h-auto h-8 text-xs md:text-sm" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
-              ))}
-            </div>
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="md:w-[60%] w-[50%] p-4 overflow-y-auto">
-            {renderCenterContent()}
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] w-[25%] p-4 border-l overflow-y-auto">
-            <div className="flex items-center justify-center mb-4">
-                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-                <h3 className="text-center font-bold mx-2 text-xs md:text-base">{centerRightView}</h3>
-                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
-            </div>
-            <div className="space-y-2 md:space-y-4">
-              {renderCenterRightContent()}
-            </div>
-          </div>
-        </div>
+         {/* Center Section */}
+         <div className="flex-grow flex overflow-hidden">
+           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:w-[20%] w-[20%] p-2 md:p-4 border-r overflow-y-auto">
+             <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
+             <div className="grid grid-cols-2 gap-1 md:gap-2">
+               {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
+                 <Button key={num} variant="outline" size="sm" className="md:h-auto h-6 text-xs" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
+               ))}
+             </div>
+           </div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="md:w-[60%] w-[60%] p-2 md:p-4 overflow-y-auto cursor-ew-resize">
+             {renderCenterContent()}
+           </div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] w-[20%] p-2 md:p-4 border-l overflow-y-auto">
+             <div className="flex items-center justify-center mb-2 md:mb-4">
+                 <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
+                 <h3 className="text-center font-bold mx-1 md:mx-2 text-xs md:text-base">{centerRightView}</h3>
+                 <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
+             </div>
+             <div className="space-y-1 md:space-y-4">
+               {renderCenterRightContent()}
+             </div>
+           </div>
+         </div>
 
         {/* Bottom Section */}
         <div className="flex border-t md:h-auto h-12">
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-2 md:p-4 border-r flex items-center">
-            <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-4 w-4" /></Button>
-            <div className="flex-grow grid grid-cols-3 gap-1 md:gap-4 place-items-center">
+          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-4 border-r flex items-center">
+            <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
+            <div className="flex-grow grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
               {socialLinkPagesLeft[socialPageLeft].map(link => (
-                <MainUhubFeatureV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                <div key={link.id} className="text-xs md:text-base">
+                  <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                </div>
               ))}
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
           </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-2 md:p-4 flex items-center justify-center">
+          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-4 flex items-center justify-center">
             <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-base">
               Become an Official Member of the Union via getting your Union Card Today!
             </a>
           </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-2 md:p-4 border-l flex items-center">
-             <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-4 w-4" /></Button>
-            <div className="flex-grow grid grid-cols-3 gap-1 md:gap-4 place-items-center">
+          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-4 border-l flex items-center">
+             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
+            <div className="flex-grow grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
               {socialLinkPagesRight[socialPageRight].map(link => (
-                <MainUhubFeatureV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                <div key={link.id} className="text-xs md:text-base">
+                  <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                </div>
               ))}
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
           </div>
         </div>
       </div>
