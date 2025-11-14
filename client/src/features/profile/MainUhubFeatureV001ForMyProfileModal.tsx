@@ -384,54 +384,41 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
              {/* Main content area */}
              <div className="flex-grow flex flex-col md:w-[60%] overflow-y-auto">
-               {/* Top Section */}
-               <div className="flex flex-col p-4 border-b gap-2 flex-shrink-0">
-                 {/* Top Four Buttons - Mobile only */}
-                 <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="grid grid-cols-4 gap-2 md:hidden">
-                   <Button variant="outline" className="flex flex-col h-16 items-center justify-center relative text-xs py-2" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
-                     {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
-                     <Users className="mb-1 h-4 w-4" /> Friends
-                   </Button>
-                   <Button variant="outline" className="flex flex-col h-16 items-center justify-center text-xs py-2" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1 h-4 w-4" /> Broadcast</Button>
-                   <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full">
-                     <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center text-xs py-2" title="Code" disabled={!user}><Code className="mb-1 h-4 w-4" /> Code</Button>
-                   </a>
-                   <Button variant="outline" className="flex flex-col h-16 items-center justify-center text-xs py-2" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1 h-4 w-4" /> Settings</Button>
-                 </div>
+                {/* Top Section */}
+                <div className="flex flex-col md:flex-row p-4 border-b gap-2 flex-shrink-0">
+                  {/* Top Four Buttons */}
+                  <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="grid grid-cols-4 gap-2 md:w-1/4 md:grid-cols-2 md:grid-rows-2">
+                    <Button variant="outline" className="flex flex-col h-16 md:h-full items-center justify-center relative text-xs py-2" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+                      {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
+                      <Users className="mb-1 h-4 w-4" /> Friends
+                    </Button>
+                    <Button variant="outline" className="flex flex-col h-16 md:h-full items-center justify-center text-xs py-2" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1 h-4 w-4" /> Broadcast</Button>
+                    <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full">
+                      <Button variant="outline" className="w-full h-16 md:h-full flex flex-col items-center justify-center text-xs py-2" title="Code" disabled={!user}><Code className="mb-1 h-4 w-4" /> Code</Button>
+                    </a>
+                    <Button variant="outline" className="flex flex-col h-16 md:h-full items-center justify-center text-xs py-2" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1 h-4 w-4" /> Settings</Button>
+                  </div>
 
-                 {/* Timeline Photo */}
-                 <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="w-full h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
-                   {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
-                 </div>
+                  {/* Timeline Photo */}
+                  <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="w-full md:w-1/2 h-32 md:h-full bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+                    {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
+                  </div>
 
-                 {/* Avatar and buttons - desktop only */}
-                 <div className="hidden md:flex gap-4">
-                   <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="grid grid-cols-2 grid-rows-2 gap-2 w-1/4">
-                     <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs py-2" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
-                       {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
-                       <Users className="mb-1 h-4 w-4" /> Friends
-                     </Button>
-                     <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs py-2" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1 h-4 w-4" /> Broadcast</Button>
-                     <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full">
-                       <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center text-xs py-2" title="Code" disabled={!user}><Code className="mb-1 h-4 w-4" /> Code</Button>
-                     </a>
-                     <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs py-2" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1 h-4 w-4" /> Settings</Button>
-                   </div>
-                   <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="flex flex-col justify-start items-center w-1/4">
-                     <div onClick={handleProfileImageClick} className="cursor-pointer">
-                       <Avatar className="h-32 w-32">
-                         <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
-                         <AvatarFallback>U</AvatarFallback>
-                       </Avatar>
-                     </div>
-                     {user && <Button size="sm" className="text-xs mt-1">Edit</Button>}
-                     <div className="flex items-center gap-1 mt-2">
-                         <div className={`w-2 h-2 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                         <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
-                     </div>
-                   </div>
-                 </div>
-               </div>
+                  {/* Avatar - Hidden on mobile, shown on desktop */}
+                  <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="hidden md:flex flex-col justify-start items-center md:w-1/4">
+                    <div onClick={handleProfileImageClick} className="cursor-pointer">
+                      <Avatar className="h-32 w-32">
+                        <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                    </div>
+                    {user && <Button size="sm" className="text-xs mt-1">Edit</Button>}
+                    <div className="flex items-center gap-1 mt-2">
+                        <div className={`w-2 h-2 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                        <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
+                    </div>
+                  </div>
+                </div>
 
               {/* Center content */}
               <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="flex-grow p-4 overflow-y-auto">
