@@ -95,7 +95,7 @@ import MainHubUpgradeV001ForMyProfileModal from './features/profile/MainHubUpgra
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 // A component for the main application layout.
-const MainLayout = () => {
+const MainUhubFeatureV001MainLayout = () => {
   // State to manage the loading status. Initially true.
   // PHP Conversion: Loading states are client-side concepts. You might show a loading spinner with JS while waiting for an AJAX call to complete.
   const [isLoading, setIsLoading] = useState(true);
@@ -180,7 +180,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-zinc-900 text-foreground">
+      <div className="MainUhubFeatureV001-min-h-screen MainUhubFeatureV001-flex MainUhubFeatureV001-flex-col MainUhubFeatureV001-bg-gradient-to-br MainUhubFeatureV001-from-background MainUhubFeatureV001-to-zinc-900 MainUhubFeatureV001-text-foreground">
       {/* 
         PHP Conversion Instructions:
         This header would be a `header.php` file included at the top of every page.
@@ -188,9 +188,9 @@ const MainLayout = () => {
         Conditional rendering (e.g., showing "Log In" vs "Log Out") would be done with PHP `if/else` blocks.
         The avatar click would be a simple `<a>` tag or a `<div>` with an `onclick` event listener in `main.js`.
       */}
-      <header className="p-4 border-b border-border/50 shadow-lg">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
+      <header className="MainUhubFeatureV001-p-4 MainUhubFeatureV001-border-b MainUhubFeatureV001-border-border/50 MainUhubFeatureV001-shadow-lg">
+        <div className="MainUhubFeatureV001-container MainUhubFeatureV001-mx-auto MainUhubFeatureV001-flex MainUhubFeatureV001-justify-between MainUhubFeatureV001-items-center">
+          <div className="MainUhubFeatureV001-flex MainUhubFeatureV001-items-center MainUhubFeatureV001-gap-4">
             {isAuthLoading ? (
               <span id="loading-text">loading...</span>
             ) : (
@@ -206,8 +206,8 @@ const MainLayout = () => {
               </>
             )}
           </div>
-          <div onClick={handleProfileImageClick} className="cursor-pointer">
-            <Avatar className="h-10 w-10">
+           <div onClick={handleProfileImageClick} className="MainUhubFeatureV001-cursor-pointer">
+             <Avatar className="MainUhubFeatureV001-h-10 MainUhubFeatureV001-w-10">
               <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
@@ -221,12 +221,12 @@ const MainLayout = () => {
         (e.g., `welcome.php`, `sister_union_page.php`) based on a URL parameter like `?page=...`.
         The uHub modal would be an absolutely positioned `<div>` inside this container, with its visibility toggled by JavaScript.
       */}
-      <main className="flex-grow relative container mx-auto px-4 py-8 flex justify-center items-start">
+      <main className="MainUhubFeatureV001-flex-grow MainUhubFeatureV001-relative MainUhubFeatureV001-container MainUhubFeatureV001-mx-auto MainUhubFeatureV001-px-4 MainUhubFeatureV001-py-8 MainUhubFeatureV001-flex MainUhubFeatureV001-justify-center MainUhubFeatureV001-items-start">
         <Routes>
           <Route path="/" element={
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4">Welcome to the uminion</h1>
-              <p className="text-lg text-muted-foreground">Click the uHub button below to get started.</p>
+             <div className="MainUhubFeatureV001-text-center">
+               <h1 className="MainUhubFeatureV001-text-4xl MainUhubFeatureV001-font-bold MainUhubFeatureV001-mb-4">Welcome to the uminion</h1>
+               <p className="MainUhubFeatureV001-text-lg MainUhubFeatureV001-text-muted-foreground">Click the uHub button below to get started.</p>
               <Link to="/SisterUnion001NewEngland">
                 <Button className="mt-4">Go to a Sister Union Page</Button>
               </Link>
@@ -236,7 +236,7 @@ const MainLayout = () => {
         </Routes>
         
         {isProfileModalOpen && (
-          <div className="absolute inset-0 z-40 bg-black/50">
+          <div className="MainUhubFeatureV001-absolute MainUhubFeatureV001-inset-0 MainUhubFeatureV001-z-40 MainUhubFeatureV001-bg-black/50">
             <MainHubUpgradeV001ForMyProfileModal
               isOpen={isProfileModalOpen}
               onClose={() => setProfileModalOpen(false)}
@@ -252,12 +252,12 @@ const MainLayout = () => {
         The buttons would be standard HTML `<button>` elements. Their `onclick` handlers would be defined in `main.js`.
         The countdown logic would also be in `main.js`, updating the DOM to show the countdown number.
       */}
-      <footer className="p-4 border-t border-border/50 shadow-lg">
-        <div className="container mx-auto flex items-center justify-center gap-4">
-          <Button onClick={handleOpenModalManually} className="relative">
-            uHub
-            {countdown !== null && (
-              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+      <footer className="MainUhubFeatureV001-p-4 MainUhubFeatureV001-border-t MainUhubFeatureV001-border-border/50 MainUhubFeatureV001-shadow-lg">
+        <div className="MainUhubFeatureV001-container MainUhubFeatureV001-mx-auto MainUhubFeatureV001-flex MainUhubFeatureV001-items-center MainUhubFeatureV001-justify-center MainUhubFeatureV001-gap-4">
+           <Button onClick={handleOpenModalManually} className="MainUhubFeatureV001-relative">
+             uHub
+             {countdown !== null && (
+               <div className="MainUhubFeatureV001-absolute MainUhubFeatureV001--top-2 MainUhubFeatureV001--right-2 MainUhubFeatureV001-bg-red-500 MainUhubFeatureV001-text-white MainUhubFeatureV001-text-xs MainUhubFeatureV001-rounded-full MainUhubFeatureV001-h-5 MainUhubFeatureV001-w-5 MainUhubFeatureV001-flex MainUhubFeatureV001-items-center MainUhubFeatureV001-justify-center">
                 {countdown}
               </div>
             )}
@@ -278,17 +278,17 @@ const MainLayout = () => {
 }
 
 // The main App component that sets up the router.
-function App() {
+function MainUhubFeatureV001App() {
   return (
     <Router>
       <AuthProvider>
-        <MainLayout />
+        <MainUhubFeatureV001MainLayout />
       </AuthProvider>
     </Router>
   );
 }
 
-export default App;
+export default MainUhubFeatureV001App;
 
 // =================================================================================================
 // Deployment Instructions
