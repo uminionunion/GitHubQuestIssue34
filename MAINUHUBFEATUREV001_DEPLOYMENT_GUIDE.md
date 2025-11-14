@@ -1,0 +1,1112 @@
+# MainUhubFeatureV001 - Complete Deployment Guide
+
+This guide covers Docker setup, database configuration (MySQL/SQLite), Express server setup, and Nginx configuration for the MainUhubFeatureV001 application.
+
+---
+
+## Table of Contents
+1. [Project Structure](#project-structure)
+2. [Docker Setup](#docker-setup)
+3. [Database Configuration](#database-configuration)
+4. [Package.json Dependencies](#packagejson-dependencies)
+5. [Express Server Configuration](#express-server-configuration)
+6. [Nginx Configuration](#nginx-configuration)
+7. [Deployment Instructions](#deployment-instructions)
+
+---
+
+## Project Structure
+
+```
+/home/app/
+├── client/                    # React frontend (Vite)
+│   ├── src/
+│   │   ├── components/ui/    # shadcn/ui components
+│   │   ├── features/         # Feature modules (auth, profile, uminion)
+│   │   ├── hooks/            # Custom React hooks
+│   │   ├── App.tsx           # Main app component
+│   │   └── main.tsx          # Entry point
+│   ├── index.html
+│   └── package.json (shared)
+│
+├── server/                    # Express backend
+│   ├── index.ts              # Main server file
+│   ├── db.ts                 # Database initialization
+│   ├── db-types.ts           # Database types
+│   ├── auth.ts               # Authentication routes
+│   ├── friends.ts            # Friends routes
+│   ├── chat.ts               # Chat routes
+│   └── auth-middleware.ts    # JWT middleware
+│
+├── data/                      # Persistent data (created at runtime)
+│   └── database.sqlite        # SQLite database
+│
+├── Dockerfile                 # Docker image configuration
+├── .dockerignore              # Docker build ignore file
+├── docker-compose.yml         # Docker Compose configuration
+└── package.json               # Root dependencies
+```
+
+---
+
+## Docker Setup
+
+### Step 1: Create .dockerignore File
+
+Create a file named `.dockerignore` in the root directory (`/home/app/.dockerignore`):
+
+```
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env.local
+.vscode
+dist
+build
+.DS_Store
+*.log
+coverage
+.next
+out
+```
+
+### Step 2: Create Dockerfile
+
+Create a file named `Dockerfile` in the root directory (`/home/app/Dockerfile`):
+
+```dockerfile
+# Build stage
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=4000
+ENV DATA_DIRECTORY=/app/data
+
+# Create data directory for SQLite
+RUN mkdir -p /app/data
+
+# Copy package files from builder
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production
+
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server ./server
+
+# Expose the port
+EXPOSE 4000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:4000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+# Start the server
+CMD ["node", "--loader", "tsx", "server/index.ts"]
+```
+
+### Step 3: Create docker-compose.yml
+
+Create a file named `docker-compose.yml` in the root directory (`/home/app/docker-compose.yml`):
+
+#### Option A: SQLite Configuration (Recommended for Development)
+
+```yaml
+version: '3.8'
+
+services:
+  # Express API + React Frontend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATA_DIRECTORY: /app/data
+      VITE_PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    volumes:
+      - app_data:/app/data
+    networks:
+      - mainuhubfeaturev001-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - mainuhubfeaturev001-network
+
+volumes:
+  app_data:
+
+networks:
+  mainuhubfeaturev001-network:
+    driver: bridge
+```
+
+#### Option B: MySQL Configuration (Production)
+
+```yaml
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-mainuhubfeaturev001}
+      MYSQL_USER: ${MYSQL_USER:-uhubuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-uhubpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - mainuhubfeaturev001-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Express API + React Frontend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: mysql://uhubuser:uhubpassword@mysql:3306/mainuhubfeaturev001
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${MYSQL_USER:-uhubuser}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-uhubpassword}
+      DB_NAME: ${MYSQL_DATABASE:-mainuhubfeaturev001}
+      VITE_PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - mainuhubfeaturev001-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - mainuhubfeaturev001-network
+
+volumes:
+  mysql_data:
+
+networks:
+  mainuhubfeaturev001-network:
+    driver: bridge
+```
+
+#### Option C: PostgreSQL Configuration (Alternative)
+
+```yaml
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mainuhubfeaturev001}
+      POSTGRES_USER: ${POSTGRES_USER:-uhubuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-uhubpassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - mainuhubfeaturev001-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uhubuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Express API + React Frontend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://uhubuser:uhubpassword@postgres:5432/mainuhubfeaturev001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-uhubuser}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-uhubpassword}
+      DB_NAME: ${POSTGRES_DB:-mainuhubfeaturev001}
+      VITE_PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mainuhubfeaturev001-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - mainuhubfeaturev001-network
+
+volumes:
+  postgres_data:
+
+networks:
+  mainuhubfeaturev001-network:
+    driver: bridge
+```
+
+---
+
+## Database Configuration
+
+### SQLite Configuration (Default/Development)
+
+**Location:** `/home/app/data/database.sqlite`
+
+**Current Setup:**
+- Uses `better-sqlite3` driver
+- Kysely query builder with logging enabled
+- Automatically created if doesn't exist
+
+**How to Connect in Code:**
+
+```typescript
+// In server/db.ts (already configured)
+import { Kysely, SqliteDialect } from 'kysely';
+import Database from 'better-sqlite3';
+import type { DB } from './db-types.js';
+import path from 'path';
+import fs from 'fs';
+
+const dataDir = process.env.DATA_DIRECTORY || path.join(process.cwd(), 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const dbPath = path.join(dataDir, 'database.sqlite');
+const sqliteDb = new Database(dbPath);
+
+export const db = new Kysely<DB>({
+  dialect: new SqliteDialect({
+    database: sqliteDb,
+  }),
+  log: ['query', 'error'],
+});
+```
+
+**Running SQLite in Docker:**
+- SQLite will automatically use `/app/data/database.sqlite` inside the container
+- Data persists via Docker volume `app_data`
+
+---
+
+### MySQL Configuration (Production)
+
+#### Step 1: Install MySQL Driver
+
+```bash
+npm install mysql2
+npm install --save-dev @types/mysql2
+```
+
+#### Step 2: Create MySQL Init Script
+
+Create `mysql-init.sql` in the root directory:
+
+```sql
+-- Create database if not exists
+CREATE DATABASE IF NOT EXISTS mainuhubfeaturev001;
+
+-- Use the database
+USE mainuhubfeaturev001;
+
+-- Create users table
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  profile_picture VARCHAR(255),
+  bio TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_email (email),
+  INDEX idx_username (username)
+);
+
+-- Create friends table
+CREATE TABLE IF NOT EXISTS friends (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  friend_id INT NOT NULL,
+  status VARCHAR(50) DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_friendship (user_id, friend_id),
+  INDEX idx_user_id (user_id),
+  INDEX idx_friend_id (friend_id)
+);
+
+-- Create messages table
+CREATE TABLE IF NOT EXISTS messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sender_id INT NOT NULL,
+  receiver_id INT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_sender_id (sender_id),
+  INDEX idx_receiver_id (receiver_id),
+  INDEX idx_created_at (created_at)
+);
+
+-- Create products table
+CREATE TABLE IF NOT EXISTS products (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  price DECIMAL(10, 2),
+  image_url VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_user_id (user_id),
+  INDEX idx_created_at (created_at)
+);
+
+-- Create broadcasts table
+CREATE TABLE IF NOT EXISTS broadcasts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_user_id (user_id),
+  INDEX idx_created_at (created_at)
+);
+
+-- Create settings table
+CREATE TABLE IF NOT EXISTS settings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL UNIQUE,
+  theme VARCHAR(50) DEFAULT 'light',
+  notifications_enabled BOOLEAN DEFAULT TRUE,
+  privacy_level VARCHAR(50) DEFAULT 'public',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+#### Step 3: Update server/db.ts for MySQL
+
+Create a new file `server/db-mysql.ts`:
+
+```typescript
+import { Kysely, MysqlDialect } from 'kysely';
+import { createPool } from 'mysql2/promise';
+import type { DB } from './db-types.js';
+
+const dialect = new MysqlDialect({
+  pool: createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'uhubuser',
+    password: process.env.DB_PASSWORD || 'uhubpassword',
+    database: process.env.DB_NAME || 'mainuhubfeaturev001',
+    port: parseInt(process.env.DB_PORT || '3306'),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  }),
+});
+
+export const db = new Kysely<DB>({
+  dialect,
+  log: ['query', 'error'],
+});
+```
+
+#### Step 4: Update server/index.ts to use correct database
+
+Modify `server/index.ts` to conditionally import the correct database:
+
+```typescript
+// Import the correct database based on environment
+const dbModule = process.env.DATABASE_TYPE === 'mysql' 
+  ? await import('./db-mysql.js')
+  : await import('./db.js');
+const { db } = dbModule;
+
+// Then use db in your routes
+```
+
+#### Step 5: Update Environment Variables
+
+Create `.env` or `.env.production` file:
+
+```env
+# Database - MySQL
+DATABASE_TYPE=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_USER=uhubuser
+DB_PASSWORD=uhubpassword
+DB_NAME=mainuhubfeaturev001
+
+# Server
+NODE_ENV=production
+PORT=4000
+VITE_PORT=3000
+JWT_SECRET=your-secret-key-change-in-production
+
+# Optional
+DATABASE_LOGGING=true
+```
+
+#### Step 6: Connecting to MySQL in Code
+
+All database queries use the same Kysely syntax:
+
+```typescript
+// In any route file (auth.ts, friends.ts, chat.ts)
+import { db } from './db.js'; // or './db-mysql.js' for MySQL
+
+// Example: Create a user
+const user = await db
+  .insertInto('users')
+  .values({
+    username: 'johndoe',
+    email: 'john@example.com',
+    password_hash: hashedPassword,
+  })
+  .returningAll()
+  .executeTakeFirst();
+
+// Example: Query users
+const users = await db
+  .selectFrom('users')
+  .selectAll()
+  .execute();
+
+// Example: Update user
+await db
+  .updateTable('users')
+  .set({ profile_picture: 'url' })
+  .where('id', '=', userId)
+  .execute();
+```
+
+---
+
+## Package.json Dependencies
+
+Here's the complete `package.json` with all required dependencies:
+
+```json
+{
+  "name": "mainuhubfeaturev001",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build && tsc --project tsconfig.server.json",
+    "start": "tsx watch scripts/dev.ts",
+    "start:prod": "node --loader tsx server/index.ts",
+    "start:dev": "node scripts/dev.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-checkbox": "1.1.3",
+    "@radix-ui/react-dialog": "1.1.5",
+    "@radix-ui/react-label": "2.1.1",
+    "@radix-ui/react-popover": "1.1.5",
+    "@radix-ui/react-progress": "1.1.1",
+    "@radix-ui/react-select": "2.1.5",
+    "@radix-ui/react-slider": "1.2.2",
+    "@radix-ui/react-slot": "1.1.1",
+    "@radix-ui/react-switch": "1.1.2",
+    "@radix-ui/react-toggle": "1.1.1",
+    "@radix-ui/react-tooltip": "1.1.7",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcryptjs": "^3.0.2",
+    "better-sqlite3": "^12.4.1",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "16.4.7",
+    "esbuild": "0.25.1",
+    "express": "5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "kysely": "^0.28.8",
+    "kysely-codegen": "^0.19.0",
+    "lucide-react": "^0.548.0",
+    "mysql2": "^3.6.0",
+    "react": "18.2.0",
+    "react-day-picker": "^9.11.1",
+    "react-dom": "18.2.0",
+    "react-rnd": "^10.5.2",
+    "react-router-dom": "^6.30.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "tailwind-merge": "3.2.0",
+    "tailwindcss-animate": "1.0.7"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.0",
+    "@types/mysql2": "^3.0.0",
+    "@types/node": "22.13.5",
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0",
+    "@vitejs/plugin-react": "4.3.4",
+    "autoprefixer": "10.4.18",
+    "ignore": "7.0.3",
+    "postcss": "8.4.35",
+    "tailwindcss": "3.4.17",
+    "tsx": "4.19.3",
+    "typescript": "5.8.2",
+    "vite": "6.3.1"
+  }
+}
+```
+
+---
+
+## Express Server Configuration
+
+### Main Server File (server/index.ts)
+
+The Express server is configured to:
+- Run on port 4000 (production) or 3001 (development)
+- Serve static files in production
+- Handle CORS for Socket.io
+- Provide API routes for authentication and friends
+
+Key environment variables:
+```env
+PORT=4000              # Server port
+NODE_ENV=production    # Environment type
+VITE_PORT=3000        # Frontend port for CORS
+JWT_SECRET=xxx        # JWT signing secret
+DATA_DIRECTORY=/app/data  # SQLite data directory
+```
+
+### Authentication Routes (server/auth.ts)
+
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login user
+- `POST /api/auth/logout` - Logout user
+- `GET /api/auth/profile` - Get user profile
+- `PUT /api/auth/profile` - Update user profile
+
+### Friends Routes (server/friends.ts)
+
+- `GET /api/friends` - Get user's friends
+- `POST /api/friends/add` - Add a friend
+- `DELETE /api/friends/:id` - Remove a friend
+- `GET /api/friends/requests` - Get friend requests
+
+### Chat Routes (server/chat.ts)
+
+- Uses Socket.io for real-time communication
+- Event: `message` - Send/receive messages
+- Event: `typing` - User typing indicator
+- Event: `online` - User online status
+
+---
+
+## Nginx Configuration
+
+### Create nginx.conf
+
+Create a file named `nginx.conf` in the root directory:
+
+```nginx
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+
+  log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                  '$status $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+  access_log /var/log/nginx/access.log main;
+
+  sendfile on;
+  tcp_nopush on;
+  tcp_nodelay on;
+  keepalive_timeout 65;
+  types_hash_max_size 2048;
+  client_max_body_size 20M;
+
+  # Gzip compression
+  gzip on;
+  gzip_vary on;
+  gzip_min_length 1000;
+  gzip_types text/plain text/css text/xml text/javascript 
+             application/x-javascript application/xml+rss;
+
+  # Rate limiting
+  limit_req_zone $binary_remote_addr zone=general:10m rate=10r/s;
+  limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
+
+  # Upstream backend
+  upstream app_backend {
+    server app:4000 max_fails=3 fail_timeout=30s;
+    keepalive 32;
+  }
+
+  # HTTP redirect to HTTPS
+  server {
+    listen 80;
+    server_name _;
+    
+    location /.well-known/acme-challenge/ {
+      root /var/www/certbot;
+    }
+    
+    location / {
+      return 301 https://$host$request_uri;
+    }
+  }
+
+  # HTTPS server
+  server {
+    listen 443 ssl http2;
+    server_name _;
+
+    # SSL certificates (change paths if using Letsencrypt)
+    ssl_certificate /etc/nginx/ssl/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/key.pem;
+
+    # SSL configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Root location
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # API routes
+    location /api/ {
+      limit_req zone=api burst=100 nodelay;
+      
+      proxy_pass http://app_backend;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_cache_bypass $http_upgrade;
+      proxy_connect_timeout 60s;
+      proxy_send_timeout 60s;
+      proxy_read_timeout 60s;
+    }
+
+    # Socket.io
+    location /socket.io {
+      limit_req zone=api burst=100 nodelay;
+      
+      proxy_pass http://app_backend;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Static files with caching
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+      limit_req zone=general burst=50 nodelay;
+      
+      expires 30d;
+      add_header Cache-Control "public, immutable";
+      
+      proxy_pass http://app_backend;
+      proxy_set_header Host $host;
+      proxy_cache_bypass $http_upgrade;
+    }
+
+    # SPA fallback
+    location / {
+      limit_req zone=general burst=20 nodelay;
+      
+      # Try file, then directory, then fallback to index.html for SPA
+      try_files $uri $uri/ /index.html;
+      
+      # Don't cache HTML
+      add_header Cache-Control "public, max-age=0";
+    }
+
+    # Deny access to hidden files
+    location ~ /\. {
+      deny all;
+    }
+  }
+}
+```
+
+### Nginx SSL Setup
+
+To use self-signed certificates for development:
+
+```bash
+# Create ssl directory
+mkdir -p ssl
+
+# Generate self-signed certificate
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout ssl/key.pem \
+  -out ssl/cert.pem \
+  -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
+```
+
+For production with Let's Encrypt:
+
+```bash
+# Use certbot with docker
+docker run -it --rm -v /etc/letsencrypt:/etc/letsencrypt \
+  -v /var/lib/letsencrypt:/var/lib/letsencrypt \
+  certbot/certbot certonly --standalone \
+  -d yourdomain.com -d www.yourdomain.com
+```
+
+---
+
+## Deployment Instructions
+
+### Local Development with SQLite
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Start dev server
+npm start
+
+# Frontend: http://localhost:3000
+# API: http://localhost:3001
+```
+
+### Docker with SQLite (Recommended for Testing)
+
+```bash
+# 1. Build and start containers
+docker-compose up --build
+
+# 2. Access the application
+# http://localhost/
+
+# 3. View logs
+docker-compose logs -f app
+
+# 4. Stop containers
+docker-compose down
+```
+
+### Docker with MySQL (Production)
+
+```bash
+# 1. Create .env file
+cat > .env << EOF
+MYSQL_ROOT_PASSWORD=rootpassword
+MYSQL_DATABASE=mainuhubfeaturev001
+MYSQL_USER=uhubuser
+MYSQL_PASSWORD=uhubpassword
+JWT_SECRET=your-production-secret-key
+DATABASE_TYPE=mysql
+EOF
+
+# 2. Start containers
+docker-compose -f docker-compose.yml up --build
+
+# 3. Wait for MySQL to be ready (check logs)
+docker-compose logs mysql
+
+# 4. Access the application
+# http://localhost/
+```
+
+### Manual Production Deployment
+
+```bash
+# 1. Clone repository
+git clone <repo-url>
+cd mainuhubfeaturev001
+
+# 2. Install dependencies
+npm install
+
+# 3. Create .env
+cat > .env.production << EOF
+NODE_ENV=production
+PORT=4000
+VITE_PORT=3000
+JWT_SECRET=your-production-secret-key
+DATABASE_TYPE=mysql
+DB_HOST=your-mysql-host
+DB_USER=uhubuser
+DB_PASSWORD=uhubpassword
+DB_NAME=mainuhubfeaturev001
+EOF
+
+# 4. Build application
+npm run build
+
+# 5. Start server
+NODE_ENV=production npm run start:prod
+```
+
+### Kubernetes Deployment
+
+Create `k8s-deployment.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mainuhubfeaturev001-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mainuhubfeaturev001
+  template:
+    metadata:
+      labels:
+        app: mainuhubfeaturev001
+    spec:
+      containers:
+      - name: app
+        image: mainuhubfeaturev001:latest
+        ports:
+        - containerPort: 4000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "4000"
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: host
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mainuhubfeaturev001-service
+spec:
+  selector:
+    app: mainuhubfeaturev001
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 4000
+  type: LoadBalancer
+```
+
+### Health Checks
+
+```bash
+# Check API health
+curl http://localhost:4000/
+
+# Check database connection
+curl http://localhost:4000/api/auth/profile
+
+# View server logs
+docker-compose logs -f app
+
+# View nginx logs
+docker-compose logs -f nginx
+```
+
+---
+
+## Troubleshooting
+
+### MySQL Connection Issues
+```bash
+# Test MySQL connection from app container
+docker-compose exec app mysql -h mysql -u uhubuser -p mainuhubfeaturev001
+
+# Check MySQL logs
+docker-compose logs mysql
+```
+
+### Port Already in Use
+```bash
+# Kill process on port 4000
+lsof -ti:4000 | xargs kill -9
+
+# Or use different port in docker-compose
+# Change "4000:4000" to "4001:4000"
+```
+
+### SSL Certificate Issues
+```bash
+# Regenerate self-signed certificate
+rm ssl/cert.pem ssl/key.pem
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout ssl/key.pem -out ssl/cert.pem \
+  -subj "/C=US/ST=State/L=City/O=Org/CN=localhost"
+```
+
+### Database Migration
+```bash
+# For SQLite to MySQL migration
+# Export SQLite data and import to MySQL
+# Use tools like: https://github.com/transferwise/pipelinedb
+```
+
+---
+
+## Security Checklist
+
+- [ ] Change `JWT_SECRET` in production
+- [ ] Use strong MySQL passwords
+- [ ] Enable SSL/TLS certificates
+- [ ] Set up firewall rules
+- [ ] Enable rate limiting in Nginx
+- [ ] Regular database backups
+- [ ] Monitor application logs
+- [ ] Keep dependencies updated
+- [ ] Use environment variables for secrets
+- [ ] Implement CORS properly
+
+---
+
+## Support & Documentation
+
+- Express Docs: https://expressjs.com
+- Kysely Docs: https://kysely.dev
+- Socket.io Docs: https://socket.io
+- Docker Docs: https://docs.docker.com
+- Nginx Docs: https://nginx.org/en/docs/
+
