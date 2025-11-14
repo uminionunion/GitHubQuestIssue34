@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
+import { Button } from '../../components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+import { Input } from '../../components/ui/input';
 import { MessageSquare, UserPlus, UserX, ShieldAlert } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 const FriendRequestItem = ({ request, onAccept, onReject, onBlock, onReport }) => (
   <div className="flex items-center justify-between p-2 rounded-md bg-accent/50">

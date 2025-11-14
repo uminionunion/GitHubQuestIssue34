@@ -77,13 +77,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 // Import the Button component from the UI library.
 // PHP Conversion: This is a reusable React component. In PHP, this would be a PHP function `render_button('text', 'class')` in `functions.php` that echoes HTML, or simply a styled `<button>` tag in your template files.
-import { Button } from '@/components/ui/button';
+import { Button } from './components/ui/button';
 // Import the Sister Union routes.
 // PHP Conversion: This component defines multiple routes. In PHP, this logic would be inside your main router (`index.php`) to include the correct page template.
-import MainHubUpgradeV001ForSisterUnionRoutes from '@/features/uminion/MainHubUpgradeV001ForSisterUnionRoutes';
+import MainHubUpgradeV001ForSisterUnionRoutes from './features/uminion/MainHubUpgradeV001ForSisterUnionRoutes';
 // Import authentication context and hooks.
 // PHP Conversion: This handles client-side user state. In PHP, you would use `$_SESSION` variables to manage user login state across pages.
-import { AuthProvider, useAuth } from './hooks/useAuth.tsx';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 // Import the authentication modal.
 // PHP Conversion: This would be a `auth_modal.php` template, included in the main layout and shown/hidden with JavaScript.
 import AuthModal from './features/auth/AuthModal';
@@ -92,7 +92,7 @@ import AuthModal from './features/auth/AuthModal';
 import MainHubUpgradeV001ForMyProfileModal from './features/profile/MainHubUpgradeV001ForMyProfileModal';
 // Import the Avatar component.
 // PHP Conversion: A styled `<img>` tag inside a `<div>`.
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './components/ui/avatar';
 
 // A component for the main application layout.
 const MainUhubFeatureV001MainLayout = () => {
