@@ -1,24 +1,39 @@
 
+// Import React hooks for state management and lifecycle management
 import React, { useState, useEffect, useRef } from 'react';
+// Import Socket.IO for real-time chat functionality
 import { io, Socket } from 'socket.io-client';
+// Import UI components from shadcn/ui library
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '../../components/ui/dialog';
+// Import shadcn Button component for interactive elements
 import { Button } from '../../components/ui/button';
+// Import shadcn Input component for text input fields
 import { Input } from '../../components/ui/input';
+// Import custom authentication hook to get logged-in user data
 import { useAuth } from '../../hooks/useAuth';
+// Import Lucide React icons for UI elements
 import { ChevronLeft, ChevronRight, User as UserIcon, RefreshCw, Palette, Type, MessageSquare, UserPlus, UserX, ShieldAlert } from 'lucide-react';
+// Import Popover component for context menus
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
+// Import user profile modal component
 import MainUhubFeatureV001ForUserProfileModal from '../profile/MainUhubFeatureV001ForUserProfileModal';
 
+// Define the interface for component props passed from parent
 interface MainUhubFeatureV001ForChatModalProps {
+  // Controls if modal is visible (true) or hidden (false)
   isOpen: boolean;
+  // Callback function to close the modal
   onClose: () => void;
+  // Name of the page/chatroom (e.g., "SisterUnion001NewEngland")
   pageName: string;
+  // CSS gradient background color for the chat modal
   backgroundColor: string;
+  // Modal number (1-24) that identifies which Sister Union chatroom
   modalNumber: number;
 }
 

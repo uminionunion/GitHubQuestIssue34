@@ -1,22 +1,45 @@
 
+// Import Router from Express to create modular route handlers
+// Routes are organized in separate files for better code organization
 import { Router } from 'express';
+// Import bcryptjs for password hashing and verification
+// Passwords are never stored in plain text for security
 import bcrypt from 'bcryptjs';
+// Import jsonwebtoken (JWT) for creating secure authentication tokens
+// JWT tokens allow stateless authentication without storing sessions
 import jwt from 'jsonwebtoken';
+// Import database instance for querying SQLite database
+// Uses Kysely query builder for type-safe database queries
 import { db } from './db.js';
+// Import helper function from Kysely for JSON object queries
 import { jsonObjectFrom } from 'kysely/helpers/sqlite';
 
+// Create a new Express router instance for authentication endpoints
+// This router will be mounted at /api/auth in the main server
 const router = Router();
 
+// JWT secret key for signing and verifying tokens
+// Should be stored in .env file and be at least 32 characters long
+// If not set, uses default (not recommended for production)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
+// POST /api/auth/signup - Create a new user account
+// Accepts username, password, email, and phone number
+// Returns JWT token in httpOnly cookie for secure authentication
 router.post('/signup', async (req, res) => {
+  // Destructure signup data from request body
   const { username, password, email, phoneNumber } = req.body;
 
+  // Validate that all required fields are provided
+  // Returns 400 Bad Request if any field is missing
   if (!username || !password || !email || !phoneNumber) {
     res.status(400).json({ message: 'Username, password, email, and phone number are required' });
     return;
   }
 
+  // Automatically prefix username with 'u' if not already prefixed
+  // All uminion users start with 'u' (e.g., uJohn, uMary)
+  // This ensures consistent username format across the platform
   const finalUsername = username.startsWith('u') ? username : `u${username}`;
 
   try {
