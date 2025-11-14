@@ -157,10 +157,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
   const [socialPageLeft, setSocialPageLeft] = useState(0);
   const [socialPageRight, setSocialPageRight] = useState(0);
-  const [leftWidthMobile, setLeftWidthMobile] = useState(25);
-  const [centerWidthMobile, setCenterWidthMobile] = useState(50);
-  const [rightWidthMobile, setRightWidthMobile] = useState(25);
-  const [isDragging, setIsDragging] = useState(false);
+   const [leftWidthMobile, setLeftWidthMobile] = useState(25);
+   const [centerWidthMobile, setCenterWidthMobile] = useState(50);
+   const [rightWidthMobile, setRightWidthMobile] = useState(25);
+   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
+   const [isDraggingRight, setIsDraggingRight] = useState(false);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -236,12 +237,16 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   };
 
   const handleStartDragMobile = () => {
-    setIsDragging(true);
+    setIsDraggingLeft(true);
+  };
+
+  const handleStartDragRight = () => {
+    setIsDraggingRight(true);
   };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
+      if (!isDraggingLeft && !isDraggingRight) return;
       const container = document.querySelector('[id*="CenterLeftSection"]')?.parentElement;
       if (!container) return;
       const rect = container.getBoundingClientRect();
@@ -250,17 +255,28 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
         const leftPercent = newLeft;
         const total = 100;
         const remainingPercent = total - leftPercent;
-        setLeftWidthMobile(leftPercent);
-        setCenterWidthMobile(remainingPercent * 0.6);
-        setRightWidthMobile(remainingPercent * 0.4);
+        if (isDraggingLeft) {
+          setLeftWidthMobile(leftPercent);
+          setCenterWidthMobile(remainingPercent * 0.6);
+          setRightWidthMobile(remainingPercent * 0.4);
+        }
+        if (isDraggingRight) {
+          const centerPercent = (e.clientX - rect.left) / rect.width * 100;
+          if (centerPercent > 15 && centerPercent < 85) {
+            setCenterWidthMobile(centerPercent);
+            const remaining = 100 - leftWidthMobile - centerPercent;
+            setRightWidthMobile(remaining);
+          }
+        }
       }
     };
 
     const handleMouseUp = () => {
-      setIsDragging(false);
+      setIsDraggingLeft(false);
+      setIsDraggingRight(false);
     };
 
-    if (isDragging) {
+    if (isDraggingLeft || isDraggingRight) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
@@ -269,7 +285,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDraggingLeft, isDraggingRight, leftWidthMobile]);
 
   const renderCenterRightContent = () => {
     const currentProducts = products[centerRightView] || [];
@@ -461,8 +477,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="md:w-[60%] p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : 'auto' }}>
              {renderCenterContent()}
            </div>
-           <div className="md:hidden w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleStartDragMobile}></div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] p-2 md:p-4 border-l overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : 'auto' }}>
+            <div className="md:hidden w-1 bg-gray-300 cursor-ew-resize hover:bg-green-500" onMouseDown={handleStartDragRight}></div>
+            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] p-2 md:p-4 border-l overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : 'auto' }}>
              <div className="flex items-center justify-center mb-2 md:mb-4">
                  <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
                  <h3 className="text-center font-bold mx-1 md:mx-2 text-xs md:text-base">{centerRightView}</h3>

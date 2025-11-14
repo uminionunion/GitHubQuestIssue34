@@ -6,12 +6,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/useAuth.tsx';
+} from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { useAuth } from '../../hooks/useAuth';
 import { ChevronLeft, ChevronRight, User as UserIcon, RefreshCw, Palette, Type, MessageSquare, UserPlus, UserX, ShieldAlert } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import MainUhubFeatureV001ForUserProfileModal from '../profile/MainUhubFeatureV001ForUserProfileModal';
 
 interface MainUhubFeatureV001ForChatModalProps {
@@ -240,7 +240,7 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
     <>
        <Dialog open={isOpen} onOpenChange={onClose}>
           <DialogContent
-            className="w-[25vw] md:max-w-4xl h-[75vh] md:h-[80vh] flex flex-col p-0 text-white"
+            className="w-[85vw] md:max-w-4xl h-[75vh] md:h-[80vh] flex flex-col p-0 text-white"
             style={{ background: currentBg }}
           >
           <DialogHeader className="p-4 border-b border-white/20 flex-row justify-between items-center">
