@@ -157,13 +157,14 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
   const [socialPageLeft, setSocialPageLeft] = useState(0);
   const [socialPageRight, setSocialPageRight] = useState(0);
-
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
-  const broadcasts = {
-      'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'uAdmin', subtitle: 'The latest news from the Union.', logo: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', extraImages: ['https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png'], description: 'This week, we cover the latest developments in Union infrastructure and upcoming community events. Stay tuned for special announcements!', website: 'https://uminion.com' },
-      'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'uDJ', subtitle: '24/7 tunes for the Union.', logo: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', extraImages: [], description: 'Non-stop music curated for our members. Send in your requests!', website: 'https://uminion.com' },
-  };
-  const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
+  const [mobileHubView, setMobileHubView] = useState('broadcasts');
+
+   const broadcasts = {
+       'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'uAdmin', subtitle: 'The latest news from the Union.', logo: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', extraImages: ['https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png'], description: 'This week, we cover the latest developments in Union infrastructure and upcoming community events. Stay tuned for special announcements!', website: 'https://uminion.com' },
+       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'uDJ', subtitle: '24/7 tunes for the Union.', logo: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', extraImages: [], description: 'Non-stop music curated for our members. Send in your requests!', website: 'https://uminion.com' },
+   };
+   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
   useEffect(() => {
     if (user && isOpen) {
@@ -285,18 +286,39 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             const currentBroadcast = broadcasts[broadcastView];
             return (
                 <>
-                    <div className="flex items-center justify-center mb-4 md:hidden">
-                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')}>
+                    {/* Mobile navigation between broadcasts and uHome-Hub */}
+                    <div className="flex items-center justify-between mb-4 md:hidden">
+                        <Button variant="ghost" size="icon" onClick={() => setMobileHubView('uhub')} disabled={mobileHubView === 'uhub'}>
                             <ChevronLeft />
                         </Button>
-                        <h3 className="text-center font-bold mx-4 flex-1">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
-                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
+                        <h3 className="text-center font-bold flex-1 text-sm">{mobileHubView === 'broadcasts' ? 'Broadcasts' : 'uHome-Hub'}</h3>
+                        <Button variant="ghost" size="icon" onClick={() => setMobileHubView('broadcasts')} disabled={mobileHubView === 'broadcasts'}>
                             <ChevronRight />
                         </Button>
                     </div>
-                    {broadcastView === 'MyBroadcasts' ? 
-                        (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
-                        : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
+
+                    {mobileHubView === 'broadcasts' ? (
+                        <>
+                            <div className="flex items-center justify-center mb-4 md:hidden">
+                                <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')}>
+                                    <ChevronLeft />
+                                </Button>
+                                <h3 className="text-center font-bold mx-4 flex-1 text-xs">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
+                                <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
+                                    <ChevronRight />
+                                </Button>
+                            </div>
+                            {broadcastView === 'MyBroadcasts' ? 
+                                (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
+                                : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
+                        </>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                            {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
+                                <Button key={num} variant="outline" size="sm" className="text-xs py-1" onClick={() => handleUHomeHubClick(num)}>{`#${String(num).padStart(2, '0')}`}</Button>
+                            ))}
+                        </div>
+                    )}
                 </>
             );
     }
@@ -345,7 +367,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
              <span className="sr-only">Close</span>
            </Button>
            
-            {/* Main scrollable container for mobile */}
+            {/* Main scrollable container */}
             <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
              
              {/* Left sidebar - hidden on mobile */}
@@ -364,7 +386,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
              <div className="flex-grow flex flex-col md:w-[60%] overflow-y-auto">
                {/* Top Section */}
                <div className="flex flex-col p-4 border-b gap-2 flex-shrink-0">
-                 {/* Top Four Buttons - Always visible */}
+                 {/* Top Four Buttons - Mobile only */}
                  <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="grid grid-cols-4 gap-2 md:hidden">
                    <Button variant="outline" className="flex flex-col h-16 items-center justify-center relative text-xs py-2" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
                      {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
