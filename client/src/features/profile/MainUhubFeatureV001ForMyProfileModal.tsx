@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '../../components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X } from 'lucide-react';
 import MainUhubFeatureV001ForChatModal from '../uminion/MainUhubFeatureV001ForChatModal';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import MainUhubFeatureV001ForAddProductModal from './MainUhubFeatureV001ForAddProductModal';
 import MainUhubFeatureV001ForProductDetailModal from './MainUhubFeatureV001ForProductDetailModal';
 import MainUhubFeatureV001ForFriendsView from './MainUhubFeatureV001ForFriendsView';
@@ -157,6 +157,10 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
   const [socialPageLeft, setSocialPageLeft] = useState(0);
   const [socialPageRight, setSocialPageRight] = useState(0);
+  const [leftWidthMobile, setLeftWidthMobile] = useState(25);
+  const [centerWidthMobile, setCenterWidthMobile] = useState(50);
+  const [rightWidthMobile, setRightWidthMobile] = useState(25);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -230,6 +234,42 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + broadcastKeys.length) % broadcastKeys.length;
     setBroadcastView(broadcastKeys[nextIndex]);
   };
+
+  const handleStartDragMobile = () => {
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const container = document.querySelector('[id*="CenterLeftSection"]')?.parentElement;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const newLeft = ((e.clientX - rect.left) / rect.width) * 100;
+      if (newLeft > 15 && newLeft < 85) {
+        const leftPercent = newLeft;
+        const total = 100;
+        const remainingPercent = total - leftPercent;
+        setLeftWidthMobile(leftPercent);
+        setCenterWidthMobile(remainingPercent * 0.6);
+        setRightWidthMobile(remainingPercent * 0.4);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   const renderCenterRightContent = () => {
     const currentProducts = products[centerRightView] || [];
@@ -409,7 +449,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
          {/* Center Section */}
          <div className="flex-grow flex overflow-hidden">
-           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:w-[20%] w-[20%] p-2 md:p-4 border-r overflow-y-auto">
+           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:w-[20%] p-2 md:p-4 border-r overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : 'auto' }}>
              <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
              <div className="grid grid-cols-2 gap-1 md:gap-2">
                {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
@@ -417,10 +457,12 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                ))}
              </div>
            </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="md:w-[60%] w-[60%] p-2 md:p-4 overflow-y-auto cursor-ew-resize">
+           <div className="md:hidden w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleStartDragMobile}></div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="md:w-[60%] p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : 'auto' }}>
              {renderCenterContent()}
            </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] w-[20%] p-2 md:p-4 border-l overflow-y-auto">
+           <div className="md:hidden w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleStartDragMobile}></div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] p-2 md:p-4 border-l overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : 'auto' }}>
              <div className="flex items-center justify-center mb-2 md:mb-4">
                  <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
                  <h3 className="text-center font-bold mx-1 md:mx-2 text-xs md:text-base">{centerRightView}</h3>
@@ -432,55 +474,69 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-        {/* Bottom Section */}
-        <div className="flex border-t md:h-auto h-12">
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-4 border-r flex items-center">
-            <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-            <div className="flex-grow grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
-              {socialLinkPagesLeft[socialPageLeft].map(link => (
-                <div key={link.id} className="text-xs md:text-base">
-                  <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                </div>
-              ))}
-            </div>
-            <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-4 flex items-center justify-center">
-            <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-base">
-              Become an Official Member of the Union via getting your Union Card Today!
-            </a>
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-4 border-l flex items-center">
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-            <div className="flex-grow grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
-              {socialLinkPagesRight[socialPageRight].map(link => (
-                <div key={link.id} className="text-xs md:text-base">
-                  <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                </div>
-              ))}
-            </div>
-            <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
-          </div>
-        </div>
-      </div>
-      
-      {activeChatModal !== null && (
-        <MainUhubFeatureV001ForChatModal
-          isOpen={activeChatModal !== null}
-          onClose={handleCloseChatModal}
-          pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-          backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-          modalNumber={activeChatModal}
-        />
-      )}
-      {isAddProductModalOpen && (
-        <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
-      )}
-      {isProductDetailModalOpen && (
-        <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
-      )}
-    </>
-  );
-};
+         {/* Bottom Section */}
+         <div className="flex border-t md:h-auto h-12">
+           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-4 border-r flex items-center">
+             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
+             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
+               {socialLinkPagesLeft[socialPageLeft].map(link => (
+                 <div key={link.id} className="text-xs md:text-base">
+                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 </div>
+               ))}
+             </div>
+             <div className="flex-grow md:hidden grid grid-cols-2 gap-0.5 place-items-center">
+               {socialLinkPagesLeft[socialPageLeft].slice(0, 2).map(link => (
+                 <div key={link.id} className="text-xs">
+                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 </div>
+               ))}
+             </div>
+             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
+           </div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-4 flex items-center justify-center">
+             <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-base">
+               Become an Official Member of the Union via getting your Union Card Today!
+             </a>
+           </div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-4 border-l flex items-center">
+              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
+             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
+               {socialLinkPagesRight[socialPageRight].map(link => (
+                 <div key={link.id} className="text-xs md:text-base">
+                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 </div>
+               ))}
+             </div>
+             <div className="flex-grow md:hidden grid grid-cols-2 gap-0.5 place-items-center">
+               {socialLinkPagesRight[socialPageRight].slice(0, 2).map(link => (
+                 <div key={link.id} className="text-xs">
+                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 </div>
+               ))}
+             </div>
+             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
+           </div>
+         </div>
+       </div>
+       
+       {activeChatModal !== null && (
+         <MainUhubFeatureV001ForChatModal
+           isOpen={activeChatModal !== null}
+           onClose={handleCloseChatModal}
+           pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+           backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+           modalNumber={activeChatModal}
+         />
+       )}
+       {isAddProductModalOpen && (
+         <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
+       )}
+       {isProductDetailModalOpen && (
+         <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
+       )}
+     </>
+   );
+ };
 
 export default MainUhubFeatureV001ForMyProfileModal;
