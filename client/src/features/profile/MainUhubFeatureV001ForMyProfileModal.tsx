@@ -337,16 +337,16 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
   if (!isOpen) return null;
 
-  return (
-    <>
-      <div className="bg-background text-foreground w-full h-full flex flex-col relative">
-        <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-50" onClick={onClose}>
-          <X className="h-6 w-6" />
-          <span className="sr-only">Close</span>
-        </Button>
-        {/* Top Section */}
-        <div className="flex p-4 border-b">
-          <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="w-1/5 grid grid-cols-2 grid-rows-2 gap-2 pr-4">
+   return (
+     <>
+       <div className="bg-background text-foreground w-full h-full flex flex-col relative overflow-auto">
+         <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-50" onClick={onClose}>
+           <X className="h-6 w-6" />
+           <span className="sr-only">Close</span>
+         </Button>
+         {/* Top Section */}
+         <div className="flex flex-col md:flex-row p-4 border-b gap-4">
+           <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="w-full md:w-1/5 grid grid-cols-2 grid-rows-2 gap-2 md:pr-4">
             <Button variant="outline" className="flex flex-col h-full items-center justify-center relative" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
               {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
               <Users className="mb-1" /> Friends
@@ -357,10 +357,10 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             </a>
             <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1" /> Settings</Button>
           </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+          <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="hidden md:block w-3/5 h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
             {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
           </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4 relative">
+          <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="w-full md:w-1/5 flex justify-center md:justify-end items-center md:items-start md:pl-4 relative">
             <div onClick={handleProfileImageClick} className="cursor-pointer">
               <Avatar className="h-32 w-32">
                 <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
