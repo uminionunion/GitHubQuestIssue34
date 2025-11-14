@@ -6,8 +6,6 @@ import dotenv from 'dotenv';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import cookieParser from 'cookie-parser';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 // Import the function for setting up static file serving.
 import { setupStaticServing } from './static-serve.js';
@@ -65,14 +63,10 @@ export async function startServer(port) {
   }
 }
 
-// Get the directory name of the current module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Check if this script is being run directly by Node.js.
-if (process.argv[1] === __filename) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   // If so, it means we are not in a test or import environment, so we should start the server.
   console.log('Starting server...');
   // Start the server on the port specified in the environment variables, or default to 3001.
-  startServer(process.env.PORT || 4000);
+  startServer(process.env.PORT || 3001);
 }
