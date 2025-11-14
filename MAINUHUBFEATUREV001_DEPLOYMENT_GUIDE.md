@@ -1414,6 +1414,455 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 
 ---
 
+## Store Creation & Product Management
+
+### User Store Feature Overview
+
+Logged-in users can create and manage their own store with product listings. Products are stored in the database and connected to user profiles.
+
+### Step 1: Create Products Table Schema
+
+In `server/db.ts`, ensure the products table exists:
+
+```sql
+-- SQLite Version
+CREATE TABLE IF NOT EXISTS products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  subtitle TEXT,
+  description TEXT,
+  price REAL,
+  website TEXT,
+  image_url TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_products_user_id ON products(user_id);
+CREATE INDEX IF NOT EXISTS idx_products_created_at ON products(created_at);
+```
+
+For MySQL:
+
+```sql
+CREATE TABLE IF NOT EXISTS products (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  subtitle VARCHAR(255),
+  description TEXT,
+  price DECIMAL(10, 2),
+  website VARCHAR(255),
+  image_url VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_user_id (user_id),
+  INDEX idx_created_at (created_at)
+);
+```
+
+### Step 2: Create Store API Routes
+
+Create a new file `server/store.ts`:
+
+```typescript
+import express, { Router } from 'express';
+import { db } from './db.js';
+import { requireAuth } from './auth-middleware.js';
+
+const router = Router();
+
+// Get all products for a user's store
+router.get('/store/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const products = await db
+      .selectFrom('products')
+      .selectAll()
+      .where('user_id', '=', parseInt(userId))
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching store products:', error);
+    res.status(500).json({ message: 'Error fetching products' });
+  }
+});
+
+// Create a new product (requires authentication)
+router.post('/products', requireAuth, async (req, res) => {
+  try {
+    const { title, subtitle, description, price, website, image_url } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    const product = await db
+      .insertInto('products')
+      .values({
+        user_id: userId,
+        title,
+        subtitle,
+        description,
+        price: price ? parseFloat(price) : null,
+        website,
+        image_url,
+      })
+      .returningAll()
+      .executeTakeFirst();
+
+    res.status(201).json(product);
+  } catch (error) {
+    console.error('Error creating product:', error);
+    res.status(500).json({ message: 'Error creating product' });
+  }
+});
+
+// Update a product (requires authentication)
+router.put('/products/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, subtitle, description, price, website, image_url } = req.body;
+    const userId = req.user?.id;
+
+    // Verify product belongs to user
+    const product = await db
+      .selectFrom('products')
+      .select('user_id')
+      .where('id', '=', parseInt(id))
+      .executeTakeFirst();
+
+    if (!product || product.user_id !== userId) {
+      res.status(403).json({ message: 'Forbidden' });
+      return;
+    }
+
+    const updatedProduct = await db
+      .updateTable('products')
+      .set({
+        title,
+        subtitle,
+        description,
+        price: price ? parseFloat(price) : null,
+        website,
+        image_url,
+        updated_at: new Date(),
+      })
+      .where('id', '=', parseInt(id))
+      .returningAll()
+      .executeTakeFirst();
+
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ message: 'Error updating product' });
+  }
+});
+
+// Delete a product (requires authentication)
+router.delete('/products/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    // Verify product belongs to user
+    const product = await db
+      .selectFrom('products')
+      .select('user_id')
+      .where('id', '=', parseInt(id))
+      .executeTakeFirst();
+
+    if (!product || product.user_id !== userId) {
+      res.status(403).json({ message: 'Forbidden' });
+      return;
+    }
+
+    await db
+      .deleteFrom('products')
+      .where('id', '=', parseInt(id))
+      .execute();
+
+    res.json({ message: 'Product deleted' });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ message: 'Error deleting product' });
+  }
+});
+
+export default router;
+```
+
+### Step 3: Register Store Routes in server/index.ts
+
+Add these lines to `server/index.ts`:
+
+```typescript
+import storeRouter from './store.js';
+
+// After other API routes
+app.use('/api', storeRouter);
+```
+
+### Step 4: Frontend - Create Store Product Management Component
+
+The file `client/src/features/profile/MainUhubFeatureV001ForAddProductModal.tsx` is already created for adding products.
+
+Update it to connect to the backend:
+
+```typescript
+// In MainUhubFeatureV001ForAddProductModal.tsx
+const handleSubmit = async () => {
+  try {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('subtitle', subtitle);
+    formData.append('description', description);
+    formData.append('price', price);
+    formData.append('website', website);
+    if (image) {
+      formData.append('image', image);
+    }
+
+    const response = await fetch('/api/products', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    });
+
+    if (response.ok) {
+      const newProduct = await response.json();
+      console.log('Product created:', newProduct);
+      onClose();
+      // Refresh products list
+    } else {
+      console.error('Error creating product');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+```
+
+### Step 5: Frontend - Display Store Products
+
+Create a new component `client/src/features/profile/MainUhubFeatureV001ForStoreView.tsx`:
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { Button } from '../../components/ui/button';
+import MainUhubFeatureV001ForProductDetailModal from './MainUhubFeatureV001ForProductDetailModal';
+
+interface Product {
+  id: number;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  price?: number;
+  image_url?: string;
+  website?: string;
+}
+
+export default function MainUhubFeatureV001ForStoreView() {
+  const { user } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchProducts();
+    }
+  }, [user?.id]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(`/api/store/${user?.id}`);
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading products...</div>;
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      {products.length === 0 ? (
+        <div className="col-span-full text-center py-8">
+          <p className="text-gray-500">No products in your store yet</p>
+          <Button onClick={() => console.log('Add product')}>Add First Product</Button>
+        </div>
+      ) : (
+        products.map((product) => (
+          <div
+            key={product.id}
+            className="border rounded-lg p-4 cursor-pointer hover:shadow-lg transition"
+            onClick={() => setSelectedProduct(product)}
+          >
+            {product.image_url && (
+              <img 
+                src={product.image_url} 
+                alt={product.title}
+                className="w-full h-40 object-cover rounded mb-2"
+              />
+            )}
+            <h3 className="font-bold">{product.title}</h3>
+            {product.subtitle && <p className="text-sm text-gray-600">{product.subtitle}</p>}
+            {product.price && <p className="text-lg font-semibold">${product.price}</p>}
+          </div>
+        ))
+      )}
+
+      {selectedProduct && (
+        <MainUhubFeatureV001ForProductDetailModal
+          isOpen={!!selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          product={selectedProduct}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+### Step 6: Docker Volumes for Product Images
+
+Update `docker-compose.yml` to persist product images:
+
+```yaml
+services:
+  app:
+    # ... existing config ...
+    volumes:
+      - app_data:/app/data
+      - product_images:/app/public/uploads  # Add this for images
+      
+volumes:
+  app_data:
+  product_images:  # Add this volume
+```
+
+### Step 7: Enable File Uploads in Express
+
+Update `server/index.ts` to handle file uploads:
+
+```typescript
+import multer from 'multer';
+import path from 'path';
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(process.env.DATA_DIRECTORY || 'data', 'uploads'));
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage });
+
+// Update product creation route to handle file uploads
+app.post('/api/products', requireAuth, upload.single('image'), async (req, res) => {
+  // ... existing code ...
+  // image_url will be req.file?.filename
+});
+```
+
+### Step 8: Connect Products to MySQL/SQLite
+
+For production deployments, ensure your Docker volumes are properly configured:
+
+```bash
+# View data volumes
+docker volume ls
+
+# Backup database
+docker run --rm -v app_data:/data -v $(pwd):/backup \
+  ubuntu tar czf /backup/database-backup.tar.gz -C /data .
+
+# Restore database
+docker run --rm -v app_data:/data -v $(pwd):/backup \
+  ubuntu tar xzf /backup/database-backup.tar.gz -C /data
+```
+
+---
+
+## Database Connection Verification
+
+### Test SQLite Connection
+
+```bash
+# Inside Docker container
+docker-compose exec app sqlite3 /app/data/database.sqlite
+
+# Check tables
+.tables
+
+# Query users
+SELECT * FROM users;
+
+# Exit
+.quit
+```
+
+### Test MySQL Connection
+
+```bash
+# Inside Docker container
+docker-compose exec mysql mysql -u uhubuser -puhubpassword mainuhubfeaturev001
+
+# Check tables
+SHOW TABLES;
+
+# Query users
+SELECT * FROM users;
+
+# Exit
+exit
+```
+
+### Test API Endpoints
+
+```bash
+# Register user
+curl -X POST http://localhost:4000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","password":"password123"}'
+
+# Login
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+
+# Create product (replace TOKEN with actual token)
+curl -X POST http://localhost:4000/api/products \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My Product","price":"29.99"}'
+
+# Get store products
+curl http://localhost:4000/api/store/1
+```
+
+---
+
 ## Support & Documentation
 
 - Express Docs: https://expressjs.com
@@ -1421,4 +1870,5 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 - Socket.io Docs: https://socket.io
 - Docker Docs: https://docs.docker.com
 - Nginx Docs: https://nginx.org/en/docs/
+- Multer (File Uploads): https://github.com/expressjs/multer
 
