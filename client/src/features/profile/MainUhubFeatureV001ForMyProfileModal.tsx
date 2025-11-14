@@ -351,8 +351,10 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     }
   };
 
-  const socialLinkPagesLeft = Array.from({ length: Math.ceil(socialLinksLeft.length / 1) }, (_, i) => socialLinksLeft.slice(i * 1, (i + 1) * 1));
-  const socialLinkPagesRight = Array.from({ length: Math.ceil(socialLinksRight.length / 1) }, (_, i) => socialLinksRight.slice(i * 1, (i + 1) * 1));
+  const isMobile = window.innerWidth < 768;
+  const itemsPerPage = isMobile ? 1 : 6;
+  const socialLinkPagesLeft = Array.from({ length: Math.ceil(socialLinksLeft.length / itemsPerPage) }, (_, i) => socialLinksLeft.slice(i * itemsPerPage, (i + 1) * itemsPerPage));
+  const socialLinkPagesRight = Array.from({ length: Math.ceil(socialLinksRight.length / itemsPerPage) }, (_, i) => socialLinksRight.slice(i * itemsPerPage, (i + 1) * itemsPerPage));
 
   const handleSocialNavLeft = (dir: 'left' | 'right') => {
     setSocialPageLeft(prev => {
