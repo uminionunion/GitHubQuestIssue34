@@ -318,10 +318,12 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
               />
 
               <div className="overflow-y-auto p-4 border-l border-white/20 flex-shrink-0" style={{ width: `${100 - chatWidth}%`, color: currentFontColor }}>
-                <h3 className="font-bold mb-4 flex items-center gap-2">
-                  <UserIcon className="h-4 w-4" />
-                  Users Online ({users.length})
-                </h3>
+               <h3 className="font-bold mb-4 flex items-center gap-2">
+                   <UserIcon className="h-4 w-4" />
+                   Users Online
+                   {/* TO UNHIDE USER COUNT: Change the next line from "display: none" to "display: inline" */}
+                   <span style={{ display: 'none' }}>({users.length})</span>
+                 </h3>
                 <div className="space-y-2">
                   {users.map((u, i) => (
                     <div key={i} className="text-sm hover:bg-white/10 p-2 rounded cursor-pointer transition-colors" onClick={() => handleViewProfile(u.username)}>
