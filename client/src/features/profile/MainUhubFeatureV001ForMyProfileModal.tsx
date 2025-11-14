@@ -337,96 +337,193 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
   if (!isOpen) return null;
 
-  return (
-    <>
-      <div className="bg-background text-foreground w-full h-full flex flex-col relative">
-        <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-50" onClick={onClose}>
-          <X className="h-6 w-6" />
-          <span className="sr-only">Close</span>
-        </Button>
-        {/* Top Section */}
-        <div className="flex p-4 border-b">
-          <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="w-1/5 grid grid-cols-2 grid-rows-2 gap-2 pr-4">
-            <Button variant="outline" className="flex flex-col h-full items-center justify-center relative" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
-              {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
-              <Users className="mb-1" /> Friends
-            </Button>
-            <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1" /> Broadcast</Button>
-            <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full h-full">
-              <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center" title="Code" disabled={!user}><Code className="mb-1" /> Code</Button>
-            </a>
-            <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1" /> Settings</Button>
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
-            {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4 relative">
-            <div onClick={handleProfileImageClick} className="cursor-pointer">
-              <Avatar className="h-32 w-32">
-                <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
-                <AvatarFallback>U</AvatarFallback>
-              </Avatar>
-            </div>
-            {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
-            <div className="absolute bottom-0 right-0 flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
-            </div>
-          </div>
-        </div>
+   return (
+     <>
+       <div className="bg-background text-foreground w-full h-full flex flex-col relative">
+         <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-50" onClick={onClose}>
+           <X className="h-6 w-6" />
+           <span className="sr-only">Close</span>
+         </Button>
+         
+         {/* Mobile Layout */}
+         <div className="md:hidden flex flex-col w-full h-full overflow-hidden">
+           {/* Mobile Top Section */}
+           <div className="flex flex-col gap-4 p-4 border-b flex-shrink-0">
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="grid grid-cols-4 gap-2">
+               <Button variant="outline" className="flex flex-col h-12 items-center justify-center relative text-xs" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+                 {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
+                 <Users className="h-4 w-4 mb-1" /> Friends
+               </Button>
+               <Button variant="outline" className="flex flex-col h-12 items-center justify-center text-xs" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="h-4 w-4 mb-1" /> Broadcast</Button>
+               <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full h-full">
+                 <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center text-xs" title="Code" disabled={!user}><Code className="h-4 w-4 mb-1" /> Code</Button>
+               </a>
+               <Button variant="outline" className="flex flex-col h-12 items-center justify-center text-xs" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="h-4 w-4 mb-1" /> Settings</Button>
+             </div>
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="h-32 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+               {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
+             </div>
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="flex justify-center items-center relative gap-4">
+               <div onClick={handleProfileImageClick} className="cursor-pointer">
+                 <Avatar className="h-20 w-20">
+                   <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                   <AvatarFallback>U</AvatarFallback>
+                 </Avatar>
+               </div>
+               <div className="flex flex-col gap-2">
+                 {user && <Button size="sm">Edit</Button>}
+                 <div className="flex items-center gap-2">
+                   <div className={`w-2 h-2 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                   <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
+                 </div>
+               </div>
+             </div>
+           </div>
 
-        {/* Center Section */}
-        <div className="flex-grow flex overflow-hidden">
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="w-[20%] p-4 border-r overflow-y-auto">
-            <h3 className="text-center font-bold mb-4">uHome-Hub:</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
-                <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
-              ))}
-            </div>
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="w-[60%] p-4 overflow-y-auto">
-            {renderCenterContent()}
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="w-[20%] p-4 border-l overflow-y-auto">
-            <div className="flex items-center justify-center mb-4">
-                <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('left')}><ChevronLeft /></Button>
-                <h3 className="text-center font-bold mx-4">{centerRightView}</h3>
-                <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('right')}><ChevronRight /></Button>
-            </div>
-            <div className="space-y-4">
-              {renderCenterRightContent()}
-            </div>
-          </div>
-        </div>
+           {/* Mobile Center Section - Horizontal Scroll */}
+           <div className="flex-grow overflow-x-auto overflow-y-hidden flex">
+             {/* uHome-Hub Section */}
+             <div className="min-w-full flex flex-col p-4 border-r flex-shrink-0">
+               <h3 className="text-center font-bold mb-4 text-sm">uHome-Hub</h3>
+               <div className="grid grid-cols-4 gap-2 overflow-y-auto flex-grow">
+                 {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
+                   <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)} className="text-xs h-10">#{String(num).padStart(2, '0')}</Button>
+                 ))}
+               </div>
+             </div>
 
-        {/* Bottom Section */}
-        <div className="flex border-t">
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-4 border-r flex items-center">
-            <Button variant="ghost" size="icon" onClick={() => handleSocialNavLeft('left')}><ChevronLeft /></Button>
-            <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
-              {socialLinkPagesLeft[socialPageLeft].map(link => (
-                <MainUhubFeatureV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-              ))}
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => handleSocialNavLeft('right')}><ChevronRight /></Button>
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-4 flex items-center justify-center">
-            <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
-              Become an Official Member of the Union via getting your Union Card Today!
-            </a>
-          </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-4 border-l flex items-center">
-             <Button variant="ghost" size="icon" onClick={() => handleSocialNavRight('left')}><ChevronLeft /></Button>
-            <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
-              {socialLinkPagesRight[socialPageRight].map(link => (
-                <MainUhubFeatureV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-              ))}
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => handleSocialNavRight('right')}><ChevronRight /></Button>
-          </div>
-        </div>
-      </div>
+             {/* Broadcast/Center Section */}
+             <div className="min-w-full flex flex-col p-4 border-r flex-shrink-0 overflow-y-auto">
+               {renderCenterContent()}
+             </div>
+
+             {/* UnionSAM#20 Section */}
+             <div className="min-w-full flex flex-col p-4 flex-shrink-0 overflow-y-auto">
+               <div className="flex items-center justify-center mb-4">
+                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-4 w-4" /></Button>
+                 <h3 className="text-center font-bold mx-2 text-sm">{centerRightView}</h3>
+                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-4 w-4" /></Button>
+               </div>
+               <div className="space-y-4 overflow-y-auto flex-grow">
+                 {renderCenterRightContent()}
+               </div>
+             </div>
+           </div>
+
+           {/* Mobile Bottom Section */}
+           <div className="flex flex-col gap-4 p-4 border-t flex-shrink-0">
+             <div className="flex items-center justify-center gap-2">
+               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-4 w-4" /></Button>
+               <div className="flex gap-4 place-items-center">
+                 {socialLinkPagesLeft[socialPageLeft].map(link => (
+                   <MainUhubFeatureV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 ))}
+               </div>
+               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-4 w-4" /></Button>
+             </div>
+             <div className="text-center text-sm">
+               <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
+                 Get Your Union Card!
+               </a>
+             </div>
+             <div className="flex items-center justify-center gap-2">
+               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-4 w-4" /></Button>
+               <div className="flex gap-4 place-items-center">
+                 {socialLinkPagesRight[socialPageRight].map(link => (
+                   <MainUhubFeatureV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 ))}
+               </div>
+               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-4 w-4" /></Button>
+             </div>
+           </div>
+         </div>
+
+         {/* Desktop/Tablet Layout */}
+         <div className="hidden md:flex flex-col w-full h-full">
+           {/* Top Section */}
+           <div className="flex p-4 border-b">
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="w-1/5 grid grid-cols-2 grid-rows-2 gap-2 pr-4">
+               <Button variant="outline" className="flex flex-col h-full items-center justify-center relative" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+                 {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
+                 <Users className="mb-1" /> Friends
+               </Button>
+               <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1" /> Broadcast</Button>
+               <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full h-full">
+                 <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center" title="Code" disabled={!user}><Code className="mb-1" /> Code</Button>
+               </a>
+               <Button variant="outline" className="flex flex-col h-full items-center justify-center" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1" /> Settings</Button>
+             </div>
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="w-3/5 h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+               {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
+             </div>
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="w-1/5 flex justify-end items-start pl-4 relative">
+               <div onClick={handleProfileImageClick} className="cursor-pointer">
+                 <Avatar className="h-32 w-32">
+                   <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                   <AvatarFallback>U</AvatarFallback>
+                 </Avatar>
+               </div>
+               {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
+               <div className="absolute bottom-0 right-0 flex items-center gap-2">
+                   <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                   <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
+               </div>
+             </div>
+           </div>
+
+           {/* Center Section */}
+           <div className="flex-grow flex overflow-hidden">
+             <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="w-[20%] p-4 border-r overflow-y-auto">
+               <h3 className="text-center font-bold mb-4">uHome-Hub:</h3>
+               <div className="grid grid-cols-2 gap-2">
+                 {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
+                   <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
+                 ))}
+               </div>
+             </div>
+             <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="w-[60%] p-4 overflow-y-auto">
+               {renderCenterContent()}
+             </div>
+             <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="w-[20%] p-4 border-l overflow-y-auto">
+               <div className="flex items-center justify-center mb-4">
+                   <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('left')}><ChevronLeft /></Button>
+                   <h3 className="text-center font-bold mx-4">{centerRightView}</h3>
+                   <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('right')}><ChevronRight /></Button>
+               </div>
+               <div className="space-y-4">
+                 {renderCenterRightContent()}
+               </div>
+             </div>
+           </div>
+
+           {/* Bottom Section */}
+           <div className="flex border-t">
+             <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-4 border-r flex items-center">
+               <Button variant="ghost" size="icon" onClick={() => handleSocialNavLeft('left')}><ChevronLeft /></Button>
+               <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
+                 {socialLinkPagesLeft[socialPageLeft].map(link => (
+                   <MainUhubFeatureV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 ))}
+               </div>
+               <Button variant="ghost" size="icon" onClick={() => handleSocialNavLeft('right')}><ChevronRight /></Button>
+             </div>
+             <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-4 flex items-center justify-center">
+               <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
+                 Become an Official Member of the Union via getting your Union Card Today!
+               </a>
+             </div>
+             <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-4 border-l flex items-center">
+                <Button variant="ghost" size="icon" onClick={() => handleSocialNavRight('left')}><ChevronLeft /></Button>
+               <div className="flex-grow grid grid-cols-3 gap-4 place-items-center">
+                 {socialLinkPagesRight[socialPageRight].map(link => (
+                   <MainUhubFeatureV001ForSocialIcon key={link.id} href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 ))}
+               </div>
+               <Button variant="ghost" size="icon" onClick={() => handleSocialNavRight('right')}><ChevronRight /></Button>
+             </div>
+           </div>
+         </div>
+       </div>
       
       {activeChatModal !== null && (
         <MainUhubFeatureV001ForChatModal
