@@ -330,6 +330,318 @@ networks:
 
 ---
 
+## User Authentication & Database Integration
+
+### Connecting Signed-Up and Logged-In Users to Avatar and Timeline Features
+
+#### Step 1: Update User Table Schema
+
+Ensure your users table includes avatar and timeline columns:
+
+```sql
+-- SQLite Version (server/db.ts schema)
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  avatar_url TEXT,  -- Avatar profile picture URL
+  bio TEXT,         -- User bio
+  timeline TEXT,    -- User timeline/status
+  is_online BOOLEAN DEFAULT 0,
+  last_seen TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### Step 2: Update Authentication Flow
+
+In `server/auth.ts`, when user logs in, attach user data with avatar and timeline:
+
+```typescript
+// After successful login
+const user = await db
+  .selectFrom('users')
+  .selectAll()
+  .where('email', '=', email)
+  .executeTakeFirst();
+
+// Return user data including avatar and timeline
+if (user) {
+  const token = jwt.sign(
+    { 
+      userId: user.id, 
+      email: user.email,
+      username: user.username,
+      avatar_url: user.avatar_url,  // Include avatar
+      bio: user.bio                   // Include bio
+    },
+    process.env.JWT_SECRET || 'dev-secret'
+  );
+  
+  res.json({
+    token,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      avatar_url: user.avatar_url,
+      bio: user.bio,
+      timeline: user.timeline,
+      is_online: user.is_online
+    }
+  });
+  return;
+}
+```
+
+#### Step 3: Show Logged-In Status in Chat
+
+In `client/src/features/uminion/MainUhubFeatureV001ForChatModal.tsx`, display user's logged-in status:
+
+```typescript
+// Use useAuth hook to get current user
+const { user } = useAuth();
+
+// In the chat header, show current user's avatar and status
+{user && (
+  <div className="flex items-center gap-2">
+    <img 
+      src={user.avatar_url || '/default-avatar.png'} 
+      alt={user.username}
+      className="w-8 h-8 rounded-full"
+    />
+    <span className="text-sm font-medium">{user.username}</span>
+    <span className="text-xs text-green-500">● Online</span>
+  </div>
+)}
+```
+
+#### Step 4: Update User Profile on Login
+
+In `client/src/hooks/useAuth.tsx`, store complete user data:
+
+```typescript
+export function useAuth() {
+  const [user, setUser] = useState<{
+    id: number;
+    username: string;
+    email: string;
+    avatar_url?: string;
+    bio?: string;
+    timeline?: string;
+    is_online?: boolean;
+  } | null>(null);
+
+  const login = async (email: string, password: string) => {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    
+    const data = await response.json();
+    
+    // Store complete user data
+    setUser({
+      id: data.user.id,
+      username: data.user.username,
+      email: data.user.email,
+      avatar_url: data.user.avatar_url,
+      bio: data.user.bio,
+      timeline: data.user.timeline,
+      is_online: true
+    });
+    
+    localStorage.setItem('token', data.token);
+  };
+
+  return { user, login };
+}
+```
+
+#### Step 5: Sync Avatar and Timeline to Chat
+
+When user opens a chatroom, their avatar appears in the "users online" section:
+
+```typescript
+// In MainUhubFeatureV001ForChatModal.tsx
+const [usersOnline, setUsersOnline] = useState<Array<{
+  id: number;
+  username: string;
+  avatar_url?: string;
+}>>([]);
+
+// Listen for online users via Socket.io
+useEffect(() => {
+  socket.on('users:online', (users) => {
+    setUsersOnline(users.map(u => ({
+      id: u.id,
+      username: u.username,
+      avatar_url: u.avatar_url
+    })));
+  });
+}, []);
+
+// Render avatars in users online section
+<div className="flex flex-col gap-2">
+  {usersOnline.map((u) => (
+    <div key={u.id} className="flex items-center gap-2">
+      <img 
+        src={u.avatar_url || '/default-avatar.png'}
+        alt={u.username}
+        className="w-6 h-6 rounded-full"
+      />
+      <span className="text-sm">{u.username}</span>
+    </div>
+  ))}
+</div>
+```
+
+#### Step 6: Broadcast User Online Status
+
+In `server/chat.ts`, emit user avatar and online status:
+
+```typescript
+io.on('connection', (socket) => {
+  const userId = socket.handshake.auth.userId;
+  
+  // Get user with avatar
+  const user = await db
+    .selectFrom('users')
+    .select(['id', 'username', 'avatar_url', 'bio'])
+    .where('id', '=', userId)
+    .executeTakeFirst();
+  
+  // Update user online status
+  await db
+    .updateTable('users')
+    .set({ is_online: true, last_seen: new Date() })
+    .where('id', '=', userId)
+    .execute();
+  
+  // Broadcast online users with avatars
+  const onlineUsers = await db
+    .selectFrom('users')
+    .select(['id', 'username', 'avatar_url'])
+    .where('is_online', '=', true)
+    .execute();
+  
+  io.emit('users:online', onlineUsers);
+});
+```
+
+---
+
+## Anonymous Posting Feature
+
+### Enable Anonymous Messages in Chatrooms
+
+#### Step 1: Add Anonymous Column to Messages Table
+
+```sql
+-- Update messages table
+ALTER TABLE messages ADD COLUMN is_anonymous BOOLEAN DEFAULT 0;
+ALTER TABLE messages ADD COLUMN anonymous_name TEXT;
+```
+
+#### Step 2: Update Message Sending in Frontend
+
+In `MainUhubFeatureV001ForChatModal.tsx`, add anonymous posting button:
+
+```typescript
+const [isAnonymous, setIsAnonymous] = useState(false);
+
+const handleSendMessage = async () => {
+  await fetch('/api/chat/message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chatroom_id: activeChatroom,
+      content: message,
+      is_anonymous: isAnonymous,  // Send anonymous flag
+      anonymous_name: isAnonymous ? 'Anonymous' : user?.username
+    })
+  });
+};
+
+// Render anonymous toggle
+<button 
+  onClick={() => setIsAnonymous(!isAnonymous)}
+  className={isAnonymous ? 'bg-gray-500' : 'bg-blue-500'}
+>
+  {isAnonymous ? 'Posting as Anonymous' : 'Post Anonymously'}
+</button>
+```
+
+#### Step 3: Update Backend to Handle Anonymous Messages
+
+In `server/chat.ts`:
+
+```typescript
+app.post('/api/chat/message', async (req, res) => {
+  const { chatroom_id, content, is_anonymous, anonymous_name } = req.body;
+  const userId = req.user?.id;
+  
+  const message = await db
+    .insertInto('messages')
+    .values({
+      sender_id: is_anonymous ? null : userId,  // null for anonymous
+      chatroom_id,
+      content,
+      is_anonymous,
+      anonymous_name: is_anonymous ? anonymous_name : null,
+      created_at: new Date()
+    })
+    .returningAll()
+    .executeTakeFirst();
+  
+  // Emit message with anonymous flag
+  io.to(`chatroom_${chatroom_id}`).emit('message', {
+    id: message.id,
+    username: message.is_anonymous ? 'Anonymous' : user.username,
+    avatar_url: message.is_anonymous ? null : user.avatar_url,
+    content: message.content,
+    is_anonymous: message.is_anonymous,
+    created_at: message.created_at
+  });
+  
+  res.json(message);
+});
+```
+
+#### Step 4: Display Anonymous Messages in Chat
+
+In `MainUhubFeatureV001ForChatModal.tsx`, render messages with anonymous styling:
+
+```typescript
+{messages.map((msg) => (
+  <div key={msg.id} className="flex gap-2 p-2 border-b">
+    {msg.is_anonymous ? (
+      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+        A
+      </div>
+    ) : (
+      <img 
+        src={msg.avatar_url || '/default-avatar.png'}
+        alt={msg.username}
+        className="w-8 h-8 rounded-full"
+      />
+    )}
+    <div className="flex-1">
+      <div className="font-semibold">
+        {msg.username}
+        {msg.is_anonymous && <span className="text-gray-500 text-xs ml-2">(Anonymous)</span>}
+      </div>
+      <div className="text-sm text-gray-700">{msg.content}</div>
+    </div>
+  </div>
+))}
+```
+
+---
+
 ## Database Configuration
 
 ### SQLite Configuration (Default/Development)
