@@ -17,57 +17,35 @@ interface MainUhubFeatureV001ForMyProfileModalProps {
   onOpenAuthModal: (mode: 'login' | 'signup') => void;
 }
 
-const socialLinksLeftPage1 = [
+const socialLinksLeft = [
   { id: 'facebook', href: 'https://www.facebook.com/groups/1615679026489537', icon: <Facebook /> },
   { id: 'bluesky', href: 'https://bsky.app/profile/uminion.bsky.social', icon: <MessageSquare /> },
   { id: 'github', href: 'https://github.com/uminionunion/uminionswebsite', icon: <Github /> },
   { id: 'youtube', href: 'https://www.youtube.com/@UminionUnion', icon: <Youtube /> },
   { id: 'twitch', href: 'https://www.twitch.tv/theuminionunion', icon: <Twitch /> },
   { id: 'discord', href: 'https://discord.com/login?redirect_to=%2Flogin%3Fredirect_to%3D%252Fchannels%252F1357919291428573204%252F1357919292280144075', icon: 'D' },
+  { id: 'page2-1', href: 'https://example.com/page2-1', icon: 'L1' },
+  { id: 'page2-2', href: 'https://example.com/page2-2', icon: 'L2' },
+  { id: 'page2-3', href: 'https://example.com/page2-3', icon: 'L3' },
+  { id: 'page2-4', href: 'https://example.com/page2-4', icon: 'L4' },
+  { id: 'page2-5', href: 'https://example.com/page2-5', icon: 'L5' },
+  { id: 'page2-6', href: 'https://example.com/page2-6', icon: 'L6' },
 ];
-const socialLinksLeftPage2 = [
-    { id: 'page2-1', href: 'https://example.com/page2-1', icon: 'L1' },
-    { id: 'page2-2', href: 'https://example.com/page2-2', icon: 'L2' },
-    { id: 'page2-3', href: 'https://example.com/page2-3', icon: 'L3' },
-    { id: 'page2-4', href: 'https://example.com/page2-4', icon: 'L4' },
-    { id: 'page2-5', href: 'https://example.com/page2-5', icon: 'L5' },
-    { id: 'page2-6', href: 'https://example.com/page2-6', icon: 'L6' },
-];
-const socialLinksLeftPage3 = [
-    { id: 'page3-1', href: 'https://example.com/page3-1', icon: 'L7' },
-    { id: 'page3-2', href: 'https://example.com/page3-2', icon: 'L8' },
-    { id: 'page3-3', href: 'https://example.com/page3-3', icon: 'L9' },
-    { id: 'page3-4', href: 'https://example.com/page3-4', icon: 'L10' },
-    { id: 'page3-5', href: 'https://example.com/page3-5', icon: 'L11' },
-    { id: 'page3-6', href: 'https://example.com/page3-6', icon: 'L12' },
-];
-const socialLinkPagesLeft = [socialLinksLeftPage1, socialLinksLeftPage2, socialLinksLeftPage3];
 
-const socialLinksRightPage1 = [
+const socialLinksRight = [
   { id: 'instagram', href: 'https://www.instagram.com/theuminionunion/?igsh=ajdjeGUycHRmczVs&ut-m_source=qr#', icon: <Instagram /> },
   { id: 'mastodon', href: 'https://mastodon.social/@uminion', icon: 'M' },
   { id: 'githubDiscussions', href: 'https://github.com/uminionunion/UminionsWebsite/discussions', icon: <Github /> },
   { id: 'threads', href: 'https://www.threads.com/@theuminionunion', icon: '@' },
   { id: 'patreon', href: 'https://www.patreon.com/uminion', icon: 'P' },
   { id: 'githubIssues', href: 'https://github.com/uminionunion/UminionsWebsite/issues', icon: <Github /> },
+  { id: 'page2-r1', href: 'https://example.com/page2-r1', icon: 'R1' },
+  { id: 'page2-r2', href: 'https://example.com/page2-r2', icon: 'R2' },
+  { id: 'page2-r3', href: 'https://example.com/page2-r3', icon: 'R3' },
+  { id: 'page2-r4', href: 'https://example.com/page2-r4', icon: 'R4' },
+  { id: 'page2-r5', href: 'https://example.com/page2-r5', icon: 'R5' },
+  { id: 'page2-r6', href: 'https://example.com/page2-r6', icon: 'R6' },
 ];
-const socialLinksRightPage2 = [
-    { id: 'page2-r1', href: 'https://example.com/page2-r1', icon: 'R1' },
-    { id: 'page2-r2', href: 'https://example.com/page2-r2', icon: 'R2' },
-    { id: 'page2-r3', href: 'https://example.com/page2-r3', icon: 'R3' },
-    { id: 'page2-r4', href: 'https://example.com/page2-r4', icon: 'R4' },
-    { id: 'page2-r5', href: 'https://example.com/page2-r5', icon: 'R5' },
-    { id: 'page2-r6', href: 'https://example.com/page2-r6', icon: 'R6' },
-];
-const socialLinksRightPage3 = [
-    { id: 'page3-r1', href: 'https://example.com/page3-r1', icon: 'R7' },
-    { id: 'page3-r2', href: 'https://example.com/page3-r2', icon: 'R8' },
-    { id: 'page3-r3', href: 'https://example.com/page3-r3', icon: 'R9' },
-    { id: 'page3-r4', href: 'https://example.com/page3-r4', icon: 'R10' },
-    { id: 'page3-r5', href: 'https://example.com/page3-r5', icon: 'R11' },
-    { id: 'page3-r6', href: 'https://example.com/page3-r6', icon: 'R12' },
-];
-const socialLinkPagesRight = [socialLinksRightPage1, socialLinksRightPage2, socialLinksRightPage3];
 
 const MainUhubFeatureV001ForSocialIcon = ({ href, children }: { href: string, children: React.ReactNode }) => (
   <a href={href} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
@@ -372,6 +350,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
       onOpenAuthModal('login');
     }
   };
+
+  const socialLinkPagesLeft = Array.from({ length: Math.ceil(socialLinksLeft.length / 1) }, (_, i) => socialLinksLeft.slice(i * 1, (i + 1) * 1));
+  const socialLinkPagesRight = Array.from({ length: Math.ceil(socialLinksRight.length / 1) }, (_, i) => socialLinksRight.slice(i * 1, (i + 1) * 1));
 
   const handleSocialNavLeft = (dir: 'left' | 'right') => {
     setSocialPageLeft(prev => {

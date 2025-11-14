@@ -240,23 +240,23 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
 
  const isMobile = window.innerWidth < 768;
 
- return (
-   <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-         <DialogContent
-           className={`${isMobile ? 'w-[95vw] h-[95vh]' : 'w-[85vw] md:max-w-4xl h-[75vh]'} md:h-[80vh] flex flex-col p-0 text-white`}
-           style={{ background: currentBg }}
-         >
-         <DialogHeader className="p-4 border-b border-white/20 flex-row justify-between items-center">
-           <DialogTitle style={{ color: currentFontColor }}>{pageName} Chat</DialogTitle>
-           <div className="flex gap-2">
-             <Button variant="ghost" size="icon" onClick={changeFontColor}><Type className="h-4 w-4" /></Button>
-             <Button variant="ghost" size="icon" onClick={changeBackgroundColor}><Palette className="h-4 w-4" /></Button>
-           </div>
-         </DialogHeader>
-         <div className="flex-grow flex overflow-hidden">
-           <div className={isMobile ? 'w-full flex flex-col' : 'flex-grow flex flex-col'}>
-             <div className={`${isMobile ? 'overflow-x-auto' : ''} flex border-b border-white/20`}>
+  return (
+    <>
+       <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent
+            className={`${isMobile ? 'w-[95vw] h-[85vh]' : 'w-[85vw] md:max-w-4xl h-[75vh]'} md:h-[80vh] flex flex-col p-0 text-white`}
+            style={{ background: currentBg }}
+          >
+          <DialogHeader className="p-4 border-b border-white/20 flex-row justify-between items-center">
+            <DialogTitle style={{ color: currentFontColor }}>{pageName} Chat</DialogTitle>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="icon" onClick={changeFontColor}><Type className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={changeBackgroundColor}><Palette className="h-4 w-4" /></Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-grow flex overflow-hidden">
+            <div className={isMobile ? 'w-full flex flex-col' : 'flex-grow flex flex-col'}>
+              <div className={`${isMobile ? 'overflow-x-auto' : ''} flex border-b border-white/20`}>
                {getChatTabs().map((tab, i) => (
                  <Button
                    key={i}
@@ -270,7 +270,7 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
                ))}
              </div>
 
-             <div className="flex-grow p-4 overflow-y-auto" ref={messagesEndRef} style={{ color: currentFontColor }}>
+             <div className={`flex-grow p-4 ${isMobile ? 'overflow-auto' : 'overflow-y-auto'}`} ref={messagesEndRef} style={{ color: currentFontColor }}>
                {isChatDisabled ? (
                  <div className="flex flex-col items-center justify-center h-full">
                    {activeTab === 2 && !isUnlocked ? (
