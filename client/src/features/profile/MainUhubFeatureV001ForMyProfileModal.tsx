@@ -344,36 +344,39 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             <X className="h-6 w-6" />
             <span className="sr-only">Close</span>
           </Button>
-          {/* Top Section */}
-          <div className="flex p-4 border-b md:flex-row flex-col md:gap-4 gap-2 overflow-x-auto md:overflow-x-visible">
-            <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="md:w-1/5 w-32 md:grid grid-cols-2 grid-rows-2 gap-2 md:pr-4 flex flex-col gap-2 flex-shrink-0">
-              <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs py-2" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
-                {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
-                <Users className="mb-1 h-4 w-4" /> Friends
-              </Button>
-              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs py-2" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1 h-4 w-4" /> Broadcast</Button>
-              <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="w-full">
-                <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center text-xs py-2" title="Code" disabled={!user}><Code className="mb-1 h-4 w-4" /> Code</Button>
-              </a>
-              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs py-2" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1 h-4 w-4" /> Settings</Button>
-            </div>
-            <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-3/5 h-32 md:h-40 bg-cover bg-center rounded-md relative flex-shrink-0" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
-              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
-            </div>
-            <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 w-32 flex flex-col justify-start items-center relative flex-shrink-0">
-              <div onClick={handleProfileImageClick} className="cursor-pointer">
-                <Avatar className="h-24 w-24 md:h-32 md:w-32">
-                  <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-              </div>
-              {user && <Button size="sm" className="text-xs mt-1">Edit</Button>}
-              <div className="flex items-center gap-1 mt-2">
-                  <div className={`w-2 h-2 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                  <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
-              </div>
-            </div>
-          </div>
+           {/* Top Section */}
+           <div className="flex flex-col p-4 border-b md:flex-row md:gap-4 gap-2 md:overflow-x-visible">
+             {/* Top Four Buttons - Always visible */}
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="w-full md:w-1/5 md:grid grid-cols-2 grid-rows-2 gap-2 md:pr-4 flex flex-row gap-2 flex-shrink-0">
+               <Button variant="outline" className="flex-1 md:flex-none flex flex-col h-full items-center justify-center relative text-xs py-2" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+                 {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
+                 <Users className="mb-1 h-4 w-4" /> Friends
+               </Button>
+               <Button variant="outline" className="flex-1 md:flex-none flex flex-col h-full items-center justify-center text-xs py-2" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="mb-1 h-4 w-4" /> Broadcast</Button>
+               <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none w-full">
+                 <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center text-xs py-2" title="Code" disabled={!user}><Code className="mb-1 h-4 w-4" /> Code</Button>
+               </a>
+               <Button variant="outline" className="flex-1 md:flex-none flex flex-col h-full items-center justify-center text-xs py-2" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="mb-1 h-4 w-4" /> Settings</Button>
+             </div>
+             {/* Timeline Photo - Below buttons on mobile, next to them on desktop */}
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="w-full md:w-3/5 h-32 md:h-40 bg-cover bg-center rounded-md relative flex-shrink-0" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+               {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
+             </div>
+             {/* Avatar - Hidden on mobile, shown on desktop */}
+             <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="hidden md:flex md:w-1/5 flex-col justify-start items-center relative flex-shrink-0">
+               <div onClick={handleProfileImageClick} className="cursor-pointer">
+                 <Avatar className="h-32 w-32">
+                   <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                   <AvatarFallback>U</AvatarFallback>
+                 </Avatar>
+               </div>
+               {user && <Button size="sm" className="text-xs mt-1">Edit</Button>}
+               <div className="flex items-center gap-1 mt-2">
+                   <div className={`w-2 h-2 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                   <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
+               </div>
+             </div>
+           </div>
 
           {/* Center Section */}
           <div className="flex-grow flex overflow-x-auto md:overflow-x-hidden min-h-0">
@@ -416,7 +419,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                 Become an Official Member of the Union via getting your Union Card Today!
               </a>
             </div>
-            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="md:w-[20%] w-36 p-4 md:border-l flex items-center gap-2 flex-shrink-0">
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="hidden md:flex md:w-[20%] p-4 md:border-l items-center gap-2 flex-shrink-0">
                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-4 w-4" /></Button>
               <div className="flex-grow grid grid-cols-3 gap-2 place-items-center">
                 {socialLinkPagesRight[socialPageRight].map(link => (
