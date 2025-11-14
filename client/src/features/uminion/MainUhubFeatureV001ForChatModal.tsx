@@ -254,9 +254,9 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
               <Button variant="ghost" size="icon" onClick={changeBackgroundColor}><Palette className="h-4 w-4" /></Button>
             </div>
           </DialogHeader>
-          <div className="flex-grow flex overflow-hidden">
-            <div className={isMobile ? 'w-full flex flex-col' : 'flex-grow flex flex-col'}>
-              <div className={`${isMobile ? 'overflow-x-auto' : ''} flex border-b border-white/20`}>
+           <div className="flex-grow flex overflow-hidden">
+             <div className={isMobile ? 'w-full flex flex-col' : 'flex-grow flex flex-col'} style={{ width: !isMobile ? `${leftWidth}%` : 'auto' }}>
+               <div className={`overflow-x-auto flex border-b border-white/20`}>
                {getChatTabs().map((tab, i) => (
                  <Button
                    key={i}
@@ -325,8 +325,10 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
              </div>
            </div>
 
-           {!isMobile && (
-             <div className="w-1/4 border-l border-white/20 p-4 overflow-y-auto">
+            {!isMobile && (
+              <>
+              <div className="w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleMouseDown}></div>
+              <div className="border-l border-white/20 p-4 overflow-y-auto" style={{ width: `${100 - leftWidth}%` }}>
                <h3 className="text-lg font-bold mb-4" style={{ color: currentFontColor }}>Users Online</h3>
                <ul className="space-y-2">
                  {users.map((u, i) => (
@@ -336,8 +338,9 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
                    </li>
                  ))}
                </ul>
-             </div>
-           )}
+              </div>
+              </>
+            )}
          </div>
        </DialogContent>
      </Dialog>

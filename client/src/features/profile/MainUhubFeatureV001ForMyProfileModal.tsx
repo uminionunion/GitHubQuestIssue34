@@ -446,9 +446,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-         {/* Center Section */}
-         <div className="flex-grow flex overflow-hidden">
-           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:w-[20%] p-2 md:p-4 border-r overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : 'auto' }}>
+          {/* Center Section */}
+          <div className="flex-grow flex overflow-hidden cursor-grab active:cursor-grabbing">
+            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:w-[20%] p-2 md:p-4 border-r overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : 'auto' }}>
              <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
              <div className="grid grid-cols-2 gap-1 md:gap-2">
                {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
@@ -456,11 +456,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                ))}
              </div>
            </div>
-           <div className="md:hidden w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleStartDragMobile}></div>
+            <div className="w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleStartDragMobile}></div>
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="md:w-[60%] p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : 'auto' }}>
              {renderCenterContent()}
            </div>
-           <div className="md:hidden w-1 bg-gray-300 cursor-ew-resize hover:bg-green-500" onMouseDown={handleStartDragRight}></div>
+            <div className="w-1 bg-gray-300 cursor-ew-resize hover:bg-green-500" onMouseDown={handleStartDragRight}></div>
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] p-2 md:p-4 border-l overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : 'auto' }}>
              <div className="flex items-center justify-center mb-2 md:mb-4">
                  <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
@@ -473,16 +473,16 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-         {/* Bottom Section */}
-         <div className="flex border-t md:h-auto h-12">
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-4 border-r flex items-center">
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
-               {socialLinkPagesLeft[socialPageLeft].map(link => (
-                 <div key={link.id} className="text-xs md:text-base">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
+          {/* Bottom Section */}
+          <div className="flex border-t md:h-6 h-12">
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-0.5 md:p-1 border-r flex items-center">
+              <Button variant="ghost" size="icon" className="h-4 w-4 md:h-5 md:w-5 p-0" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-2 w-2 md:h-3 md:w-3" /></Button>
+              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 place-items-center">
+                {socialLinkPagesLeft[socialPageLeft].map(link => (
+                  <div key={link.id} className="text-xs">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
              </div>
              <div className="flex-grow md:hidden flex justify-center items-center">
                {socialLinkPagesLeft[socialPageLeft].slice(0, 1).map(link => (
@@ -491,21 +491,21 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                  </div>
                ))}
              </div>
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
-           </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-4 flex items-center justify-center">
-             <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-base">
-               Become an Official Member of the Union via getting your Union Card Today!
-             </a>
-           </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-4 border-l flex items-center">
-              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
-               {socialLinkPagesRight[socialPageRight].map(link => (
-                 <div key={link.id} className="text-xs md:text-base">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
+              <Button variant="ghost" size="icon" className="h-4 w-4 md:h-5 md:w-5 p-0" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-2 w-2 md:h-3 md:w-3" /></Button>
+            </div>
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-0.5 md:p-1 flex items-center justify-center">
+              <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">
+                Become an Official Member of the Union via getting your Union Card Today!
+              </a>
+            </div>
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-0.5 md:p-1 border-l flex items-center">
+               <Button variant="ghost" size="icon" className="h-4 w-4 md:h-5 md:w-5 p-0" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-2 w-2 md:h-3 md:w-3" /></Button>
+              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 place-items-center">
+                {socialLinkPagesRight[socialPageRight].map(link => (
+                  <div key={link.id} className="text-xs">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
              </div>
              <div className="flex-grow md:hidden flex justify-center items-center">
                {socialLinkPagesRight[socialPageRight].slice(0, 1).map(link => (
@@ -514,7 +514,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                  </div>
                ))}
              </div>
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
+              <Button variant="ghost" size="icon" className="h-4 w-4 md:h-5 md:w-5 p-0" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-2 w-2 md:h-3 md:w-3" /></Button>
            </div>
          </div>
        </div>
