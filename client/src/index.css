@@ -73,3 +73,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Dark mode scrollbar styling */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: hsl(240, 3.7%, 15.9%);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(240, 5%, 64.9%);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(240, 5%, 74.9%);
+}
