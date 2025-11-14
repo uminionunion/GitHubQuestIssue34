@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Checkbox } from '../../components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Facebook, Youtube, Twitch, Instagram, Github, MessageSquare } from 'lucide-react';
-import { Switch } from '../../components/ui/switch';
+import { Switch } from '@/components/ui/switch';
 
 const socialLinks = [
   { id: 'facebook', icon: <Facebook />, defaultLink: 'https://www.facebook.com/groups/1615679026489537' },

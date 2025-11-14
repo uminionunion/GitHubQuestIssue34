@@ -77,12 +77,12 @@
 // =================================================================================================
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X } from 'lucide-react';
 // PHP Conversion: These are component imports. In PHP, you would `include` or `require` template parts or function files.
 import MainHubUpgradeV001ForChatModal from '../uminion/MainHubUpgradeV001ForChatModal';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import MainHubUpgradeV001ForAddProductModal from './MainHubUpgradeV001ForAddProductModal';
 import MainHubUpgradeV001ForProductDetailModal from './MainHubUpgradeV001ForProductDetailModal';
 import MainHubUpgradeV001ForFriendsView from './MainHubUpgradeV001ForFriendsView';

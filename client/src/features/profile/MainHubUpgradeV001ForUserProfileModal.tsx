@@ -5,9 +5,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog';
-import { Button } from '../../components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageSquare } from 'lucide-react';
 
 interface MainHubUpgradeV001ForUserProfileModalProps {

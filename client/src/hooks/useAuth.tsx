@@ -4,7 +4,6 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 interface User {
   id: number;
   username: string;
-  profile_image_url?: string;
 }
 
 interface AuthContextType {

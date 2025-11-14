@@ -9,9 +9,9 @@ import { Command as CommandPrimitive } from 'cmdk';
 import { Search } from 'lucide-react';
 
 // Import the 'cn' utility function for merging class names.
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 // Import Dialog components for use in CommandDialog.
-import { Dialog, DialogContent } from './dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 // The main Command container component.
 const Command = React.forwardRef<

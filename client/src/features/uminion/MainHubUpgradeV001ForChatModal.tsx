@@ -6,12 +6,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { useAuth } from '../../hooks/useAuth';
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth.tsx';
 import { ChevronLeft, ChevronRight, User as UserIcon, RefreshCw, Palette, Type, MessageSquare, UserPlus, UserX, ShieldAlert } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import MainHubUpgradeV001ForUserProfileModal from '../profile/MainHubUpgradeV001ForUserProfileModal';
 
 interface MainHubUpgradeV001ForChatModalProps {

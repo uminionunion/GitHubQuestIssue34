@@ -90,7 +90,7 @@ export function setupChat(io: SocketIOServer) {
             content,
             room,
             user_id: socket.user?.userId,
-            is_anonymous: socket.user ? (isAnonymous ? 1 : 0) : 1,
+            is_anonymous: socket.user ? isAnonymous : true,
             anonymous_username: socket.user ? null : socket.anonymousId,
           })
           .returningAll()
