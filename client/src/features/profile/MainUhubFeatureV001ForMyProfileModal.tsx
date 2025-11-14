@@ -518,7 +518,6 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             </div>
           </div>
         </div>
-      </div>
 
       {activeChatModal !== null && (
         <MainUhubFeatureV001ForChatModal
@@ -535,7 +534,6 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
         {isProductDetailModalOpen && (
           <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
         )}
-      </div>
     </>
     );
   };
