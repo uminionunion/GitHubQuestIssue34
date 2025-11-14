@@ -72,4 +72,30 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Scrollbar styling for all browsers */
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #1a1a1a;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #333333;
+  }
+  
+  /* Firefox */
+  * {
+    scrollbar-color: #1a1a1a transparent;
+    scrollbar-width: thin;
+  }
 }
