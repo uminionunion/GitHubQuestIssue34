@@ -1,0 +1,105 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--
+      PHP Conversion Instructions for AI:
+
+      To convert this project to a traditional PHP, HTML, CSS, and JavaScript stack without React/Vite/Node.js, follow these steps:
+
+      **Project Goal**: Replicate the existing application's features, including user authentication, chatrooms, a dynamic user hub (uHub), and product displays, using a classic server-rendered architecture.
+
+      **1. Core Technology Stack**:
+          -   **Backend**: PHP (latest stable version)
+          -   **Database**: SQLite (using the existing `database.sqlite` file) via PHP's PDO extension.
+          -   **Frontend**: HTML5, CSS3 (using the compiled Tailwind CSS output), and Vanilla JavaScript (ES6+).
+          -   **Web Server**: Apache or Nginx with PHP support.
+
+      **2. File Structure**:
+          -   `/` (Root Directory):
+              -   `index.php`: Main entry point. Handles routing for different pages.
+              -   `login.php`, `signup.php`, `logout.php`: Handle user authentication forms and logic.
+          -   `/assets/`:
+              -   `css/style.css`: The single, compiled CSS file. Start with the output of the current project's `index.css`.
+              -   `js/main.js`: Main JavaScript file for global interactivity (e.g., header buttons, modal triggers).
+              -   `js/uhub.js`: Specific JavaScript for the uHub modal's complex interactions.
+              -   `js/chat.js`: JavaScript for handling chat functionality (AJAX polling).
+          -   `/includes/`:
+              -   `db.php`: Establishes the PDO connection to the SQLite database.
+              -   `header.php`, `footer.php`: Reusable HTML layout components.
+              -   `functions.php`: Core PHP functions (e.g., `is_logged_in()`, `get_user_data()`).
+          -   `/api/`:
+              -   `friends.php`: Handles friend requests (send, accept, reject, block).
+              -   `chat.php`: Handles fetching/sending chat messages.
+              -   `products.php`: Handles product-related actions.
+              -   `users.php`: Handles user profile data fetching.
+          -   `/templates/`:
+              -   `uhub.php`: The complete HTML/PHP structure for the uHub modal.
+              -   `calendar.php`: The HTML/PHP for the main calendar view.
+              -   `sister_union_page.php`: A template for the 24 Sister Union pages.
+
+      **3. Backend Implementation (PHP & SQLite)**:
+          -   **Database (`db.php`)**: Create a singleton or a simple include file for the PDO connection: `new PDO('sqlite:/path/to/data/database.sqlite');`.
+          -   **Routing (`index.php`)**: Use a simple `$_GET` parameter for routing, e.g., `index.php?page=SisterUnion001NewEngland`. The `index.php` will use a `switch` or `if/else` block to `include` the correct template from `/templates/`.
+          -   **Authentication**:
+              -   Use PHP sessions (`session_start()`).
+              -   `signup.php`: Hashes passwords with `password_hash()`, inserts new user into the `users` table.
+              -   `login.php`: Verifies credentials with `password_verify()`, sets `$_SESSION['user_id']` on success.
+              -   `logout.php`: Destroys the session.
+          -   **API Endpoints (`/api/*.php`)**:
+              -   These files will be the target for JavaScript `fetch` calls.
+              -   They must include `db.php` and `functions.php`.
+              -   They will check for `$_SESSION['user_id']` for protected actions.
+              -   They will process `$_POST` or `$_GET` data, query the database, and `echo json_encode(...)` the result.
+              -   Example `api/friends.php`: `if ($_POST['action'] === 'accept') { ...SQL to update friends table... }`.
+          -   **Chat Simulation**: Since pure PHP doesn't handle WebSockets easily, simulate real-time chat with AJAX polling.
+              -   `chat.js` will use `setInterval` to call `fetch('api/chat.php?room=ROOM_NAME&latest_id=LAST_MESSAGE_ID')` every 2-3 seconds.
+              -   `api/chat.php` will query for new messages since `LAST_MESSAGE_ID` and return them as JSON.
+
+      **4. Frontend Implementation (HTML, CSS, JS)**:
+          -   **Component Conversion**:
+              -   **React JSX to PHP/HTML**: Convert `.tsx` components into `.php` files in `/templates/`. State-dependent rendering in React becomes PHP `if/else` blocks. E.g., `user ? <Button /> : null` becomes `<?php if (is_logged_in()): ?><button>...</button><?php endif; ?>`.
+              -   **Styling**: All `className` attributes from JSX are transferred directly to `class` attributes in the HTML. Use the fully compiled CSS file.
+              -   **Interactivity (`main.js`, `uhub.js`)**:
+                  -   Replace React hooks (`useState`, `useEffect`) with vanilla JS.
+                  -   State can be managed in global JS variables or stored in `data-*` attributes on HTML elements.
+                  -   Event handlers (`onClick`) become `element.addEventListener('click', ...)`.
+          -   **uHub Modal (`uhub.php` & `uhub.js`)**:
+              -   The modal is a hidden `<div>` in `uhub.php`.
+              -   `uhub.js` controls its visibility by changing its `display` style.
+              -   All internal tabs (Friends, Broadcasts, Settings) are separate `<div>`s within the modal, and JS will show/hide them based on which button is clicked.
+              -   Data for friends, products, etc., is fetched via AJAX calls to the `/api/` endpoints and dynamically inserted into the DOM.
+          -   **Draggable Hub**: The `react-rnd` functionality must be replicated. Use a lightweight vanilla JS drag-and-drop library or write a custom implementation using `mousedown`, `mousemove`, and `mouseup` events to update the element's `style.top` and `style.left`.
+
+      **5. Detailed Conversion Example: Friend Request Notification**:
+          1.  **PHP (`header.php`)**: When rendering the "uHub" button, run a PHP query: `get_pending_friend_requests($_SESSION['user_id'])`. If the count > 0, add a specific class (e.g., `has-notification`) to the button.
+          2.  **CSS (`style.css`)**: Create a style for `.has-notification::after` to display the orange dot.
+          3.  **JS (`uhub.js`)**: When the uHub modal opens, it fetches pending requests from `api/friends.php?action=get_pending` and renders them at the top of the friends list `<div>`.
+          4.  **HTML/PHP (`uhub.php`)**: The "Accept" button for a request will have `data-request-id="<?php echo $request['id']; ?>"`.
+          5.  **JS (`uhub.js`)**: The click listener for the "Accept" button reads the `data-request-id`, then makes a `fetch` call: `fetch('api/friends.php', { method: 'POST', body: new FormData(...) })`. On success, it updates the UI to move the user to the main friends list.
+    -->
+    <!-- Specifies the character encoding for the HTML document -->
+    <meta charset="UTF-8" />
+    <!-- Sets the viewport to ensure the site is responsive on all devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Defines the favicon for the website (SVG format) -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Defines a fallback favicon (ICO format) -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <!-- Defines the icon for Apple devices when added to the home screen -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Links to the web app manifest file for PWA capabilities -->
+    <link rel="manifest" href="/site.webmanifest" />
+    <!-- Sets the theme color for the browser UI, used on mobile devices -->
+    <meta name="theme-color" content="#ffffff" />
+    <!-- The title of the web page, displayed in the browser tab -->
+    <title>Instance app</title>
+    <script type="module" crossorigin src="/assets/index-BvT0Dih3.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CF4sH7TY.css">
+  </head>
+  <body>
+    <!-- The root element where the React application will be mounted -->
+    <div id="root" class="contents"></div>
+    <!-- The main JavaScript file for the application, loaded as a module -->
+  </body>
+</html>
