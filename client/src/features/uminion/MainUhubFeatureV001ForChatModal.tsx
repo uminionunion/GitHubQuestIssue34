@@ -75,11 +75,12 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
   const [currentFontColor, setCurrentFontColor] = useState('#FFFFFF');
   const [viewedUser, setViewedUser] = useState<any>(null);
   const [isProfileViewOpen, setProfileViewOpen] = useState(false);
-  const [leftWidth, setLeftWidth] = useState(25);
-  const [isDragging, setIsDragging] = useState(false);
+  const [chatWidth, setChatWidth] = useState(70);
+  const [isDraggingDivider, setIsDraggingDivider] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
  const correctPassword = 'uminion';
  const roomName = `${pageName}-chatroom-${activeTab + 1}`;
@@ -207,36 +208,36 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
    setProfileViewOpen(true);
  };
 
- const handleMouseDown = () => {
-   setIsDragging(true);
- };
+  const handleDividerMouseDown = () => {
+    setIsDraggingDivider(true);
+  };
 
- useEffect(() => {
-   const handleMouseMove = (e: MouseEvent) => {
-     if (!isDragging) return;
-     const container = document.querySelector('[role="dialog"]');
-     if (!container) return;
-     const rect = container.getBoundingClientRect();
-     const newLeft = ((e.clientX - rect.left) / rect.width) * 100;
-     if (newLeft > 15 && newLeft < 85) {
-       setLeftWidth(newLeft);
-     }
-   };
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingDivider) return;
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const newChat = ((e.clientX - rect.left) / rect.width) * 100;
+      if (newChat > 30 && newChat < 85) {
+        setChatWidth(newChat);
+      }
+    };
 
-   const handleMouseUp = () => {
-     setIsDragging(false);
-   };
+    const handleMouseUp = () => {
+      setIsDraggingDivider(false);
+    };
 
-   if (isDragging) {
-     document.addEventListener('mousemove', handleMouseMove);
-     document.addEventListener('mouseup', handleMouseUp);
-   }
+    if (isDraggingDivider) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
 
-   return () => {
-     document.removeEventListener('mousemove', handleMouseMove);
-     document.removeEventListener('mouseup', handleMouseUp);
-   };
- }, [isDragging]);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingDivider]);
 
  const isMobile = window.innerWidth < 768;
 
@@ -269,44 +270,66 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
               ))}
             </div>
 
-            <div className="flex-grow overflow-y-auto p-4" ref={messagesEndRef} style={{ color: currentFontColor }}>
-              {isChatDisabled ? (
-                <div className="flex flex-col items-center justify-center h-full">
-                  {activeTab === 2 && !isUnlocked ? (
-                    <>
-                      <h3 className="text-lg font-semibold mb-4">This chatroom is password protected.</h3>
-                      <div className="flex gap-2">
-                        <Input type="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                        <Button onClick={handlePasswordSubmit}>Enter</Button>
+            <div className="flex-grow flex overflow-hidden" ref={containerRef}>
+              <div className="overflow-y-auto p-4" style={{ width: `${chatWidth}%`, color: currentFontColor }}>
+                {isChatDisabled ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    {activeTab === 2 && !isUnlocked ? (
+                      <>
+                        <h3 className="text-lg font-semibold mb-4">This chatroom is password protected.</h3>
+                        <div className="flex gap-2">
+                          <Input type="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                          <Button onClick={handlePasswordSubmit}>Enter</Button>
+                        </div>
+                      </>
+                    ) : (
+                      <h3 className="text-lg font-semibold mb-4">You must be logged in to access this chatroom.</h3>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {messages.map((msg) => (
+                      <div key={msg.id}>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <span className="font-bold cursor-pointer hover:underline">{msg.username}: </span>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-48">
+                            <div className="grid gap-2">
+                              <Button variant="ghost" className="justify-start" onClick={() => handleViewProfile(msg.username)}>View Profile</Button>
+                              <Button variant="ghost" className="justify-start"><UserPlus className="mr-2 h-4 w-4" /> Add Friend</Button>
+                              <Button variant="ghost" className="justify-start"><MessageSquare className="mr-2 h-4 w-4" /> Direct Message</Button>
+                              <Button variant="ghost" className="justify-start"><UserX className="mr-2 h-4 w-4" /> Block/Ignore</Button>
+                              <Button variant="destructive" className="justify-start"><ShieldAlert className="mr-2 h-4 w-4" /> Report</Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <span className={msg.is_anonymous ? 'text-orange-400' : ''}>{msg.content}</span>
                       </div>
-                    </>
-                  ) : (
-                    <h3 className="text-lg font-semibold mb-4">You must be logged in to access this chatroom.</h3>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {messages.map((msg) => (
-                    <div key={msg.id}>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <span className="font-bold cursor-pointer hover:underline">{msg.username}: </span>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-48">
-                          <div className="grid gap-2">
-                            <Button variant="ghost" className="justify-start" onClick={() => handleViewProfile(msg.username)}>View Profile</Button>
-                            <Button variant="ghost" className="justify-start"><UserPlus className="mr-2 h-4 w-4" /> Add Friend</Button>
-                            <Button variant="ghost" className="justify-start"><MessageSquare className="mr-2 h-4 w-4" /> Direct Message</Button>
-                            <Button variant="ghost" className="justify-start"><UserX className="mr-2 h-4 w-4" /> Block/Ignore</Button>
-                            <Button variant="destructive" className="justify-start"><ShieldAlert className="mr-2 h-4 w-4" /> Report</Button>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <span className={msg.is_anonymous ? 'text-orange-400' : ''}>{msg.content}</span>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="w-1 bg-white/30 hover:bg-white/50 cursor-col-resize flex-shrink-0 transition-colors"
+                onMouseDown={handleDividerMouseDown}
+              />
+
+              <div className="overflow-y-auto p-4 border-l border-white/20 flex-shrink-0" style={{ width: `${100 - chatWidth}%`, color: currentFontColor }}>
+                <h3 className="font-bold mb-4 flex items-center gap-2">
+                  <UserIcon className="h-4 w-4" />
+                  Users Online ({users.length})
+                </h3>
+                <div className="space-y-2">
+                  {users.map((u, i) => (
+                    <div key={i} className="text-sm hover:bg-white/10 p-2 rounded cursor-pointer transition-colors" onClick={() => handleViewProfile(u.username)}>
+                      {u.username}
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="p-4 border-t border-white/20 flex flex-col gap-2 flex-shrink-0">
