@@ -206,10 +206,10 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent
-          className="max-w-4xl h-[80vh] flex flex-col p-0 text-white"
-          style={{ background: currentBg }}
-        >
+         <DialogContent
+           className="max-w-4xl md:max-w-4xl h-[80vh] md:h-[80vh] flex flex-col p-0 text-white"
+           style={{ background: currentBg }}
+         >
           <DialogHeader className="p-4 border-b border-white/20 flex-row justify-between items-center">
             <DialogTitle style={{ color: currentFontColor }}>{pageName} Chat</DialogTitle>
             <div className="flex gap-2">

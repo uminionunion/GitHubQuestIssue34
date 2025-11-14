@@ -82,7 +82,7 @@ const ProductBox = ({ product, onMagnify }) => {
         setInCart(!inCart);
     };
 
-    if (!product) return <div className="h-48 border rounded-md p-2 flex items-center justify-center text-muted-foreground">No Product</div>;
+    if (!product) return <div className="h-36 md:h-48 border rounded-md p-2 flex items-center justify-center text-muted-foreground">No Product</div>;
 
     const handleImageClick = () => {
         if (product.url) {
@@ -91,7 +91,7 @@ const ProductBox = ({ product, onMagnify }) => {
     };
 
     return (
-        <div className="border rounded-md p-2 relative h-48 group">
+        <div className="border rounded-md p-2 relative h-36 md:h-48 group">
             <div className="absolute top-1 left-1 text-xs font-bold bg-black bg-opacity-50 text-white px-1 rounded z-10">{product.name}</div>
             <div className="absolute top-1 right-1 z-10">
                 {product.time ? (
@@ -375,53 +375,58 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-         {/* Mobile Top Row */}
-         <div className="md:hidden flex p-2 border-b gap-1 items-center">
-           <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
-             <Avatar className="h-16 w-16">
-               <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
-               <AvatarFallback>U</AvatarFallback>
-             </Avatar>
-           </div>
-           <div className="flex gap-1 flex-1">
-             <Button variant="outline" className="flex-1 flex flex-col h-12 items-center justify-center text-xs p-1" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
-               {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
-               <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
-             </Button>
-             <Button variant="outline" className="flex-1 flex flex-col h-12 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => setCenterView('broadcasts')}>
-               <Megaphone className="h-3 w-3" /><span className="text-xxs">Broadcast</span>
-             </Button>
-             <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="flex-1">
-               <Button variant="outline" className="w-full h-12 flex flex-col items-center justify-center text-xs p-1" title="Code" disabled={!user}>
-                 <Code className="h-3 w-3" /><span className="text-xxs">Code</span>
-               </Button>
-             </a>
-             <Button variant="outline" className="flex-1 flex flex-col h-12 items-center justify-center text-xs p-1" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}>
-               <Settings className="h-3 w-3" /><span className="text-xxs">Settings</span>
-             </Button>
-           </div>
-         </div>
+          {/* Mobile Top Row */}
+          <div className="md:hidden flex flex-col p-2 border-b gap-2">
+            <div className="flex gap-2 items-center">
+              <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
+                <Avatar className="h-14 w-14">
+                  <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                  <AvatarFallback>U</AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="flex gap-1 flex-1">
+                <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+                  {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
+                  <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
+                </Button>
+                <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => setCenterView('broadcasts')}>
+                  <Megaphone className="h-3 w-3" /><span className="text-xxs">Broadcast</span>
+                </Button>
+                <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="flex-1">
+                  <Button variant="outline" className="w-full h-10 flex flex-col items-center justify-center text-xs p-1" title="Code" disabled={!user}>
+                    <Code className="h-3 w-3" /><span className="text-xxs">Code</span>
+                  </Button>
+                </a>
+                <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}>
+                  <Settings className="h-3 w-3" /><span className="text-xxs">Settings</span>
+                </Button>
+              </div>
+            </div>
+            <div className="h-24 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+              {user && <Button className="absolute bottom-1 right-1 text-xs h-6" size="sm">Change</Button>}
+            </div>
+          </div>
 
         {/* Center Section */}
         <div className="flex-grow flex overflow-hidden">
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="w-[20%] p-4 border-r overflow-y-auto">
-            <h3 className="text-center font-bold mb-4">uHome-Hub:</h3>
-            <div className="grid grid-cols-2 gap-2">
+          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:w-[20%] w-[25%] p-4 border-r overflow-y-auto">
+            <h3 className="text-center font-bold mb-4 text-sm md:text-base">uHome-Hub:</h3>
+            <div className="grid grid-cols-2 gap-1 md:gap-2">
               {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
-                <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
+                <Button key={num} variant="outline" size="sm" className="md:h-auto h-8 text-xs md:text-sm" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
               ))}
             </div>
           </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="w-[60%] p-4 overflow-y-auto">
+          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="md:w-[60%] w-[50%] p-4 overflow-y-auto">
             {renderCenterContent()}
           </div>
-          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="w-[20%] p-4 border-l overflow-y-auto">
+          <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] w-[25%] p-4 border-l overflow-y-auto">
             <div className="flex items-center justify-center mb-4">
-                <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('left')}><ChevronLeft /></Button>
-                <h3 className="text-center font-bold mx-4">{centerRightView}</h3>
-                <Button variant="ghost" size="icon" onClick={() => navigateCenterRight('right')}><ChevronRight /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
+                <h3 className="text-center font-bold mx-2 text-xs md:text-base">{centerRightView}</h3>
+                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-2 md:space-y-4">
               {renderCenterRightContent()}
             </div>
           </div>
