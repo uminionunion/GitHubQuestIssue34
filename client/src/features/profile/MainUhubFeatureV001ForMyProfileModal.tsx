@@ -157,11 +157,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
   const [socialPageLeft, setSocialPageLeft] = useState(0);
   const [socialPageRight, setSocialPageRight] = useState(0);
-   const [leftWidthMobile, setLeftWidthMobile] = useState(25);
-   const [centerWidthMobile, setCenterWidthMobile] = useState(50);
-   const [rightWidthMobile, setRightWidthMobile] = useState(25);
-   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
-   const [isDraggingRight, setIsDraggingRight] = useState(false);
+  const [leftWidthMobile, setLeftWidthMobile] = useState(25);
+  const [centerWidthMobile, setCenterWidthMobile] = useState(50);
+  const [rightWidthMobile, setRightWidthMobile] = useState(25);
+  const [isDraggingLeft, setIsDraggingLeft] = useState(false);
+  const [isDraggingRight, setIsDraggingRight] = useState(false);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -431,37 +431,37 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-          {/* Mobile Top Row */}
-          <div className="md:hidden flex flex-col p-2 border-b gap-2">
-            <div className="flex gap-2 items-center">
-              <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
-                <Avatar className="h-14 w-14">
-                  <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-              </div>
-              <div className="flex gap-1 flex-1">
-                <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
-                  {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
-                  <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
-                </Button>
-                <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => setCenterView('broadcasts')}>
-                  <Megaphone className="h-3 w-3" /><span className="text-xxs">Broadcast</span>
-                </Button>
-                <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="flex-1">
-                  <Button variant="outline" className="w-full h-10 flex flex-col items-center justify-center text-xs p-1" title="Code" disabled={!user}>
-                    <Code className="h-3 w-3" /><span className="text-xxs">Code</span>
-                  </Button>
-                </a>
-                <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}>
-                  <Settings className="h-3 w-3" /><span className="text-xxs">Settings</span>
-                </Button>
-              </div>
-            </div>
-            <div className="h-24 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
-              {user && <Button className="absolute bottom-1 right-1 text-xs h-6" size="sm">Change</Button>}
-            </div>
-          </div>
+         {/* Mobile Top Row */}
+         <div className="md:hidden flex flex-col p-2 border-b gap-2">
+           <div className="flex gap-2 items-center">
+             <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
+               <Avatar className="h-14 w-14">
+                 <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                 <AvatarFallback>U</AvatarFallback>
+               </Avatar>
+             </div>
+             <div className="flex gap-1 flex-1">
+               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+                 {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
+                 <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
+               </Button>
+               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => setCenterView('broadcasts')}>
+                 <Megaphone className="h-3 w-3" /><span className="text-xxs">Broadcast</span>
+               </Button>
+               <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="flex-1">
+                 <Button variant="outline" className="w-full h-10 flex flex-col items-center justify-center text-xs p-1" title="Code" disabled={!user}>
+                   <Code className="h-3 w-3" /><span className="text-xxs">Code</span>
+                 </Button>
+               </a>
+               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}>
+                 <Settings className="h-3 w-3" /><span className="text-xxs">Settings</span>
+               </Button>
+             </div>
+           </div>
+           <div className="h-24 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png')" }}>
+             {user && <Button className="absolute bottom-1 right-1 text-xs h-6" size="sm">Change</Button>}
+           </div>
+         </div>
 
          {/* Center Section */}
          <div className="flex-grow flex overflow-hidden">
@@ -477,8 +477,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="md:w-[60%] p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : 'auto' }}>
              {renderCenterContent()}
            </div>
-            <div className="md:hidden w-1 bg-gray-300 cursor-ew-resize hover:bg-green-500" onMouseDown={handleStartDragRight}></div>
-            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] p-2 md:p-4 border-l overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : 'auto' }}>
+           <div className="md:hidden w-1 bg-gray-300 cursor-ew-resize hover:bg-green-500" onMouseDown={handleStartDragRight}></div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:w-[20%] p-2 md:p-4 border-l overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : 'auto' }}>
              <div className="flex items-center justify-center mb-2 md:mb-4">
                  <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
                  <h3 className="text-center font-bold mx-1 md:mx-2 text-xs md:text-base">{centerRightView}</h3>
@@ -501,9 +501,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                  </div>
                ))}
              </div>
-             <div className="flex-grow md:hidden grid grid-cols-2 gap-0.5 place-items-center">
-               {socialLinkPagesLeft[socialPageLeft].slice(0, 2).map(link => (
-                 <div key={link.id} className="text-xs">
+             <div className="flex-grow md:hidden flex justify-center items-center">
+               {socialLinkPagesLeft[socialPageLeft].slice(0, 1).map(link => (
+                 <div key={link.id} className="text-2xl">
                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
                  </div>
                ))}
@@ -524,9 +524,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                  </div>
                ))}
              </div>
-             <div className="flex-grow md:hidden grid grid-cols-2 gap-0.5 place-items-center">
-               {socialLinkPagesRight[socialPageRight].slice(0, 2).map(link => (
-                 <div key={link.id} className="text-xs">
+             <div className="flex-grow md:hidden flex justify-center items-center">
+               {socialLinkPagesRight[socialPageRight].slice(0, 1).map(link => (
+                 <div key={link.id} className="text-2xl">
                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
                  </div>
                ))}
