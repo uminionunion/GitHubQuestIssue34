@@ -380,35 +380,44 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
              </div>
            </div>
 
-           {/* Mobile Center Section - Horizontal Scroll */}
-           <div className="flex-grow overflow-x-auto overflow-y-hidden flex">
-             {/* uHome-Hub Section */}
-             <div className="min-w-full flex flex-col p-4 border-r flex-shrink-0">
-               <h3 className="text-center font-bold mb-4 text-sm">uHome-Hub</h3>
-               <div className="grid grid-cols-4 gap-2 overflow-y-auto flex-grow">
-                 {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
-                   <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)} className="text-xs h-10">#{String(num).padStart(2, '0')}</Button>
-                 ))}
-               </div>
-             </div>
+            {/* Mobile Center Section - Horizontal Scroll with Breathing Room */}
+            <div className="flex-grow overflow-x-auto overflow-y-hidden flex">
+              {/* uHome-Hub Section */}
+              <div className="min-w-full flex flex-col p-6 border-r flex-shrink-0">
+                <h3 className="text-center font-bold mb-6 text-sm">uHome-Hub</h3>
+                <div className="grid grid-cols-3 gap-3 overflow-y-auto flex-grow">
+                  {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
+                    <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)} className="text-xs h-12">#{String(num).padStart(2, '0')}</Button>
+                  ))}
+                </div>
+              </div>
 
-             {/* Broadcast/Center Section */}
-             <div className="min-w-full flex flex-col p-4 border-r flex-shrink-0 overflow-y-auto">
-               {renderCenterContent()}
-             </div>
+              {/* Broadcast/Center Section */}
+              <div className="min-w-full flex flex-col p-6 border-r flex-shrink-0 overflow-y-auto">
+                <div className="flex items-center justify-center mb-6 gap-2">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => navigateBroadcast('left')}><ChevronLeft className="h-4 w-4" /></Button>
+                  <h3 className="text-center font-bold text-sm flex-grow">{broadcasts[broadcastView]?.title || 'MyBroadcasts'}</h3>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => navigateBroadcast('right')}><ChevronRight className="h-4 w-4" /></Button>
+                </div>
+                <div className="overflow-y-auto flex-grow">
+                  {broadcastView === 'MyBroadcasts' ? 
+                    (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground text-sm">You must be logged in to create a broadcast.</p>) 
+                    : (broadcasts[broadcastView] ? <BroadcastView broadcast={broadcasts[broadcastView]} /> : <p className="text-center text-sm">Broadcast not found.</p>)}
+                </div>
+              </div>
 
-             {/* UnionSAM#20 Section */}
-             <div className="min-w-full flex flex-col p-4 flex-shrink-0 overflow-y-auto">
-               <div className="flex items-center justify-center mb-4">
-                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-4 w-4" /></Button>
-                 <h3 className="text-center font-bold mx-2 text-sm">{centerRightView}</h3>
-                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-4 w-4" /></Button>
-               </div>
-               <div className="space-y-4 overflow-y-auto flex-grow">
-                 {renderCenterRightContent()}
-               </div>
-             </div>
-           </div>
+              {/* UnionSAM#20 Section */}
+              <div className="min-w-full flex flex-col p-6 flex-shrink-0 overflow-y-auto">
+                <div className="flex items-center justify-center mb-6 gap-2">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-4 w-4" /></Button>
+                  <h3 className="text-center font-bold text-sm flex-grow">{centerRightView}</h3>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-4 overflow-y-auto flex-grow">
+                  {renderCenterRightContent()}
+                </div>
+              </div>
+            </div>
 
            {/* Mobile Bottom Section */}
            <div className="flex flex-col gap-4 p-4 border-t flex-shrink-0">
