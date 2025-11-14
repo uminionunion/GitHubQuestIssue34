@@ -190,6 +190,7 @@ const MainUhubFeatureV001MainLayout = () => {
       */}
       <header className="MainUhubFeatureV001-p-4 MainUhubFeatureV001-border-b MainUhubFeatureV001-border-border/50 MainUhubFeatureV001-shadow-lg">
         <div className="MainUhubFeatureV001-container MainUhubFeatureV001-mx-auto MainUhubFeatureV001-flex MainUhubFeatureV001-justify-between MainUhubFeatureV001-items-center">
+          <h1 className="MainUhubFeatureV001-text-2xl MainUhubFeatureV001-font-bold">Uminion</h1>
           <div className="MainUhubFeatureV001-flex MainUhubFeatureV001-items-center MainUhubFeatureV001-gap-4">
             {isAuthLoading ? (
               <span id="loading-text">loading...</span>
@@ -205,12 +206,12 @@ const MainUhubFeatureV001MainLayout = () => {
                 )}
               </>
             )}
-          </div>
-           <div onClick={handleProfileImageClick} className="MainUhubFeatureV001-cursor-pointer">
-             <Avatar className="MainUhubFeatureV001-h-10 MainUhubFeatureV001-w-10">
-              <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
+            <div onClick={handleProfileImageClick} className="MainUhubFeatureV001-cursor-pointer">
+              <Avatar className="MainUhubFeatureV001-h-10 MainUhubFeatureV001-w-10">
+                <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+            </div>
           </div>
         </div>
       </header>
