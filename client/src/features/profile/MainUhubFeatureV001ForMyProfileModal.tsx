@@ -473,69 +473,71 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-         {/* Bottom Section */}
-         <div className="flex border-t md:h-auto h-12">
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-4 border-r flex items-center">
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
-               {socialLinkPagesLeft[socialPageLeft].map(link => (
-                 <div key={link.id} className="text-xs md:text-base">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
-             </div>
-             <div className="flex-grow md:hidden flex justify-center items-center">
-               {socialLinkPagesLeft[socialPageLeft].slice(0, 1).map(link => (
-                 <div key={link.id} className="text-2xl">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
-             </div>
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
-           </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-4 flex items-center justify-center">
-             <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-base">
-               Become an Official Member of the Union via getting your Union Card Today!
-             </a>
-           </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-4 border-l flex items-center">
-              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-4 place-items-center">
-               {socialLinkPagesRight[socialPageRight].map(link => (
-                 <div key={link.id} className="text-xs md:text-base">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
-             </div>
-             <div className="flex-grow md:hidden flex justify-center items-center">
-               {socialLinkPagesRight[socialPageRight].slice(0, 1).map(link => (
-                 <div key={link.id} className="text-2xl">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
-             </div>
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
-           </div>
-         </div>
-       </div>
-       
-       {activeChatModal !== null && (
-         <MainUhubFeatureV001ForChatModal
-           isOpen={activeChatModal !== null}
-           onClose={handleCloseChatModal}
-           pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-           backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-           modalNumber={activeChatModal}
-         />
-       )}
-       {isAddProductModalOpen && (
-         <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
-       )}
-       {isProductDetailModalOpen && (
-         <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
-       )}
-     </>
-   );
- };
+          {/* Bottom Section */}
+          <div className="flex border-t md:h-auto h-12">
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-2 border-r flex items-center">
+              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
+                {socialLinkPagesLeft[socialPageLeft].map(link => (
+                  <div key={link.id} className="text-xs md:text-xs">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
+              </div>
+              <div className="flex-grow md:hidden flex justify-center items-center">
+                {socialLinkPagesLeft[socialPageLeft].slice(0, 1).map(link => (
+                  <div key={link.id} className="text-2xl">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+            </div>
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-2 flex items-center justify-center">
+              <a href="https://uminion.com/product/union-card-the-official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-sm">
+                Become an Official Member of the Union via getting your Union Card Today!
+              </a>
+            </div>
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-2 border-l flex items-center">
+               <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
+                {socialLinkPagesRight[socialPageRight].map(link => (
+                  <div key={link.id} className="text-xs md:text-xs">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
+              </div>
+              <div className="flex-grow md:hidden flex justify-center items-center">
+                {socialLinkPagesRight[socialPageRight].slice(0, 1).map(link => (
+                  <div key={link.id} className="text-2xl">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {activeChatModal !== null && (
+        <MainUhubFeatureV001ForChatModal
+            isOpen={activeChatModal !== null}
+            onClose={handleCloseChatModal}
+            pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+            backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+            modalNumber={activeChatModal}
+          />
+        )}
+        {isAddProductModalOpen && (
+          <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
+        )}
+        {isProductDetailModalOpen && (
+          <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
+        )}
+      </div>
+    </>
+    );
+  };
 
 export default MainUhubFeatureV001ForMyProfileModal;
