@@ -1,27 +1,6 @@
 version: '3.8'
 
 services:
-  # MySQL Database
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-mainuhubfeaturev001}
-      MYSQL_USER: ${MYSQL_USER:-uhubuser}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-uhubpassword}
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - mainuhubfeaturev001-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Express API + React Frontend
   app:
     build:
@@ -32,19 +11,18 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      DATABASE_URL: mysql://uhubuser:uhubpassword@mysql:3306/mainuhubfeaturev001
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USER: ${MYSQL_USER:-uhubuser}
-      DB_PASSWORD: ${MYSQL_PASSWORD:-uhubpassword}
-      DB_NAME: ${MYSQL_DATABASE:-mainuhubfeaturev001}
+      DATA_DIRECTORY: /app/data
       VITE_PORT: 3000
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-    depends_on:
-      mysql:
-        condition: service_healthy
+    volumes:
+      - app_data:/app/data
     networks:
       - mainuhubfeaturev001-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Nginx Reverse Proxy
   nginx:
@@ -61,7 +39,7 @@ services:
       - mainuhubfeaturev001-network
 
 volumes:
-  mysql_data:
+  app_data:
 
 networks:
   mainuhubfeaturev001-network:
