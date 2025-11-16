@@ -67,7 +67,7 @@ function patchMethodOn(target: any, methodName: string) {
 
     const first = typeof arg1 === 'string'
       ? ((): string => {
-          // keep existing debug hook
+          // keep existing debug helper call
           warnIfUrlAndStack(arg1);
           // sanitize URL-like mounts to pathname so path-to-regexp never gets a full URL
           try {
@@ -81,6 +81,7 @@ function patchMethodOn(target: any, methodName: string) {
     return orig.apply(this, [first, ...rest]);
   };
 }
+
 
 // Patch app instance methods BEFORE any routers are loaded
 ['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(app, m));
