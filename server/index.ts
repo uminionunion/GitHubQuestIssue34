@@ -1,100 +1,195 @@
-
-// Import the 'express' framework for creating the server
-// Express is a Node.js web application framework used for building REST APIs
-import express from 'express';
-// Import 'dotenv' to load environment variables from a .env file
-// This allows secure storage of API keys and configuration without hardcoding
+// server/index.ts
+import express, { Router } from 'express';
 import dotenv from 'dotenv';
-// Import http module for creating the server that Socket.IO will use
-// Socket.IO requires an http server, not just Express
 import http from 'http';
-// Import Socket.IO Server for real-time bidirectional communication
-// Used for chat functionality and live user list updates
 import { Server as SocketIOServer } from 'socket.io';
-// Import cookie-parser middleware to parse HTTP cookies from requests
-// Used for JWT token authentication in cookies
 import cookieParser from 'cookie-parser';
+import path from 'path';
+import fs from 'fs';
 
-// Import the function for setting up static file serving
-// In production, this serves the built React frontend from Express
-import { setupStaticServing } from './static-serve.js';
-// Import authentication router for user login/signup/logout endpoints
-import authRouter from './auth.js';
-// Import friends router for friend request and relationship management endpoints
-import friendsRouter from './friends.js';
-// Import chat setup function for Socket.IO event handlers
-import { setupChat } from './chat.js';
-
-// Load environment variables from .env file into process.env
-// Example: NODE_ENV, PORT, JWT_SECRET, DATABASE_URL, etc.
 dotenv.config();
 
-// Create an instance of an Express application
-// This is the main application object that handles HTTP requests
 const app = express();
-// Create an HTTP server from Express to support Socket.IO
-// Socket.IO needs a native HTTP server for WebSocket support
 const server = http.createServer(app);
-// Create Socket.IO server with CORS configuration
-// CORS allows frontend to connect to backend for real-time updates
 const io = new SocketIOServer(server, {
-  // Configure Cross-Origin Resource Sharing (CORS)
   cors: {
-    // Allow requests from the Vite frontend dev server (default port 3000)
     origin: `http://localhost:${process.env.VITE_PORT || 3000}`,
-    // Allow credentials (cookies/JWT tokens) to be sent with requests
     credentials: true,
   },
 });
 
-// Middleware to parse incoming JSON requests
-// Converts JSON request bodies into JavaScript objects
+/**
+ * sanitizeStringRoute
+ */
+function sanitizeStringRoute(s: unknown): string {
+  if (!s || typeof s !== 'string') return String(s ?? '/');
+  const t = s.trim();
+  if (t.startsWith('http://') || t.startsWith('https://') || t.includes('://')) {
+    try {
+      return new URL(t).pathname || '/';
+    } catch {
+      return '/';
+    }
+  }
+  return t || '/';
+}
+
+/**
+ * DEBUG helper (optional)
+ */
+function warnIfUrlAndStack(s: string) {
+  if (process.env.DEBUG_ROUTE_SANITIZE !== 'true') return;
+  if (!s) return;
+  const looksLikeUrl = s.includes('://') || s.includes('git.new') || s.startsWith('http');
+  if (!looksLikeUrl) return;
+  console.error('DEBUG: sanitizing route mount that looks like URL:', s);
+  console.error(new Error().stack?.split('\n').slice(2, 8).join('\n'));
+}
+
+/**
+ * Safer patch helper: call original with the same `this`
+ */
+function patchMethodOn(target: any, methodName: string) {
+  if (!target || typeof target[methodName] !== 'function') return;
+  const orig = target[methodName];
+  target[methodName] = function (arg1: any, ...rest: any[]) {
+    const first = typeof arg1 === 'string'
+      ? ((): string => { warnIfUrlAndStack(arg1); return sanitizeStringRoute(arg1); })()
+      : arg1;
+    return orig.apply(this, [first, ...rest]);
+  };
+}
+
+// Patch app instance methods BEFORE any routers are loaded
+['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(app, m));
+
+// Patch Router prototype methods BEFORE router modules load
+const RouterProto = (Router as any)?.prototype;
+if (RouterProto) {
+  ['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(RouterProto, m));
+}
+
+// Use express middleware
 app.use(express.json());
-// Middleware to parse incoming requests with URL-encoded payloads
-// Handles form data submissions
 app.use(express.urlencoded({ extended: true }));
-// Middleware to parse cookies from request headers
-// Makes cookies available as req.cookies object
 app.use(cookieParser());
 
-// API Routes - Mount routers for different endpoints
-// /api/auth - Handles user authentication (login, signup, logout)
+/**
+ * Now dynamic-import the modules that may register routes so their registrations go through our patched methods.
+ * Dynamic import runs after the patches above.
+ */
+const [{ setupStaticServing }, authRouterModule, friendsRouterModule, { setupChat }] = await Promise.all([
+  import('./static-serve.js'),
+  import('./auth.js'),
+  import('./friends.js'),
+  import('./chat.js'),
+]);
+
+const authRouter = authRouterModule.default ?? authRouterModule;
+const friendsRouter = friendsRouterModule.default ?? friendsRouterModule;
+
+/**
+ * Mount routers (sanitization no-ops for literal paths)
+ */
 app.use('/api/auth', authRouter);
-// /api/friends - Handles friend requests and friend list management
 app.use('/api/friends', friendsRouter);
 
-// Initialize Socket.IO chat functionality
-// Sets up event handlers for joinRoom, sendMessage, leaveRoom, etc.
 setupChat(io);
 
 /**
- * An asynchronous function to configure and start the Express server.
- * @param port The port number on which the server will listen.
+ * Resolve a public directory to serve static assets from.
  */
-export async function startServer(port) {
-  try {
-    // Check if the environment is production.
-    if (process.env.NODE_ENV === 'production') {
-      // If it is production, set up the server to serve static files (the built React app).
-      setupStaticServing(app);
+function resolvePublicPath(): string {
+  const candidates = [
+    path.join(process.cwd(), 'dist', 'public'),
+    path.join(process.cwd(), 'dist'),
+    path.join(process.cwd(), 'public'),
+    process.cwd(),
+  ];
+
+  for (const p of candidates) {
+    try {
+      const stat = fs.statSync(p);
+      if (stat && stat.isDirectory()) {
+        return p;
+      }
+    } catch {
+      // ignore and try next
     }
-    // Start the server and make it listen for incoming requests on the specified port.
+  }
+  return process.cwd();
+}
+
+/**
+ * Optional debug helper to list registered routes (enable temporarily if needed).
+ */
+function logRegisteredRoutes() {
+  try {
+    const router = (app as any)._router;
+    if (!router || !router.stack) {
+      console.log('No router stack available');
+      return;
+    }
+    console.log('--- Registered routes and middleware ---');
+    router.stack.forEach((r: any) => {
+      if (r.route && r.route.path) {
+        const methods = Object.keys(r.route.methods).join(',').toUpperCase();
+        console.log(`${methods} ${r.route.path}`);
+      } else if (r.name === 'router' && r.regexp) {
+        console.log(`Mounted router regexp: ${r.regexp}`);
+      } else {
+        console.log('Middleware:', r.name || r.handle?.name || r);
+      }
+    });
+    console.log('----------------------------------------');
+  } catch (err) {
+    console.error('Route listing failed', err);
+  }
+}
+
+/**
+ * Start server
+ */
+export async function startServer(port: number | string) {
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      const publicPath = resolvePublicPath();
+      console.log('Production static path resolved to:', publicPath);
+
+      // Serve static without automatic index to let SPA fallback handle it
+      app.use(express.static(publicPath, { index: false }));
+
+      // SPA fallback from resolved publicPath
+      app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api/')) return next();
+        const indexFile = path.join(publicPath, 'index.html');
+        if (!fs.existsSync(indexFile)) return res.status(404).send('Not Found');
+        res.sendFile(indexFile, (err) => {
+          if (err) next(err);
+        });
+      });
+
+      // call setupStaticServing but ignore non-fatal errors
+      try {
+        setupStaticServing(app);
+      } catch (err) {
+        console.warn('setupStaticServing() threw an error (ignored):', err);
+      }
+    }
+
+    // Uncomment to debug registered routes at startup (temporary)
+    // logRegisteredRoutes();
+
     server.listen(port, () => {
-      // Log a message to the console once the server is running.
       console.log(`API Server running on port ${port}`);
     });
   } catch (err) {
-    // If there's an error starting the server, log the error.
     console.error('Failed to start server:', err);
-    // Exit the process with a failure code.
     process.exit(1);
   }
 }
 
-// Check if this script is being run directly by Node.js.
 if (import.meta.url === `file://${process.argv[1]}`) {
-  // If so, it means we are not in a test or import environment, so we should start the server.
   console.log('Starting server...');
-  // Start the server on the port specified in the environment variables, or default to 3001.
   startServer(process.env.PORT || 3001);
 }

@@ -1,27 +1,52 @@
-
-// Import the 'path' module from Node.js for working with file and directory paths.
+// server/static-serve.ts
 import path from 'path';
-// Import the 'express' module.
+import fs from 'fs';
 import express from 'express';
+import type { Express } from 'express';
+import { fileURLToPath } from 'url';
 
 /**
  * Sets up static file serving for the Express app in production.
- * @param app The Express application instance.
+ * Tries these locations (in order): dist/public, dist, public, project root.
+ * Uses a valid Express wildcard route '*' for SPA fallback and skips API routes.
  */
-export function setupStaticServing(app: express.Application) {
-  // Serve static files (like CSS, JS, images) from the 'public' directory.
-  // 'process.cwd()' returns the current working directory of the Node.js process.
-  app.use(express.static(path.join(process.cwd(), 'public')));
+export function setupStaticServing(app: Express) {
+  // ESM-safe __dirname replacement
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
 
-  // This is a catch-all route for any GET request that doesn't match a previous route.
-  // It's used to serve the main 'index.html' file for a Single Page Application (SPA).
-  app.get('/{*splat}', (req, res, next) => {
-    // If the request path starts with '/api/', it's an API call, so we skip this middleware.
-    if (req.path.startsWith('/api/')) {
-      return next();
+  const candidates = [
+    path.join(process.cwd(), 'dist', 'public'),
+    path.join(process.cwd(), 'dist'),
+    path.join(process.cwd(), 'public'),
+    path.join(__dirname, '..', 'public'),
+    process.cwd(),
+  ];
+
+  // Find first existing directory
+  const publicDir =
+    candidates.find((p) => {
+      try {
+        return fs.statSync(p).isDirectory();
+      } catch {
+        return false;
+      }
+    }) || process.cwd();
+
+  // Serve static assets (if folder exists)
+  app.use(express.static(publicDir));
+
+  // SPA fallback: serve index.html for any unknown GET route except API routes
+  app.get('*', (req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
+
+    const indexPath = path.join(publicDir, 'index.html');
+    if (!fs.existsSync(indexPath)) {
+      return res.status(404).send('Not Found');
     }
-    // For any other path, send the 'index.html' file.
-    // This allows client-side routing (like React Router) to handle the URL.
-    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
+
+    res.sendFile(indexPath, (err) => {
+      if (err) next(err);
+    });
   });
 }
