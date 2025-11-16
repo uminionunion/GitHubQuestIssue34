@@ -82,7 +82,6 @@ function patchMethodOn(target: any, methodName: string) {
   };
 }
 
-
 // Patch app instance methods BEFORE any routers are loaded
 ['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(app, m));
 
