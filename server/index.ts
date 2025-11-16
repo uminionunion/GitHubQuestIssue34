@@ -48,14 +48,36 @@ function warnIfUrlAndStack(s: string) {
 
 /**
  * Safer patch helper: call original with the same `this`
+ *
+ * This version logs the raw registration when DEBUG_ROUTE_SANITIZE=true
+ * and ensures any URL-like mount is converted to a pathname before
+ * calling the original method so path-to-regexp never receives a full URL.
  */
 function patchMethodOn(target: any, methodName: string) {
   if (!target || typeof target[methodName] !== 'function') return;
   const orig = target[methodName];
   target[methodName] = function (arg1: any, ...rest: any[]) {
+    try {
+      const shouldDebug = process.env.DEBUG_ROUTE_SANITIZE === 'true';
+      if (shouldDebug && typeof arg1 === 'string') {
+        console.error(`DEBUG-ROUTE: registering via ${methodName} value=`, arg1);
+        console.error(new Error().stack?.split('\n').slice(2, 10).join('\n'));
+      }
+    } catch (_) {}
+
     const first = typeof arg1 === 'string'
-      ? ((): string => { warnIfUrlAndStack(arg1); return sanitizeStringRoute(arg1); })()
+      ? ((): string => {
+          // keep existing debug hook
+          warnIfUrlAndStack(arg1);
+          // sanitize URL-like mounts to pathname so path-to-regexp never gets a full URL
+          try {
+            return sanitizeStringRoute(arg1);
+          } catch {
+            return '/';
+          }
+        })()
       : arg1;
+
     return orig.apply(this, [first, ...rest]);
   };
 }
@@ -78,15 +100,16 @@ app.use(cookieParser());
  * Now dynamic-import the modules that may register routes so their registrations go through our patched methods.
  * Dynamic import runs after the patches above.
  */
-const [{ setupStaticServing }, authRouterModule, friendsRouterModule, { setupChat }] = await Promise.all([
+const [{ setupStaticServing }, authMod, friendsMod, { setupChat }] = await Promise.all([
   import('./static-serve.js'),
   import('./auth.js'),
   import('./friends.js'),
   import('./chat.js'),
 ]);
 
-const authRouter = authRouterModule.default ?? authRouterModule;
-const friendsRouter = friendsRouterModule.default ?? friendsRouterModule;
+// Extract router from potential module shape and cast to express.Router
+const authRouter: Router = (authMod && (authMod as any).default) ? (authMod as any).default as Router : (authMod as any) as Router;
+const friendsRouter: Router = (friendsMod && (friendsMod as any).default) ? (friendsMod as any).default as Router : (friendsMod as any) as Router;
 
 /**
  * Mount routers (sanitization no-ops for literal paths)
