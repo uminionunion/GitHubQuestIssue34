@@ -32,12 +32,12 @@ COPY --from=builder /app/server ./server
 COPY --from=builder /app/node_modules ./node_modules
 
 ENV NODE_ENV=production
-ENV PORT=4000
+ENV PORT=4001
 ENV DATA_DIRECTORY=/app/data
 
-EXPOSE 4000
+EXPOSE 4001
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:4000', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) })"
+  CMD node -e "require('http').get('http://localhost:4001', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) })"
 
 CMD ["node", "dist/server/index.js"]
