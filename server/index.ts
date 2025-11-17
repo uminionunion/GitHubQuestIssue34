@@ -48,10 +48,6 @@ function warnIfUrlAndStack(s: string) {
 
 /**
  * Safer patch helper: call original with the same `this`
- *
- * This version logs the raw registration when DEBUG_ROUTE_SANITIZE=true
- * and ensures any URL-like mount is converted to a pathname before
- * calling the original method so path-to-regexp never receives a full URL.
  */
 function patchMethodOn(target: any, methodName: string) {
   if (!target || typeof target[methodName] !== 'function') return;
@@ -67,9 +63,7 @@ function patchMethodOn(target: any, methodName: string) {
 
     const first = typeof arg1 === 'string'
       ? ((): string => {
-          // keep existing debug helper call
           warnIfUrlAndStack(arg1);
-          // sanitize URL-like mounts to pathname so path-to-regexp never gets a full URL
           try {
             return sanitizeStringRoute(arg1);
           } catch {
@@ -97,8 +91,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 /**
- * Now dynamic-import the modules that may register routes so their registrations go through our patched methods.
- * Dynamic import runs after the patches above.
+ * Dynamic-import the modules that may register routes
  */
 const [{ setupStaticServing }, authMod, friendsMod, { setupChat }] = await Promise.all([
   import('./static-serve.js'),
@@ -107,21 +100,14 @@ const [{ setupStaticServing }, authMod, friendsMod, { setupChat }] = await Promi
   import('./chat.js'),
 ]);
 
-// Extract router from potential module shape and cast to express.Router
 const authRouter: Router = (authMod && (authMod as any).default) ? (authMod as any).default as Router : (authMod as any) as Router;
 const friendsRouter: Router = (friendsMod && (friendsMod as any).default) ? (friendsMod as any).default as Router : (friendsMod as any) as Router;
 
-/**
- * Mount routers (sanitization no-ops for literal paths)
- */
 app.use('/api/auth', authRouter);
 app.use('/api/friends', friendsRouter);
 
 setupChat(io);
 
-/**
- * Resolve a public directory to serve static assets from.
- */
 function resolvePublicPath(): string {
   const candidates = [
     path.join(process.cwd(), 'dist', 'public'),
@@ -129,7 +115,6 @@ function resolvePublicPath(): string {
     path.join(process.cwd(), 'public'),
     process.cwd(),
   ];
-
   for (const p of candidates) {
     try {
       const stat = fs.statSync(p);
@@ -137,15 +122,12 @@ function resolvePublicPath(): string {
         return p;
       }
     } catch {
-      // ignore and try next
+      // ignore
     }
   }
   return process.cwd();
 }
 
-/**
- * Optional debug helper to list registered routes (enable temporarily if needed).
- */
 function logRegisteredRoutes() {
   try {
     const router = (app as any)._router;
@@ -179,11 +161,10 @@ export async function startServer(port: number | string) {
       const publicPath = resolvePublicPath();
       console.log('Production static path resolved to:', publicPath);
 
-      // Serve static without automatic index to let SPA fallback handle it
       app.use(express.static(publicPath, { index: false }));
 
-      // SPA fallback from resolved publicPath
-      app.get('*', (req, res, next) => {
+      // ✅ FIXED: regex catch-all instead of "*" ***Update:> Turns out it was this one giving me the regex issues. turn what you have into what you see with the asteriks in next line to fix it seems -Salem 4:17pm on 11/17/25
+      app.get(/.*/, (req, res, next) => {
         if (req.path.startsWith('/api/')) return next();
         const indexFile = path.join(publicPath, 'index.html');
         if (!fs.existsSync(indexFile)) return res.status(404).send('Not Found');
@@ -192,16 +173,12 @@ export async function startServer(port: number | string) {
         });
       });
 
-      // call setupStaticServing but ignore non-fatal errors
       try {
         setupStaticServing(app);
       } catch (err) {
         console.warn('setupStaticServing() threw an error (ignored):', err);
       }
     }
-
-    // Uncomment to debug registered routes at startup (temporary)
-    // logRegisteredRoutes();
 
     server.listen(port, () => {
       console.log(`API Server running on port ${port}`);
