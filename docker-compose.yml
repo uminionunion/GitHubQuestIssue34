@@ -16,6 +16,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     volumes:
       - app_data:/app/data
+      - /root/private-includes/includes:/app/includes
     networks:
       - mainuhubfeaturev001-network
     healthcheck:
@@ -23,21 +24,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - app
-    networks:
-      - mainuhubfeaturev001-network
-
 volumes:
   app_data:
 
