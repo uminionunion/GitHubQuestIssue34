@@ -91,7 +91,7 @@ const MainUhubFeatureV001Layout = () => {
                 {!user ? (
                   <>
                     <Button onClick={() => handleOpenAuthModal('signup')} className="bg-orange-400 hover:bg-orange-500 text-black">Sign Up?</Button>
-                    <Button onClick={() => handleOpenAuthModal('login')}>Log In</Button>
+                    <Button onClick={() => handleOpenAuthModal('login')}>Log In?</Button>
                   </>
                 ) : (
                   <Button onClick={handleLogout} variant="destructive">Log Out</Button>
