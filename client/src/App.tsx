@@ -112,7 +112,7 @@ const MainUhubFeatureV001Layout = () => {
         <Routes>
           <Route path="/" element={
             <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4">Welcome to the uminion</h1>
+              <h1 className="text-4xl font-bold mb-4">welcome to uminion</h1>
               <p className="text-lg text-muted-foreground">Click the uHub button below to get started.</p>
               <Link to="/SisterUnion001NewEngland">
                 <Button className="mt-4">Go to a Sister Union Page</Button>
