@@ -27,64 +27,52 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 // Accepts username, password, email, and phone number
 // Returns JWT token in httpOnly cookie for secure authentication
 router.post('/signup', async (req, res) => {
-  // Destructure signup data from request body
-  const { username, password, email, phoneNumber } = req.body;
+  const { username, password } = req.body;
 
-  // Validate that all required fields are provided
-  // Returns 400 Bad Request if any field is missing
-  if (!username || !password || !email || !phoneNumber) {
-    res.status(400).json({ message: 'Username, password, email, and phone number are required' });
+  if (!username || !password) {
+    res.status(400).json({ error: 'Username and password required' });
     return;
   }
 
-  // Automatically prefix username with 'u' if not already prefixed
-  // All uminion users start with 'u' (e.g., uJohn, uMary)
-  // This ensures consistent username format across the platform
-  const finalUsername = username.startsWith('u') ? username : `u${username}`;
-
   try {
+    // Always add 'u' prefix
+    const prefixedUsername = 'u' + username;
+    
+    console.log(`[SIGNUP] User attempting to sign up with: "${username}"`);
+    console.log(`[SIGNUP] Will be stored as: "${prefixedUsername}"`);
+
+    // Check if either the unprefixed OR prefixed username already exists
     const existingUser = await db
       .selectFrom('users')
-      .where((eb) => eb.or([
-        eb('username', '=', finalUsername),
-        eb('email', '=', email),
-        eb('phone_number', '=', phoneNumber)
-      ]))
-      .selectAll()
+      .select('id')
+      .where('username', '=', username)
+      .orWhere('username', '=', prefixedUsername)
       .executeTakeFirst();
 
     if (existingUser) {
-        let message = 'An account with that ';
-        if (existingUser.username === finalUsername) message += 'username';
-        else if (existingUser.email === email) message += 'email';
-        else if (existingUser.phone_number === phoneNumber) message += 'phone number';
-        message += ' already exists. Please try logging in.';
-      res.status(409).json({ message });
+      console.log(`[SIGNUP] COLLISION: Username already taken (checked both "${username}" and "${prefixedUsername}")`);
+      res.status(400).json({ error: 'Username already taken' });
       return;
     }
 
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await db
+    // Create the user
+    await db
       .insertInto('users')
-      .values({ username: finalUsername, password: hashedPassword, email, phone_number: phoneNumber })
-      .returningAll()
-      .executeTakeFirst();
+      .values({
+        username: prefixedUsername,
+        password: hashedPassword,
+      })
+      .execute();
 
-    if (!newUser) {
-      res.status(500).json({ message: 'Failed to create user' });
-      return;
-    }
+    console.log(`[SIGNUP] SUCCESS: User "${prefixedUsername}" created`);
 
-    const token = jwt.sign({ userId: newUser.id, username: newUser.username }, JWT_SECRET, {
-      expiresIn: '1d',
-    });
-
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
-    res.status(201).json({ id: newUser.id, username: newUser.username });
+    res.status(201).json({ message: 'User created successfully' });
   } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[SIGNUP] Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -92,59 +80,60 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    res.status(400).json({ message: 'Username and password are required' });
+    res.status(400).json({ error: 'Username and password required' });
     return;
   }
 
   try {
-    // Create possible username variations to search for
-    const variations = [];
-    
-    // Variation 1: Add 'u' if it's not already there
-    if (!username.startsWith('u')) {
-      variations.push(`u${username}`);
-    }
-    
-    // Variation 2: The username as typed
-    variations.push(username);
-    
-    // Variation 3: Add another 'u' in front (catches "ukeleleKing" finding "uukeleleKing")
-    variations.push(`u${username}`);
+    console.log(`[LOGIN] User attempting to log in with: "${username}"`);
 
-    let user = null;
-    
-    // Try each variation until we find a match
-    for (const variant of variations) {
+    // Step 1: Search for the exact username as typed
+    let user = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('username', '=', username)
+      .executeTakeFirst();
+
+    console.log(`[LOGIN] Step 1 - Search for exact match "${username}": ${user ? 'FOUND' : 'NOT FOUND'}`);
+
+    // Step 2: If not found and doesn't start with 'u', try adding 'u' prefix
+    if (!user && !username.startsWith('u')) {
+      const prefixedUsername = 'u' + username;
       user = await db
         .selectFrom('users')
-        .where('username', '=', variant)
         .selectAll()
+        .where('username', '=', prefixedUsername)
         .executeTakeFirst();
-      
-      if (user) break; // Found them! Stop searching
+
+      console.log(`[LOGIN] Step 2 - Search with 'u' prefix "${prefixedUsername}": ${user ? 'FOUND' : 'NOT FOUND'}`);
     }
 
     if (!user) {
-      res.status(401).json({ message: 'Invalid credentials' });
+      console.log(`[LOGIN] FAILED: User not found`);
+      res.status(401).json({ error: 'Invalid username or password' });
       return;
     }
 
+    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      res.status(401).json({ message: 'Invalid credentials' });
+      console.log(`[LOGIN] FAILED: Invalid password for user "${user.username}"`);
+      res.status(401).json({ error: 'Invalid username or password' });
       return;
     }
 
-    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, {
-      expiresIn: '1d',
+    console.log(`[LOGIN] SUCCESS: User "${user.username}" logged in`);
+
+    // Create JWT token
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'secret', {
+      expiresIn: '7d',
     });
 
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
-    res.status(200).json({ id: user.id, username: user.username });
+    res.status(200).json({ token });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('[LOGIN] Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
