@@ -97,11 +97,32 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const user = await db
-      .selectFrom('users')
-      .where('username', '=', username)
-      .selectAll()
-      .executeTakeFirst();
+    // Create possible username variations to search for
+    const variations = [];
+    
+    // Variation 1: Add 'u' if it's not already there
+    if (!username.startsWith('u')) {
+      variations.push(`u${username}`);
+    }
+    
+    // Variation 2: The username as typed
+    variations.push(username);
+    
+    // Variation 3: Add another 'u' in front (catches "ukeleleKing" finding "uukeleleKing")
+    variations.push(`u${username}`);
+
+    let user = null;
+    
+    // Try each variation until we find a match
+    for (const variant of variations) {
+      user = await db
+        .selectFrom('users')
+        .where('username', '=', variant)
+        .selectAll()
+        .executeTakeFirst();
+      
+      if (user) break; // Found them! Stop searching
+    }
 
     if (!user) {
       res.status(401).json({ message: 'Invalid credentials' });
