@@ -20,6 +20,9 @@ FROM node:20-alpine AS runtime
 
 WORKDIR /app
 
+# Add sqlite3 CLI in runtime stage for database management
+RUN apk add --no-cache sqlite
+
 COPY package*.json ./
 COPY package-lock.json ./
 
