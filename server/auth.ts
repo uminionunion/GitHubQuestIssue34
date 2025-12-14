@@ -43,11 +43,14 @@ router.post('/signup', async (req, res) => {
 
     // Check if either the unprefixed OR prefixed username already exists
     const existingUser = await db
-      .selectFrom('users')
-      .select('id')
-      .where('username', '=', username)
-      .orWhere('username', '=', prefixedUsername)
-      .executeTakeFirst();
+  .selectFrom('users')
+  .where((eb) => eb.or([
+    eb('username', '=', finalUsername),
+    eb('email', '=', email),
+    eb('phone_number', '=', phoneNumber)
+  ]))
+  .selectAll()
+  .executeTakeFirst();
 
     if (existingUser) {
       console.log(`[SIGNUP] COLLISION: Username already taken (checked both "${username}" and "${prefixedUsername}")`);
