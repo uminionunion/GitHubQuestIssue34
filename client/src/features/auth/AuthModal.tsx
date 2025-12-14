@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -7,11 +6,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/useAuth.tsx';
+} from '../ui/dialog';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Checkbox } from '../ui/checkbox';
+import { useAuth } from '../../hooks/useAuth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -25,6 +25,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [termsAgreed, setTermsAgreed] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
 
@@ -134,12 +135,61 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
                     className="col-span-3"
                   />
                 </div>
+                {/* TERMS & CONDITIONS CHECKBOX WITH SCROLLABLE TEXT */}
+                <div className="col-span-4 flex items-start gap-3 mt-4">
+                  <Checkbox
+                    id="terms"
+                    checked={termsAgreed}
+                    onCheckedChange={(checked) => setTermsAgreed(checked === true)}
+                    className={`mt-1 flex-shrink-0 ${
+                      termsAgreed
+                        ? 'border-orange-500 bg-orange-500'
+                        : 'border-gray-400 bg-gray-100'
+                    }`}
+                  />
+                  <div className="flex flex-col gap-2 flex-1">
+                    <div
+                      className={`h-[2.5rem] overflow-y-auto text-sm leading-relaxed border rounded px-2 py-1 transition-colors ${
+                        termsAgreed
+                          ? 'border-orange-500 bg-orange-50'
+                          : 'border-gray-400 bg-gray-100'
+                      }`}
+                      style={{
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: termsAgreed ? '#f97316 #e5e7eb' : '#9ca3af #e5e7eb',
+                      }}
+                    >
+                      <p
+                        className={`cursor-pointer transition-colors ${
+                          termsAgreed
+                            ? 'text-orange-500 hover:text-orange-600'
+                            : 'text-gray-500 hover:text-orange-500'
+                        }`}
+                      >
+                        By checking this box, you agree to receive emails and/or text messages from us. Your email
+                        will be used for future password recovery measures and updates from the union; while your
+                        phone number will be used for future verification (required to gain access to the uminion
+                        union website) along with some union updates. Standard messaging rates may apply.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </>
             )}
             {error && <p className="text-red-500 text-sm col-span-4 text-center">{error}</p>}
           </div>
           <DialogFooter>
-            <Button type="submit">{mode === 'login' ? 'Log In' : 'Sign Up'}</Button>
+            <Button
+              type="submit"
+              disabled={mode === 'signup' && !termsAgreed}
+              className={`${
+                mode === 'signup' && !termsAgreed
+                  ? 'opacity-50 cursor-not-allowed'
+                  : ''
+              }`}
+            >
+              {mode === 'login' ? 'Log In' : 'Sign Up'}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
