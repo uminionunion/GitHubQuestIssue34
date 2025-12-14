@@ -206,15 +206,20 @@ const [archiveOffset, setArchiveOffset] = useState(0);
 
  const isChatDisabled = (activeTab === 2 && !isUnlocked) || (restrictedTabs.includes(activeTab) && !user);
 
-const getChatroomDescription = (tabIndex: number): { title: string; access: string } => {
+const getChatroomDescription = (tabIndex: number): { title: string; access: string } | null => {
+  // For Hub #10, only show descriptions for chatrooms 1-3 (indices 0-2)
+  if (modalNumber === 10 && tabIndex > 2) {
+    return null;
+  }
+  
   const descriptions: Record<number, { title: string; access: string }> = {
     0: { title: 'CH 1', access: 'All Topics & All Welcome (Logged-in & not-Logged-in)' },
     1: { title: 'CH 2', access: 'All Topics & Only Logged-in Users Welcome' },
-    2: { title: 'CH 3', access: 'Only That "Sister Union"\'s Members allowed in (Password protected)' },
+    2: { title: 'CH 3', access: 'Only That \"Sister Union\"\\'s Members allowed in (Password protected)' },
     3: { title: 'CH 4', access: 'All Topics & Only Logged-in Users Welcome' },
     4: { title: 'CH 5', access: 'All Topics & Only Logged-in Users Welcome' },
     5: { title: 'CH 6', access: 'All Topics & Only Logged-in Users Welcome' },
-    6: { title: 'CH 7', access: 'Where to go to Vote, on how the Union should move forward (Coming Soon)' },
+    6: { title: 'CH 7', access: 'Event Info/Updates & Where to go to Vote (on how the Union should move forward (Coming Soon))' },
   };
   return descriptions[tabIndex] || { title: `CH ${tabIndex + 1}`, access: 'Standard chatroom' };
 };
@@ -357,11 +362,13 @@ const getChatTabs = () => {
                 onMouseDown={handleDividerMouseDown}
               />
 
-              <div className="overflow-y-auto p-4 border-l border-white/20 flex-shrink-0" style={{ width: `${100 - chatWidth}%`, color: currentFontColor }}>
-  <div className="mb-6 pb-4 border-b border-white/20">
-    <h2 className="font-bold text-sm mb-2">{getChatroomDescription(activeTab).title}</h2>
-    <p className="text-xs text-gray-300 leading-relaxed">{getChatroomDescription(activeTab).access}</p>
-  </div>
+<div className="overflow-y-auto p-4 border-l border-white/20 flex-shrink-0" style={{ width: `${100 - chatWidth}%`, color: currentFontColor }}>
+  {getChatroomDescription(activeTab) && (
+    <div className="mb-6 pb-4 border-b border-white/20">
+      <h2 className="font-bold text-sm mb-2">{getChatroomDescription(activeTab)!.title}</h2>
+      <p className="text-xs text-gray-300 leading-relaxed">{getChatroomDescription(activeTab)!.access}</p>
+    </div>
+  )}
   
   <h3 className="font-bold mb-4 flex items-center gap-2">
     <UserIcon className="h-4 w-4" />
