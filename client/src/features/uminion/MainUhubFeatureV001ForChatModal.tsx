@@ -78,10 +78,13 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
     modalNumber,
   }
 ) => {
-  const [activeTab, setActiveTab] = useState(0);
-  const [password, setPassword] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+const [activeTab, setActiveTab] = useState(0);
+const [password, setPassword] = useState('');
+const [isUnlocked, setIsUnlocked] = useState(false);
+const [messages, setMessages] = useState<Message[]>([]);
+const [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
+const [showArchive, setShowArchive] = useState(false);
+const [archiveOffset, setArchiveOffset] = useState(0);
   const [newMessage, setNewMessage] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -203,19 +206,32 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
 
  const isChatDisabled = (activeTab === 2 && !isUnlocked) || (restrictedTabs.includes(activeTab) && !user);
 
- const getChatTabs = () => {
-   let tabs = [...Array(7)].map((_, i) => ({
-     label: `Chatroom ${i + 1}`,
-     isProtected: i === 2,
-     isLoginRequired: restrictedTabs.includes(i),
-   }));
+const getChatroomDescription = (tabIndex: number): { title: string; access: string } => {
+  const descriptions: Record<number, { title: string; access: string }> = {
+    0: { title: 'CH 1', access: 'All Topics & All Welcome (Logged-in & not-Logged-in)' },
+    1: { title: 'CH 2', access: 'All Topics & Only Logged-in Users Welcome' },
+    2: { title: 'CH 3', access: 'Only That "Sister Union"\'s Members allowed in (Password protected)' },
+    3: { title: 'CH 4', access: 'All Topics & Only Logged-in Users Welcome' },
+    4: { title: 'CH 5', access: 'All Topics & Only Logged-in Users Welcome' },
+    5: { title: 'CH 6', access: 'All Topics & Only Logged-in Users Welcome' },
+    6: { title: 'CH 7', access: 'Where to go to Vote, on how the Union should move forward (Coming Soon)' },
+  };
+  return descriptions[tabIndex] || { title: `CH ${tabIndex + 1}`, access: 'Standard chatroom' };
+};
 
-   if (modalNumber === 10) {
-     tabs = tabs.slice(0, 3);
-     tabs.push({ label: '+ User Created Chatrooms:>', isProtected: false, isLoginRequired: true });
-   }
-   return tabs;
- };
+const getChatTabs = () => {
+  let tabs = [...Array(7)].map((_, i) => ({
+    label: `Chatroom ${i + 1}`,
+    isProtected: i === 2,
+    isLoginRequired: restrictedTabs.includes(i),
+  }));
+
+  if (modalNumber === 10) {
+    tabs = tabs.slice(0, 3);
+    tabs.push({ label: '+ User Created Chatrooms:>', isProtected: false, isLoginRequired: true });
+  }
+  return tabs;
+};
 
  const changeBackgroundColor = () => {
    const randomIndex = Math.floor(Math.random() * backgroundGradients.length);
@@ -342,20 +358,25 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
               />
 
               <div className="overflow-y-auto p-4 border-l border-white/20 flex-shrink-0" style={{ width: `${100 - chatWidth}%`, color: currentFontColor }}>
-               <h3 className="font-bold mb-4 flex items-center gap-2">
-                   <UserIcon className="h-4 w-4" />
-                   Users Online
-                   {/* TO UNHIDE USER COUNT: Change the next line from "display: none" to "display: inline" */}
-                   <span style={{ display: 'none' }}>({users.length})</span>
-                 </h3>
-                <div className="space-y-2">
-                  {users.map((u, i) => (
-                    <div key={i} className="text-sm hover:bg-white/10 p-2 rounded cursor-pointer transition-colors" onClick={() => handleViewProfile(u.username)}>
-                      {u.username}
-                    </div>
-                  ))}
-                </div>
-              </div>
+  <div className="mb-6 pb-4 border-b border-white/20">
+    <h2 className="font-bold text-sm mb-2">{getChatroomDescription(activeTab).title}</h2>
+    <p className="text-xs text-gray-300 leading-relaxed">{getChatroomDescription(activeTab).access}</p>
+  </div>
+  
+  <h3 className="font-bold mb-4 flex items-center gap-2">
+    <UserIcon className="h-4 w-4" />
+    Users Online
+    {/* TO UNHIDE USER COUNT: Change the next line from "display: none" to "display: inline" */}
+    <span style={{ display: 'none' }}>({users.length})</span>
+  </h3>
+  <div className="space-y-2">
+    {users.map((u, i) => (
+      <div key={i} className="text-sm hover:bg-white/10 p-2 rounded cursor-pointer transition-colors" onClick={() => handleViewProfile(u.username)}>
+        {u.username}
+      </div>
+    ))}
+  </div>
+</div>
             </div>
 
             <div className="p-4 border-t border-white/20 flex flex-col gap-2 flex-shrink-0">
