@@ -215,7 +215,7 @@ const getChatroomDescription = (tabIndex: number): { title: string; access: stri
   const descriptions: Record<number, { title: string; access: string }> = {
     0: { title: 'CH 1', access: 'All Topics & All Welcome (Logged-in & not-Logged-in)' },
     1: { title: 'CH 2', access: 'All Topics & Only Logged-in Users Welcome' },
-    2: { title: 'CH 3', access: 'Only That \"Sister Union\"\\'s Members allowed in (Password protected)' },
+    2: { title: 'CH 3', access: 'Only That \"Sister Union\"\\s Members allowed in (Password protected)' },
     3: { title: 'CH 4', access: 'All Topics & Only Logged-in Users Welcome' },
     4: { title: 'CH 5', access: 'All Topics & Only Logged-in Users Welcome' },
     5: { title: 'CH 6', access: 'All Topics & Only Logged-in Users Welcome' },
