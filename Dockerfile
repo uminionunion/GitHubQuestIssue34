@@ -13,6 +13,8 @@ COPY package-lock.json ./
 RUN npm ci
 
 COPY . .
+RUN rm -rf node_modules/.vite node_modules/.tsc 2>/dev/null || true
+RUN rm -rf dist tsconfig.tsbuildinfo 2>/dev/null || true
 ENV NODE_ENV=production
 RUN npm run build
 
