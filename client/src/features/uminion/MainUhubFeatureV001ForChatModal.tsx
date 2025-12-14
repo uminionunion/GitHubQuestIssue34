@@ -108,7 +108,7 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
 
  useEffect(() => {
    if (isOpen) {
-     socketRef.current = io('http://localhost:3001', {
+    socketRef.current = io({
   withCredentials: true,
   reconnection: true,
   reconnectionDelay: 1000,
