@@ -88,7 +88,7 @@ const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalPro
 
   useEffect(() => {
     if (isOpen) {
-      socketRef.current = io('http://localhost:3001', {
+     socketRef.current = io({
   withCredentials: true,
   reconnection: true,
   reconnectionDelay: 1000,
