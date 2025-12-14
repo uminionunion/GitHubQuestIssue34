@@ -6,11 +6,11 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Checkbox } from '../ui/checkbox';
+} from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Checkbox } from '../../components/ui/checkbox';
 import { useAuth } from '../../hooks/useAuth';
 
 interface AuthModalProps {
@@ -55,6 +55,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
       setError('Failed to connect to the server.');
     }
   };
+
+  const termsText = `By checking this box, you agree to receive emails and/or text messages from us. Your email will be used for future password recovery measures and updates from the union; while your phone number will be used for future verification (required to gain access to the uminion union website) along with some union updates. Standard messaging rates may apply.`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -135,7 +137,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
                     className="col-span-3"
                   />
                 </div>
-                {/* TERMS & CONDITIONS CHECKBOX WITH SCROLLABLE TEXT */}
+
+                {/* Terms Agreement Section with Scrollable Text */}
                 <div className="col-span-4 flex items-start gap-3 mt-4">
                   <Checkbox
                     id="terms"
@@ -147,31 +150,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
                         : 'border-gray-400 bg-gray-100'
                     }`}
                   />
-                  <div className="flex flex-col gap-2 flex-1">
-                    <div
-                      className={`h-[2.5rem] overflow-y-auto text-sm leading-relaxed border rounded px-2 py-1 transition-colors ${
+                  
+                  {/* Scrollable Text Container - 2 lines visible with scroll */}
+                  <div
+                    className={`flex-1 h-12 overflow-y-auto border rounded px-2 py-1 text-xs leading-relaxed transition-colors ${
+                      termsAgreed
+                        ? 'text-orange-500 border-orange-300 bg-orange-50'
+                        : 'text-gray-500 border-gray-300 bg-gray-50'
+                    }`}
+                    style={{
+                      scrollbarColor: termsAgreed ? '#f97316 #f5f5f5' : '#888 #f5f5f5',
+                      scrollbarWidth: 'thin',
+                    }}
+                  >
+                    <label
+                      htmlFor="terms"
+                      className={`cursor-pointer inline-block transition-colors ${
                         termsAgreed
-                          ? 'border-orange-500 bg-orange-50'
-                          : 'border-gray-400 bg-gray-100'
+                          ? 'text-orange-500'
+                          : 'text-gray-500'
                       }`}
-                      style={{
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: termsAgreed ? '#f97316 #e5e7eb' : '#9ca3af #e5e7eb',
-                      }}
                     >
-                      <p
-                        className={`cursor-pointer transition-colors ${
-                          termsAgreed
-                            ? 'text-orange-500 hover:text-orange-600'
-                            : 'text-gray-500 hover:text-orange-500'
-                        }`}
-                      >
-                        By checking this box, you agree to receive emails and/or text messages from us. Your email
-                        will be used for future password recovery measures and updates from the union; while your
-                        phone number will be used for future verification (required to gain access to the uminion
-                        union website) along with some union updates. Standard messaging rates may apply.
-                      </p>
-                    </div>
+                      {termsText}
+                    </label>
                   </div>
                 </div>
               </>
@@ -184,8 +185,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
               disabled={mode === 'signup' && !termsAgreed}
               className={`${
                 mode === 'signup' && !termsAgreed
-                  ? 'opacity-50 cursor-not-allowed'
-                  : ''
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed hover:bg-gray-400'
+                  : 'bg-orange-500 hover:bg-orange-600'
               }`}
             >
               {mode === 'login' ? 'Log In' : 'Sign Up'}
