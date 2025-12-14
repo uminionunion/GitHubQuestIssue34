@@ -13,8 +13,10 @@ COPY package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN rm -rf node_modules/.vite node_modules/.tsc 2>/dev/null || true
-RUN rm -rf dist tsconfig.tsbuildinfo 2>/dev/null || true
+
+# Clean TypeScript and build caches
+RUN rm -rf node_modules/.vite node_modules/.tsc dist tsconfig.tsbuildinfo 2>/dev/null || true
+
 ENV NODE_ENV=production
 RUN npm run build
 
@@ -23,7 +25,6 @@ FROM node:20-alpine AS runtime
 
 WORKDIR /app
 
-# Add sqlite3 CLI in runtime stage for database management
 RUN apk add --no-cache sqlite
 
 COPY package*.json ./
