@@ -108,7 +108,7 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
 
  useEffect(() => {
    if (isOpen) {
-    socketRef.current = io({
+  socketRef.current = io(undefined, {
   withCredentials: true,
   reconnection: true,
   reconnectionDelay: 1000,
