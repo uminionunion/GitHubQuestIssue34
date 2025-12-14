@@ -10,7 +10,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 
 // Import the 'cn' utility function for merging class names.
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 
 // The main Dialog container component from Radix.
 const Dialog = DialogPrimitive.Root;
