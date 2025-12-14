@@ -57,7 +57,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
     }
   };
 
-  const termsText = `TERMS OF SERVICE AND USE:> By checking this box, you agree to receive emails and/or text messages from the uminion union (and/or its active G.U.S (General Union Secretary)). Your email will be used for future password recovery measures and updates from the union; while your phone number will be used for future verification (required to gain access to the uminion union website) along with some union updates. Standard messaging rates may apply. These Terms of Service & Use may evolve overtime. -Last Updated 1:30am on 12/14/25`;
+  const termsText = `TERMS OF SERVICE AND USE:> By checking this box, you agree (that you are 18+ & agree:) to receive emails and/or text messages from the uminion union (and/or its active G.U.S (General Union Secretary)). Your email will be used for future password recovery measures and updates from the union; while your phone number will be used for future verification (required to gain access to the uminion union website) along with some union updates. Standard messaging rates may apply. These Terms of Service & Use may evolve overtime. -Last Updated: 1:45am on 12/14/25`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
