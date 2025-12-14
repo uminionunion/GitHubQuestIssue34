@@ -88,7 +88,7 @@ const MainHubUpgradeV001ForChatModal: React.FC<MainHubUpgradeV001ForChatModalPro
 
   useEffect(() => {
     if (isOpen) {
-     socketRef.current = io({
+     socketRef.current = io(undefined, {
   withCredentials: true,
   reconnection: true,
   reconnectionDelay: 1000,
