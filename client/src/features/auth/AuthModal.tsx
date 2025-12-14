@@ -152,28 +152,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
                   />
                   
                   {/* Scrollable Text Container - 2 lines visible with scroll */}
-                  <div
-                    className={`flex-1 h-12 overflow-y-auto border rounded px-2 py-1 text-xs leading-relaxed transition-colors ${
-                      termsAgreed
-                        ? 'text-orange-500 border-orange-300 bg-orange-50'
-                        : 'text-gray-500 border-gray-300 bg-gray-50'
-                    }`}
-                    style={{
-                      scrollbarColor: termsAgreed ? '#f97316 #f5f5f5' : '#888 #f5f5f5',
-                      scrollbarWidth: 'thin',
-                    }}
-                  >
-                    <label
-                      htmlFor="terms"
-                      className={`cursor-pointer inline-block transition-colors ${
-                        termsAgreed
-                          ? 'text-orange-500'
-                          : 'text-gray-500'
-                      }`}
-                    >
-                      {termsText}
-                    </label>
-                  </div>
+<div
+  className={`flex-1 h-12 overflow-y-auto border rounded px-2 py-1 text-xs leading-relaxed transition-colors ${'text-gray-300 border-gray-600 bg-black'}`}
+  style={{
+    scrollbarColor: '#ffffff #1f1f1f',
+    scrollbarWidth: 'thin',
+  }}
+>
+  <label
+    htmlFor="terms"
+    className={`cursor-pointer inline-block transition-colors text-gray-300 hover:text-white`}
+  >
+    {termsText}
+  </label>
+</div>
                 </div>
               </>
             )}
@@ -181,16 +173,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
           </div>
           <DialogFooter>
             <Button
-              type="submit"
-              disabled={mode === 'signup' && !termsAgreed}
-              className={`${
-                mode === 'signup' && !termsAgreed
-                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed hover:bg-gray-400'
-                  : 'bg-orange-500 hover:bg-orange-600'
-              }`}
-            >
-              {mode === 'login' ? 'Log In' : 'Sign Up'}
-            </Button>
+  type="submit"
+  disabled={mode === 'signup' && !termsAgreed}
+  className={`${
+    mode === 'signup' && termsAgreed
+      ? 'bg-orange-500 hover:bg-orange-600 text-white'
+      : mode === 'signup' && !termsAgreed
+      ? 'bg-gray-400 text-gray-600 cursor-not-allowed hover:bg-gray-400'
+      : 'bg-white text-black hover:bg-gray-100'
+  }`}
+>
+  {mode === 'login' ? 'Log In' : 'Sign Up'}
+</Button>
           </DialogFooter>
         </form>
       </DialogContent>
