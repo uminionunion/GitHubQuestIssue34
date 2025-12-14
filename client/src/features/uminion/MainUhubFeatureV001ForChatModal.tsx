@@ -109,8 +109,13 @@ const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalP
  useEffect(() => {
    if (isOpen) {
      socketRef.current = io('http://localhost:3001', {
-       withCredentials: true,
-     });
+  withCredentials: true,
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: 5,
+  transports: ['websocket', 'polling'],
+});
 
      socketRef.current.on('connect', () => {
        console.log('Connected to socket server');
