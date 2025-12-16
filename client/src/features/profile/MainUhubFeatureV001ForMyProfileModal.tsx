@@ -146,7 +146,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
-      'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
+      'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: "https://page001.uminion.com/"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
@@ -166,10 +166,10 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   useEffect(() => {
     const allProducts = {
         'UnionSAM#20': [
-            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/', store: 'main' },
-            { id: 2, name: 'uT-Shirt', price: 24.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/', store: 'user' },
+            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/', store: 'main' },
+            { id: 2, name: 'uT-Shirt', price: 24.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/', store: 'user' },
             { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/', store: 'user' },
-            { id: 4, name: 'Ukraine', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UkraineLogo001-1536x1536.png', url: 'https://u24.gov.ua/', store: 'user' },
+            { id: 4, name: 'Ukraine', price: 5.25, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store: 'user' },
             { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/', store: 'user' },
         ],
         'UnionPolitic#19': [
