@@ -173,13 +173,13 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/', store: 'user' },
         ],
         'UnionPolitic#19': [
-            { id: 6, name: 'Support unionCandidates as a WHOLE', price: 64.95, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
-            { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
-            { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
-            { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo019.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+            { id: 6, name: 'Support unionCandidates as a WHOLE', price: 64.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+            { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+            { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
+            { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://uminion.com/product/sister-union-19-2024-poster/' },
         ],
         'UnionEvent#12': [
-            { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo012.00.2024Classic.png', url: 'https://uminion.com/product/sister-union-12-2024-poster/' },
+            { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-12-unionevent12-2024classica/' },
         ],
     };
     setProducts(allProducts);
