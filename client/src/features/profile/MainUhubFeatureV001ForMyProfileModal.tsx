@@ -168,7 +168,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
         'UnionSAM#20': [
             { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/', store: 'main' },
             { id: 2, name: 'uT-Shirt', price: 24.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://uminion.com/product/custom-u-t-shirt/', store: 'user' },
-            { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionLogo28.2024Classic.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/', store: 'user' },
+            { id: 3, name: 'Classic Logo', price: 64.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png', url: 'https://uminion.com/product/sister-union-18-2024-poster/', store: 'user' },
             { id: 4, name: 'Ukraine', price: 5.25, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store: 'user' },
             { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://uminion.com/product/union-card-the-official-uminion-union-card/', store: 'user' },
         ],
@@ -405,7 +405,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
              </a>
              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="h-4 w-4 mb-1" /> Settings</Button>
            </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-3/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/StoreProductsAndImagery/UminionLogo28.2024Classic.png')" }}>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-3/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png')" }}>
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
