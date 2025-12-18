@@ -1,0 +1,2184 @@
+# Store Integration 002 - Advanced Store System with Admin Hierarchy, Multi-Store Management, and Marketplace Browser
+
+## Table of Contents
+1. [Admin Role Hierarchy & High-High-High Admins](#admin-role-hierarchy--high-high-high-admins)
+2. [Database Schema Upgrades](#database-schema-upgrades)
+3. [30 Chatroom-Based Stores (#01-#30)](#30-chatroom-based-stores-01-30)
+4. [10-Quadrant Marketplace Browser (Hiker Icon Feature)](#10-quadrant-marketplace-browser-hiker-icon-feature)
+5. [Product Management UI Reorganization](#product-management-ui-reorganization)
+6. [Database-Driven Product Fetching](#database-driven-product-fetching)
+7. [Two-Cart System Implementation](#two-cart-system-implementation)
+8. [WooCommerce Integration Upgrade](#woocommerce-integration-upgrade)
+9. [User Store Payment Methods](#user-store-payment-methods)
+10. [Home Modal with Account & Inventory](#home-modal-with-account--inventory)
+11. [Backend API Endpoints](#backend-api-endpoints)
+12. [Implementation Checklist](#implementation-checklist)
+
+---
+
+## Admin Role Hierarchy & High-High-High Admins
+
+### Understanding the Role Hierarchy
+
+We're creating a **3-tier admin system**:
+
+```
+┌─────────────────────────────────────────┐
+│  HIGH-HIGH-HIGH ADMINS (Tier 1)         │
+│  Usernames: "uAdmin", "uminion",        │
+│             "uminionunion", "uSalem"    │
+│  Responsibilities:                       │
+│  • Manage the MAIN Union Store          │
+│  • Access to stores #01-#30             │
+│  • Product blocking/removal             │
+│  • User account blocking                │
+└─────────────────────────────────────────┘
+         │
+         ↓
+┌─────────────────────────────────────────┐
+│  HIGH-HIGH ADMIN (Tier 2)               │
+│  Username: "uStorytellingSalem"         │
+│  Responsibilities:                       │
+│  • Manage specific regional stores      │
+│  • Limited product curation             │
+│  • Store-level moderation               │
+└─────────────────────────────────────────┘
+         │
+         ↓
+┌─────────────────────────────────────────┐
+│  REGULAR USERS                          │
+│  Can create personal stores             │
+│  Can only sell in their own store       │
+└─────────────────────────────────────────┘
+```
+
+### Step 1: Upgrade Users Table with Admin Flags
+
+**Purpose**: Add columns to track admin status for each user
+
+**Migration Script**:
+```sql
+-- Add admin role columns to users table
+ALTER TABLE users ADD COLUMN is_high_high_high_admin INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN is_high_high_admin INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN is_blocked INTEGER DEFAULT 0;
+
+-- Create index for faster admin queries
+CREATE INDEX idx_users_admin_roles ON users(is_high_high_high_admin, is_high_high_admin);
+```
+
+**What This Does**:
+- `is_high_high_high_admin`: Integer (0 or 1). Set to 1 for "uAdmin", "uminion", "uminionunion", "uSalem"
+- `is_high_high_admin`: Integer (0 or 1). Set to 1 for "uStorytellingSalem"
+- `is_blocked`: Integer (0 or 1). Set to 1 if user is blocked from selling/posting
+
+### Step 2: Insert Admin Users on Signup
+
+**File**: `/home/app/server/auth.ts` (Update signup endpoint)
+
+**Current Code Location**: Find the signup router function (around line 50-100)
+
+**Replace with**:
+```typescript
+router.post('/signup', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    res.status(400).json({ message: 'Username and password are required' });
+    return;
+  }
+
+  const prefixedUsername = `u${username}`;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  try {
+    const existingUser = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('username', '=', prefixedUsername)
+      .executeTakeFirst();
+
+    if (existingUser) {
+      res.status(400).json({ message: 'Username already exists' });
+      return;
+    }
+
+    // Determine if this user should be a high-high-high admin or high-high admin
+    const highHighHighAdmins = ['uAdmin', 'uminion', 'uminionunion', 'uSalem'];
+    const highHighAdmins = ['uStorytellingSalem'];
+    
+    const isHighHighHighAdmin = highHighHighAdmins.includes(prefixedUsername) ? 1 : 0;
+    const isHighHighAdmin = highHighAdmins.includes(prefixedUsername) ? 1 : 0;
+
+    const newUser = await db
+      .insertInto('users')
+      .values({
+        username: prefixedUsername,
+        password: hashedPassword,
+        is_high_high_high_admin: isHighHighHighAdmin,
+        is_high_high_admin: isHighHighAdmin,
+        is_blocked: 0
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow();
+
+    console.log(`User created: ${prefixedUsername}, is_high_high_high_admin: ${isHighHighHighAdmin}`);
+
+    const token = jwt.sign(
+      { userId: newUser.id, username: prefixedUsername },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('token', token, { httpOnly: true, sameSite: 'strict' });
+    res.status(201).json({
+      message: 'User created successfully',
+      user: {
+        id: newUser.id,
+        username: prefixedUsername
+      }
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+```
+
+### Step 3: Query Admin Status in Frontend
+
+**Purpose**: Determine what features to show based on admin role
+
+**Usage in React Components**:
+```typescript
+import { useAuth } from '../../hooks/useAuth';
+
+export function MyComponent() {
+  const { user } = useAuth();
+  
+  // Check if user is high-high-high admin
+  const isHighHighHighAdmin = user?.is_high_high_high_admin === 1;
+  
+  // Check if user is high-high admin
+  const isHighHighAdmin = user?.is_high_high_admin === 1;
+  
+  // Check if user is blocked
+  const isBlocked = user?.is_blocked === 1;
+
+  if (isBlocked) {
+    return <div>Your account has been blocked.</div>;
+  }
+
+  return (
+    <>
+      {isHighHighHighAdmin && (
+        <button>Manage Union Main Store</button>
+      )}
+      {isHighHighAdmin && (
+        <button>Manage Regional Stores</button>
+      )}
+    </>
+  );
+}
+```
+
+---
+
+## Database Schema Upgrades
+
+### New Tables for Multi-Store System
+
+#### Table 1: Store Configuration Table
+
+**Purpose**: Track which stores exist (#01-#30) and their metadata
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForStores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    store_number INTEGER UNIQUE NOT NULL,  -- 0 for main, 1-30 for others
+    store_name TEXT NOT NULL,              -- e.g., "NewEngland", "UnionTrades/Energy/&CommunityWIFI"
+    store_type TEXT NOT NULL,              -- 'main', 'regional', 'chatroom'
+    chatroom_id INTEGER,                   -- Reference to which chatroom this store represents
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (chatroom_id) REFERENCES messages(room)
+)
+```
+
+**Insert All 30 Stores**:
+```sql
+INSERT INTO MainHubUpgradeV001ForStores (store_number, store_name, store_type) VALUES
+(0, 'Union Main Store', 'main'),
+(1, 'NewEngland', 'chatroom'),
+(2, 'UnionTrades', 'chatroom'),
+-- ... continue for all 30
+(30, 'UnionHealthcare', 'chatroom');
+```
+
+#### Table 2: Featured Products (Top 3 for Each Store)
+
+**Purpose**: Track which 3 products are featured at the top of each store
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForFeaturedProducts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    store_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    position INTEGER NOT NULL,  -- 1, 2, or 3
+    set_by_admin_id INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (store_id) REFERENCES MainHubUpgradeV001ForStores(id),
+    FOREIGN KEY (product_id) REFERENCES MainHubUpgradeV001ForProducts(id),
+    FOREIGN KEY (set_by_admin_id) REFERENCES users(id),
+    UNIQUE(store_id, position)
+)
+```
+
+#### Table 3: Product Trash (Soft Delete)
+
+**Purpose**: Keep products in trash for 24 hours before permanent deletion
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForProductTrash (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES MainHubUpgradeV001ForProducts(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+```
+
+#### Table 4: Internal Cart (Where to Buy Cart)
+
+**Purpose**: Separate cart for user products (not WooCommerce)
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForInternalCart (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (product_id) REFERENCES MainHubUpgradeV001ForProducts(id),
+    UNIQUE(user_id, product_id)
+)
+```
+
+#### Table 5: Direct Messages for Products
+
+**Purpose**: Allow users to DM about specific products
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForProductMessages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id INTEGER NOT NULL,
+    recipient_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id),
+    FOREIGN KEY (recipient_id) REFERENCES users(id),
+    FOREIGN KEY (product_id) REFERENCES MainHubUpgradeV001ForProducts(id)
+)
+```
+
+#### Table 6: User Inventory (Custom Buttons/Features)
+
+**Purpose**: Track what custom features/buttons users have purchased
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForUserInventory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    custom_button_id INTEGER NOT NULL,
+    purchased_from_user_id INTEGER,
+    is_active BOOLEAN DEFAULT 1,
+    slot_number INTEGER,  -- 1-6 for the 6 custom button slots
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (purchased_from_user_id) REFERENCES users(id)
+)
+```
+
+#### Table 7: Custom Buttons/Modal Templates
+
+**Purpose**: Store custom modal code that users create and sell
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForCustomButtons (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    creator_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    code_template TEXT NOT NULL,  -- HTML/React template
+    price REAL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (creator_id) REFERENCES users(id)
+)
+```
+
+#### Table 8: User Posts
+
+**Purpose**: Track posts users make on their profile
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForUserPosts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    images TEXT,  -- JSON array of image URLs
+    formatting TEXT,  -- JSON with bold, underline, color, etc.
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+```
+
+#### Table 9: User Privacy Settings
+
+**Purpose**: Track privacy toggles for each user
+
+```sql
+CREATE TABLE MainHubUpgradeV001ForPrivacySettings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL UNIQUE,
+    allow_view_friends BOOLEAN DEFAULT 1,
+    allow_non_logged_view_posts BOOLEAN DEFAULT 1,
+    allow_friends_only_view_posts BOOLEAN DEFAULT 0,
+    allow_non_logged_like_posts BOOLEAN DEFAULT 1,
+    allow_non_logged_comment_posts BOOLEAN DEFAULT 1,
+    allow_non_logged_share_posts BOOLEAN DEFAULT 1,
+    allow_logged_like_posts BOOLEAN DEFAULT 1,
+    allow_logged_comment_posts BOOLEAN DEFAULT 1,
+    allow_logged_share_posts BOOLEAN DEFAULT 1,
+    allow_friends_only_like BOOLEAN DEFAULT 0,
+    allow_friends_only_comment BOOLEAN DEFAULT 0,
+    allow_friends_only_share BOOLEAN DEFAULT 0,
+    allow_unlikes BOOLEAN DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+```
+
+### Upgrade MainHubUpgradeV001ForProducts Table
+
+**Add New Columns**:
+```sql
+ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN store_id INTEGER DEFAULT 0;
+ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN payment_method TEXT;  -- 'own_website', 'venmo', 'cash', 'card_coming_soon', 'other'
+ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN payment_url TEXT;
+ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN is_in_trash BOOLEAN DEFAULT 0;
+
+-- Foreign key for store
+ALTER TABLE MainHubUpgradeV001ForProducts ADD CONSTRAINT fk_product_store 
+FOREIGN KEY (store_id) REFERENCES MainHubUpgradeV001ForStores(id);
+```
+
+**What Each Field Means**:
+- `store_id = 0`: Main union store (managed by high-high-high admins)
+- `store_id = 1-30`: Chatroom-based stores (each has its own product list)
+- `payment_method`: How the seller wants payment
+- `payment_url`: Link to their Venmo/CashApp profile or product page
+- `is_in_trash`: Set to 1 when user moves product to trash (recovers after 24hrs)
+
+---
+
+## 30 Chatroom-Based Stores (#01-#30)
+
+### Understanding the Chatroom Store System
+
+Each of the 30 chatrooms now represents a **store** where people can sell products. 
+
+```
+UnionEvent#12         →  Store #01 (selling event tickets, merchandise)
+UnionPolitic#19       →  Store #19 (political items)
+UnionSAM#20           →  Store #20 (main union products)
+UnionArena#25         →  Store #25 (arena/sports related)
+UnionTrades#26        →  Store #26 (trading, energy, wifi)
+... etc to #30
+```
+
+### Step 1: Create All 30 Chatroom Stores
+
+**Add to Database**:
+```sql
+INSERT INTO MainHubUpgradeV001ForStores (store_number, store_name, store_type, chatroom_id, description) VALUES
+(1, 'NewEngland', 'chatroom', 1, 'Products from New England region'),
+(2, 'UnionStore', 'chatroom', 2, 'General union products'),
+(3, 'UnionEconomic', 'chatroom', 3, 'Economic and trade items'),
+(4, 'UnionEnvironment', 'chatroom', 4, 'Environmental products and resources'),
+(5, 'UnionHealth', 'chatroom', 5, 'Health and wellness products'),
+(6, 'UnionEducation', 'chatroom', 6, 'Educational materials and courses'),
+(7, 'UnionCulture', 'chatroom', 7, 'Cultural items and art'),
+(8, 'UnionTech', 'chatroom', 8, 'Technology and digital services'),
+(9, 'UnionCreate', 'chatroom', 9, 'Creative works and services'),
+(10, 'UnionCommunity', 'chatroom', 10, 'Community building resources'),
+(11, 'UnionWelcome', 'chatroom', 11, 'Welcome and onboarding'),
+(12, 'UnionEvent', 'chatroom', 12, 'Event tickets and information'),
+(13, 'UnionConnections', 'chatroom', 13, 'Networking and connections'),
+(14, 'UnionNews', 'chatroom', 14, 'News and media'),
+(15, 'UnionRadio', 'chatroom', 15, 'Radio and audio content'),
+(16, 'UnionFood', 'chatroom', 16, 'Food and restaurant items'),
+(17, 'UnionTravel', 'chatroom', 17, 'Travel and tourism'),
+(18, 'UnionHomeLiving', 'chatroom', 18, 'Home and living products'),
+(19, 'UnionPolitic', 'chatroom', 19, 'Political discussion and items'),
+(20, 'UnionSAM', 'chatroom', 20, 'Main store and merchandise'),
+(21, 'UnionArtisan', 'chatroom', 21, 'Handmade and artisan products'),
+(22, 'UnionBooks', 'chatroom', 22, 'Books and literature'),
+(23, 'UnionGames', 'chatroom', 23, 'Games and entertainment'),
+(24, 'UnionFitness', 'chatroom', 24, 'Fitness and sports products'),
+(25, 'UnionArena', 'chatroom', 25, 'Arena and sports events'),
+(26, 'UnionTrades', 'chatroom', 26, 'Trades, energy, and WiFi services'),
+(27, 'UnionSecret', 'chatroom', 27, 'Exclusive and special items'),
+(28, 'UnionSports', 'chatroom', 28, 'Sports products and services'),
+(29, 'UnionHousing', 'chatroom', 29, 'Housing, cars, and transportation'),
+(30, 'UnionHealthcare', 'chatroom', 30, 'Healthcare products and services');
+```
+
+### Step 2: Query Products by Store
+
+**Backend Endpoint** (create in `/home/app/server/products.ts`):
+
+```typescript
+import { Router } from 'express';
+import { db } from './db.js';
+import { authenticate } from './auth-middleware.js';
+
+const router = Router();
+
+// Get all products for a specific store
+router.get('/store/:storeId', async (req, res) => {
+  const { storeId } = req.params;
+  
+  try {
+    const products = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('store_id', '=', parseInt(storeId))
+      .where('is_in_trash', '=', 0)
+      .where('store_type', '=', 'main')  // Only main store type for chatroom stores
+      .orderBy('created_at', 'desc')
+      .execute();
+    
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching store products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get featured products (top 3) for a store
+router.get('/store/:storeId/featured', async (req, res) => {
+  const { storeId } = req.params;
+  
+  try {
+    const featured = await db
+      .selectFrom('MainHubUpgradeV001ForFeaturedProducts')
+      .innerJoin('MainHubUpgradeV001ForProducts', 'product_id', 'MainHubUpgradeV001ForProducts.id')
+      .selectAll()
+      .where('MainHubUpgradeV001ForFeaturedProducts.store_id', '=', parseInt(storeId))
+      .orderBy('position', 'asc')
+      .execute();
+    
+    res.json(featured);
+  } catch (error) {
+    console.error('Error fetching featured products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+export default router;
+```
+
+---
+
+## 10-Quadrant Marketplace Browser (Hiker Icon Feature)
+
+### Understanding the Hiker Modal
+
+The hiker icon opens a **10-page browser** showing products organized by store. Each page has **2x2 quadrants** (4 sections).
+
+```
+PAGE 1 (Quadrant 1):
+┌────────────────────────┬────────────────────────┐
+│  Top Left: allStores   │  Top Right: unionStore │
+│  (all user products)   │  (main + top 3)        │
+├────────────────────────┼────────────────────────┤
+│  Bottom Left: myStore  │  Bottom Right:         │
+│  (user's products)     │  StoresOfFriends      │
+└────────────────────────┴────────────────────────┘
+
+PAGE 2 (Quadrant 2):
+┌────────────────────────┬────────────────────────┐
+│  Top Left: Store #01   │  Top Right: Store #02  │
+│  (NewEngland)          │  (UnionStore)          │
+├────────────────────────┼────────────────────────┤
+│  Bottom Left: Store #03│  Bottom Right: Store #04
+└────────────────────────┴────────────────────────┘
+
+PAGE 3 (Quadrant 3):
+┌────────────────────────┬────────────────────────┐
+│  Top Left: Store #05   │  Top Right: Store #06  │
+├────────────────────────┼────────────────────────┤
+│  Bottom Left: Store #07│  Bottom Right: Store #08
+└────────────────────────┴────────────────────────┘
+
+... and so on for all 30 stores
+```
+
+### Step 1: Create Hiker Button Component
+
+**File**: `/home/app/client/src/features/profile/HikerMarketplaceButton.tsx` (NEW FILE)
+
+```typescript
+import React from 'react';
+import { Button } from '../../components/ui/button';
+
+interface HikerMarketplaceButtonProps {
+  onClick: () => void;
+}
+
+// This is a simple hiker icon. You can replace with an actual icon
+// from lucide-react or use an SVG if you have one
+const HikerIcon = () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Simple hiker with backpack */}
+    <circle cx="12" cy="6" r="2" /> {/* Head */}
+    <path d="M12 8v6" /> {/* Body */}
+    <path d="M9 14l-2 6" /> {/* Left leg */}
+    <path d="M15 14l2 6" /> {/* Right leg */}
+    <path d="M10 8L8 12" /> {/* Left arm */}
+    <path d="M14 8l2 4" /> {/* Right arm with backpack */}
+    <rect x="13" y="9" width="3" height="5" /> {/* Backpack */}
+  </svg>
+);
+
+const HikerMarketplaceButton: React.FC<HikerMarketplaceButtonProps> = ({ onClick }) => {
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={onClick}
+      title="Browse Marketplace"
+      className="bg-blue-400 hover:bg-blue-500"
+    >
+      <HikerIcon />
+    </Button>
+  );
+};
+
+export default HikerMarketplaceButton;
+```
+
+### Step 2: Create the 10-Quadrant Marketplace Modal
+
+**File**: `/home/app/client/src/features/profile/HikerMarketplaceModal.tsx` (NEW FILE)
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
+import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+
+interface HikerMarketplaceModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  image_url: string;
+  price: number;
+  user_id: number;
+}
+
+interface QuadrantSection {
+  title: string;
+  type: 'unionStore' | 'allStores' | 'storesOfFriends' | 'myStore' | 'store';
+  storeId?: number;
+  products: Product[];
+  isLoading: boolean;
+}
+
+const HikerMarketplaceModal: React.FC<HikerMarketplaceModalProps> = ({ isOpen, onClose }) => {
+  const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [quadrants, setQuadrants] = useState<QuadrantSection[]>([]);
+
+  // Page 1: Special sections (union, all stores, friends, my store)
+  // Pages 2-8: Stores #01-#30 (4 stores per page)
+  
+  const renderPage1 = (): QuadrantSection[] => {
+    return [
+      {
+        title: 'unionStore',
+        type: 'unionStore',
+        products: [],
+        isLoading: true
+      },
+      {
+        title: 'allStores',
+        type: 'allStores',
+        products: [],
+        isLoading: true
+      },
+      {
+        title: 'myStore',
+        type: 'myStore',
+        products: [],
+        isLoading: true
+      },
+      {
+        title: 'storesOfFriends',
+        type: 'storesOfFriends',
+        products: [],
+        isLoading: true
+      }
+    ];
+  };
+
+  const renderPagesForStores = (): QuadrantSection[] => {
+    // Create a mapping of page to stores
+    // Page 2 = Stores 1-4, Page 3 = Stores 5-8, etc.
+    const pageStartStore = (currentPage - 2) * 4 + 1;
+    const stores = [];
+    
+    for (let i = 0; i < 4; i++) {
+      const storeNum = pageStartStore + i;
+      if (storeNum <= 30) {
+        stores.push({
+          title: `Store #${String(storeNum).padStart(2, '0')}`,
+          type: 'store' as const,
+          storeId: storeNum,
+          products: [],
+          isLoading: true
+        });
+      } else {
+        stores.push({
+          title: 'Coming Soon',
+          type: 'store' as const,
+          products: [],
+          isLoading: false
+        });
+      }
+    }
+    
+    return stores;
+  };
+
+  useEffect(() => {
+    if (currentPage === 1) {
+      setQuadrants(renderPage1());
+      // Fetch data for page 1 sections
+      fetchPage1Data();
+    } else {
+      setQuadrants(renderPagesForStores());
+      // Fetch data for store pages
+      fetchStorePageData();
+    }
+  }, [currentPage]);
+
+  const fetchPage1Data = async () => {
+    // Fetch union store products
+    try {
+      const response = await fetch('/api/products/store/0');
+      const unionProducts = await response.json();
+      setQuadrants(prev => prev.map(q => 
+        q.type === 'unionStore' ? { ...q, products: unionProducts, isLoading: false } : q
+      ));
+    } catch (error) {
+      console.error('Error fetching union store products:', error);
+    }
+
+    // Fetch all user store products
+    try {
+      const response = await fetch('/api/products/user-stores');
+      const allStoreProducts = await response.json();
+      setQuadrants(prev => prev.map(q => 
+        q.type === 'allStores' ? { ...q, products: allStoreProducts, isLoading: false } : q
+      ));
+    } catch (error) {
+      console.error('Error fetching all store products:', error);
+    }
+
+    // Fetch current user's products (if logged in)
+    if (user) {
+      try {
+        const response = await fetch(`/api/products/user/${user.id}`);
+        const myProducts = await response.json();
+        setQuadrants(prev => prev.map(q => 
+          q.type === 'myStore' ? { ...q, products: myProducts, isLoading: false } : q
+        ));
+      } catch (error) {
+        console.error('Error fetching my store products:', error);
+      }
+
+      // Fetch friends' store products
+      try {
+        const response = await fetch(`/api/products/friends-stores`);
+        const friendsProducts = await response.json();
+        setQuadrants(prev => prev.map(q => 
+          q.type === 'storesOfFriends' ? { ...q, products: friendsProducts, isLoading: false } : q
+        ));
+      } catch (error) {
+        console.error('Error fetching friends store products:', error);
+      }
+    }
+  };
+
+  const fetchStorePageData = async () => {
+    const pageStartStore = (currentPage - 2) * 4 + 1;
+    
+    for (let i = 0; i < 4; i++) {
+      const storeNum = pageStartStore + i;
+      if (storeNum <= 30) {
+        try {
+          const response = await fetch(`/api/products/store/${storeNum}`);
+          const products = await response.json();
+          setQuadrants(prev => prev.map(q => 
+            q.storeId === storeNum ? { ...q, products, isLoading: false } : q
+          ));
+        } catch (error) {
+          console.error(`Error fetching store ${storeNum} products:`, error);
+        }
+      }
+    }
+  };
+
+  const handleRefresh = () => {
+    if (currentPage === 1) {
+      fetchPage1Data();
+    } else {
+      fetchStorePageData();
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < 8) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle>Marketplace Browser - Page {currentPage}</DialogTitle>
+        </DialogHeader>
+
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {quadrants.map((quad, idx) => (
+            <div
+              key={idx}
+              className="border rounded-lg p-4 h-80 overflow-y-auto bg-muted"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-sm">{quad.title}</h3>
+                {currentPage === 1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRefresh}
+                    className="h-6 w-6 p-0"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+
+              {quad.isLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-muted-foreground">Loading...</span>
+                </div>
+              ) : quad.products.length > 0 ? (
+                <div className="space-y-2">
+                  {quad.products.map(product => (
+                    <div
+                      key={product.id}
+                      className="p-2 border rounded bg-white cursor-pointer hover:bg-gray-100"
+                    >
+                      <div className="h-20 bg-cover bg-center rounded mb-1" 
+                        style={{ backgroundImage: `url(${product.image_url})` }}>
+                      </div>
+                      <p className="text-xs font-semibold truncate">{product.name}</p>
+                      <p className="text-xs text-orange-500">${product.price?.toFixed(2) || 'N/A'}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : quad.title === 'Coming Soon' ? (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-muted-foreground">Coming Soon</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-muted-foreground">No products</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+          </Button>
+
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of 8
+          </span>
+
+          <Button
+            variant="outline"
+            onClick={handleNextPage}
+            disabled={currentPage === 8}
+          >
+            Next <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default HikerMarketplaceModal;
+```
+
+---
+
+## Product Management UI Reorganization
+
+### Current State vs. New State
+
+**BEFORE** (Current in UnionSAM#20):
+```
+[Eye Button] → Opens "Add Product" modal
+[Shopping Cart] → External WooCommerce link
+```
+
+**AFTER** (New in 2x2 Layout):
+```
+Top Left:     unionStore (main products, read-only, rotating carousel)
+Top Right:    allStores (all user products, scrollable)
+Bottom Left:  myStore (current user's products with controls) + What I'm Looking For
+Bottom Right: storesOfFriends (friends' products, scrollable)
+```
+
+### Step 1: Reorganize myStore Section
+
+The myStore in page 1 of the hiker modal should look like:
+
+**Top Half - "myStore"**:
+```
+┌──────────────────────────────────────┐
+│ + [Refresh] [←→ Store] [Trash/Icon]  │  <- Controls
+├──────────────────────────────────────┤
+│ Product 1                            │
+│ Product 2                            │
+│ Product 3                            │  <- Scrollable list
+│ Product 4                            │
+└──────────────────────────────────────┘
+```
+
+**Controls Explanation**:
+- **+ Button**: Add new product (opens modal)
+- **Refresh Button**: Refresh product list
+- **←→ Arrows**: If user is high-high-admin, cycle through stores (#01-#30)
+- **Trash Icon**: Open trash to recover deleted products
+
+**Bottom Half - "What I'm Looking For"**:
+```
+┌──────────────────────────────────────┐
+│ What I'm Looking For                 │
+├──────────────────────────────────────┤
+│ Looking for Item 1                   │
+│ Looking for Item 2                   │  <- Scrollable list
+│ Looking for Item 3                   │
+└──────────────────────────────────────┘
+```
+
+### Step 2: Create ProductManagementSection Component
+
+**File**: `/home/app/client/src/features/profile/ProductManagementSection.tsx` (NEW FILE)
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { Button } from '../../components/ui/button';
+import { Plus, Trash2, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+
+interface Product {
+  id: number;
+  name: string;
+  image_url: string;
+  price: number;
+  store_id: number;
+}
+
+interface ProductManagementSectionProps {
+  onAddProductClick: () => void;
+  onViewTrashClick: () => void;
+}
+
+const ProductManagementSection: React.FC<ProductManagementSectionProps> = ({
+  onAddProductClick,
+  onViewTrashClick
+}) => {
+  const { user } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentStore, setCurrentStore] = useState(0); // 0 = main, 1-30 = others
+
+  const isHighHighHighAdmin = user?.is_high_high_high_admin === 1;
+  const isHighHighAdmin = user?.is_high_high_admin === 1;
+
+  const canManageMultipleStores = isHighHighHighAdmin || isHighHighAdmin;
+
+  const fetchProducts = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const storeId = canManageMultipleStores ? currentStore : null;
+      const url = storeId !== null 
+        ? `/api/products/user/${user.id}?storeId=${storeId}`
+        : `/api/products/user/${user.id}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [user?.id, currentStore]);
+
+  const handleMoveToTrash = async (productId: number) => {
+    try {
+      await fetch(`/api/products/${productId}/trash`, {
+        method: 'POST'
+      });
+      fetchProducts(); // Refresh list
+    } catch (error) {
+      console.error('Error moving product to trash:', error);
+    }
+  };
+
+  const handleNextStore = () => {
+    if (currentStore < 30) {
+      setCurrentStore(currentStore + 1);
+    }
+  };
+
+  const handlePreviousStore = () => {
+    if (currentStore > 0) {
+      setCurrentStore(currentStore - 1);
+    }
+  };
+
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold">My Store</h3>
+          {canManageMultipleStores && (
+            <span className="text-xs text-muted-foreground">
+              (Store #{String(currentStore).padStart(2, '0')})
+            </span>
+          )}
+        </div>
+
+        <div className="flex gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-6 w-6"
+            onClick={onAddProductClick}
+            title="Add new product"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-6 w-6"
+            onClick={fetchProducts}
+            title="Refresh list"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+
+          {canManageMultipleStores && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-6 w-6"
+                onClick={handlePreviousStore}
+                disabled={currentStore === 0}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-6 w-6"
+                onClick={handleNextStore}
+                disabled={currentStore === 30}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-6 w-6"
+            onClick={onViewTrashClick}
+            title="View trash"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-2 max-h-48 overflow-y-auto">
+        {isLoading ? (
+          <div className="text-center text-muted-foreground">Loading...</div>
+        ) : products.length > 0 ? (
+          products.map(product => (
+            <div
+              key={product.id}
+              className="p-2 border rounded bg-white flex gap-2 items-center hover:bg-gray-50"
+            >
+              <div
+                className="w-16 h-16 bg-cover bg-center rounded"
+                style={{ backgroundImage: `url(${product.image_url})` }}
+              />
+              <div className="flex-grow">
+                <p className="font-semibold text-sm">{product.name}</p>
+                <p className="text-xs text-orange-500">${product.price?.toFixed(2)}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => handleMoveToTrash(product.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground text-sm py-4">
+            No products yet. Click + to add one!
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 pt-4 border-t">
+        <h4 className="font-semibold text-sm mb-2">What I'm Looking For</h4>
+        <div className="space-y-2 max-h-24 overflow-y-auto">
+          {/* This will fetch from a separate table */}
+          <div className="text-center text-muted-foreground text-xs py-2">
+            No items in search list yet
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductManagementSection;
+```
+
+---
+
+## Database-Driven Product Fetching
+
+### Remove Hardcoded Products
+
+**Current File**: `/home/app/client/src/features/profile/MainUhubFeatureV001ForMyProfileModal.tsx`
+
+**BEFORE** (Find lines 167-185):
+```typescript
+const allProducts = {
+  'UnionSAM#20': [
+    {
+      id: 1,
+      name: 'Tapestry',
+      price: 1999.95,
+      image_url: 'https://uminion.com/wp-content/uploads/2025/03/TapestryVersion001.jpg',
+      url: 'https://uminion.com/product/byoct-build-your-own-custom-tapestry/',
+      store: 'main'
+    },
+    // ... hardcoded products
+  ]
+};
+```
+
+**AFTER** (Replace with):
+```typescript
+const [mainStoreProducts, setMainStoreProducts] = useState<Product[]>([]);
+const [userStoreProducts, setUserStoreProducts] = useState<Product[]>([]);
+const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+useEffect(() => {
+  const fetchProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+      // Fetch main union store products
+      const mainRes = await fetch('/api/products/store/0');
+      const mainProducts = await mainRes.json();
+      setMainStoreProducts(mainProducts);
+
+      // Fetch current user's products (if logged in)
+      if (user) {
+        const userRes = await fetch(`/api/products/user/${user.id}`);
+        const userProducts = await userRes.json();
+        setUserStoreProducts(userProducts);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  fetchProducts();
+}, [user?.id]);
+```
+
+### Create Product Carousel Component
+
+**File**: `/home/app/client/src/features/profile/ProductCarousel.tsx` (NEW FILE)
+
+**Purpose**: Display main store products rotating left/right
+
+```typescript
+import React, { useState } from 'react';
+import { Button } from '../../components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface Product {
+  id: number;
+  name: string;
+  image_url: string;
+  price: number;
+}
+
+interface ProductCarouselProps {
+  products: Product[];
+  title: string;
+  isLoading: boolean;
+}
+
+const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, title, isLoading }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (isLoading) {
+    return <div className="text-center text-muted-foreground">Loading...</div>;
+  }
+
+  if (products.length === 0) {
+    return <div className="text-center text-muted-foreground">No products available</div>;
+  }
+
+  const currentProduct = products[currentIndex];
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % products.length);
+  };
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
+  };
+
+  return (
+    <div className="border rounded-lg p-4">
+      <h3 className="font-bold mb-4">{title}</h3>
+
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handlePrevious}
+          disabled={products.length <= 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        <div className="flex-grow">
+          <div
+            className="aspect-square bg-cover bg-center rounded-lg mb-2"
+            style={{ backgroundImage: `url(${currentProduct.image_url})` }}
+          />
+          <p className="font-semibold text-sm">{currentProduct.name}</p>
+          <p className="text-orange-500 font-bold">${currentProduct.price?.toFixed(2)}</p>
+        </div>
+
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleNext}
+          disabled={products.length <= 1}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="text-center text-xs text-muted-foreground mt-2">
+        {currentIndex + 1} of {products.length}
+      </div>
+    </div>
+  );
+};
+
+export default ProductCarousel;
+```
+
+---
+
+## Two-Cart System Implementation
+
+### Cart System Overview
+
+```
+CART SYSTEM:
+│
+├─ WooCommerce Cart (Main Store + Stores #01-#30)
+│  └─ Managed at: https://page001.uminion.com/cart/
+│  └─ Products: store_type = 'main', store_id 0-30
+│
+└─ Internal Cart (User Products Only)
+   └─ Managed internally in database: MainHubUpgradeV001ForInternalCart
+   └─ Products: store_type = 'user', user_id ≠ null
+```
+
+### Step 1: Update Product Addition for Different Carts
+
+**File**: Update `/home/app/client/src/features/profile/MainUhubFeatureV001ForAddProductModal.tsx`
+
+**Add Payment Method Selection**:
+```typescript
+const [paymentMethod, setPaymentMethod] = useState<string>('own_website');
+const [paymentUrl, setPaymentUrl] = useState<string>('');
+
+const paymentOptions = [
+  { value: 'own_website', label: 'Pay through my website' },
+  { value: 'venmo', label: 'Venmo/CashApp' },
+  { value: 'cash', label: 'Cash in person' },
+  { value: 'card_coming_soon', label: 'Card (Coming Soon)' },
+  { value: 'other', label: 'Other method' }
+];
+
+const handleSubmit = async () => {
+  if (!title || !image || !price) {
+    alert('Please fill in all required fields');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('name', title);
+  formData.append('subtitle', subtitle);
+  formData.append('description', description);
+  formData.append('price', price);
+  formData.append('payment_method', paymentMethod);
+  formData.append('payment_url', paymentUrl);
+  formData.append('image', image);
+  formData.append('website', website || '');
+
+  try {
+    const response = await fetch('/api/products', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (response.ok) {
+      onClose();
+      // Refresh product list
+      window.location.reload();
+    } else {
+      alert('Failed to create product');
+    }
+  } catch (error) {
+    console.error('Error creating product:', error);
+    alert('Error creating product');
+  }
+};
+```
+
+### Step 2: Backend Endpoint to Add Product
+
+**File**: `/home/app/server/products.ts` (CREATE THIS FILE)
+
+```typescript
+import { Router } from 'express';
+import { db } from './db.js';
+import { authenticate } from './auth-middleware.js';
+import path from 'path';
+import fs from 'fs';
+
+const router = Router();
+
+// POST - Create a new user product
+router.post('/', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { name, subtitle, description, price, payment_method, payment_url, website } = req.body;
+
+  // Check if user is blocked
+  const userRecord = await db
+    .selectFrom('users')
+    .selectAll()
+    .where('id', '=', req.user.userId)
+    .executeTakeFirst();
+
+  if (!userRecord) {
+    res.status(404).json({ message: 'User not found' });
+    return;
+  }
+
+  if (userRecord.is_blocked === 1) {
+    res.status(403).json({ message: 'Your account has been blocked from selling' });
+    return;
+  }
+
+  try {
+    // Handle image upload
+    let imageUrl = '';
+    if (req.files && req.files.image) {
+      const imageFile = req.files.image as any;
+      const uploadDir = path.join(process.cwd(), 'data', 'uploads', 'products');
+      
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const filename = `${Date.now()}-${imageFile.name}`;
+      const filepath = path.join(uploadDir, filename);
+      
+      await imageFile.mv(filepath);
+      imageUrl = `/api/uploads/products/${filename}`;
+    }
+
+    // Determine which store this product belongs to
+    // If user is high-high-high admin, they can add to main store
+    // Otherwise, add to their user store
+    const storeId = userRecord.is_high_high_high_admin === 1 ? 0 : null;
+    const storeType = userRecord.is_high_high_high_admin === 1 ? 'main' : 'user';
+
+    const product = await db
+      .insertInto('MainHubUpgradeV001ForProducts')
+      .values({
+        name,
+        subtitle: subtitle || null,
+        description: description || null,
+        price: parseFloat(price),
+        image_url: imageUrl,
+        store_type: storeType,
+        user_id: userRecord.is_high_high_high_admin === 1 ? null : req.user.userId,
+        store_id: storeId || 0,
+        payment_method,
+        payment_url: payment_url || null,
+        is_in_trash: 0
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow();
+
+    console.log(`Product created: ${name} by user ${req.user.username}`);
+
+    res.status(201).json({
+      message: 'Product created successfully',
+      productId: product.id
+    });
+  } catch (error) {
+    console.error('Error creating product:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET - Fetch main store products
+router.get('/store/:storeId', async (req, res) => {
+  const { storeId } = req.params;
+
+  try {
+    const products = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('store_id', '=', parseInt(storeId))
+      .where('is_in_trash', '=', 0)
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching store products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET - Fetch user's products
+router.get('/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { storeId } = req.query;
+
+  try {
+    let query = db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('user_id', '=', parseInt(userId))
+      .where('is_in_trash', '=', 0)
+      .where('store_type', '=', 'user');
+
+    if (storeId) {
+      query = query.where('store_id', '=', parseInt(storeId as string));
+    }
+
+    const products = await query.orderBy('created_at', 'desc').execute();
+
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching user products:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// POST - Move product to trash
+router.post('/:productId/trash', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { productId } = req.params;
+
+  try {
+    // Verify ownership
+    const product = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('id', '=', parseInt(productId))
+      .executeTakeFirst();
+
+    if (!product) {
+      res.status(404).json({ message: 'Product not found' });
+      return;
+    }
+
+    if (product.user_id !== req.user.userId) {
+      res.status(403).json({ message: 'You do not own this product' });
+      return;
+    }
+
+    // Update product as in_trash
+    await db
+      .updateTable('MainHubUpgradeV001ForProducts')
+      .set({ is_in_trash: 1 })
+      .where('id', '=', parseInt(productId))
+      .execute();
+
+    // Log to trash table
+    await db
+      .insertInto('MainHubUpgradeV001ForProductTrash')
+      .values({
+        product_id: parseInt(productId),
+        user_id: req.user.userId
+      })
+      .execute();
+
+    res.json({ message: 'Product moved to trash' });
+  } catch (error) {
+    console.error('Error moving product to trash:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// POST - Recover product from trash
+router.post('/:productId/recover', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { productId } = req.params;
+
+  try {
+    const product = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('id', '=', parseInt(productId))
+      .executeTakeFirst();
+
+    if (!product || product.user_id !== req.user.userId) {
+      res.status(403).json({ message: 'You cannot recover this product' });
+      return;
+    }
+
+    // Restore from trash
+    await db
+      .updateTable('MainHubUpgradeV001ForProducts')
+      .set({ is_in_trash: 0 })
+      .where('id', '=', parseInt(productId))
+      .execute();
+
+    res.json({ message: 'Product recovered from trash' });
+  } catch (error) {
+    console.error('Error recovering product:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+export default router;
+```
+
+### Step 3: Register Products Router in Main Server
+
+**File**: `/home/app/server/index.ts`
+
+**Find this section**:
+```typescript
+app.use('/api/auth', authRouter);
+app.use('/api/friends', friendsRouter);
+```
+
+**Add**:
+```typescript
+import productsRouter from './products.js';
+
+// ... existing code ...
+
+app.use('/api/products', productsRouter);
+```
+
+---
+
+## Two-Cart System Implementation (Continued)
+
+### Internal Cart (Where to Buy Cart) Endpoints
+
+**Add to `/home/app/server/products.ts`**:
+
+```typescript
+// POST - Add item to internal cart
+router.post('/cart/add', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { product_id, quantity = 1 } = req.body;
+
+  try {
+    // Check if product exists
+    const product = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('id', '=', product_id)
+      .executeTakeFirst();
+
+    if (!product) {
+      res.status(404).json({ message: 'Product not found' });
+      return;
+    }
+
+    // Only user store products can go in internal cart
+    if (product.store_type !== 'user') {
+      res.status(400).json({ message: 'Only user products can be added to internal cart' });
+      return;
+    }
+
+    // Add or update cart item
+    const existingItem = await db
+      .selectFrom('MainHubUpgradeV001ForInternalCart')
+      .selectAll()
+      .where('user_id', '=', req.user.userId)
+      .where('product_id', '=', product_id)
+      .executeTakeFirst();
+
+    if (existingItem) {
+      await db
+        .updateTable('MainHubUpgradeV001ForInternalCart')
+        .set({ quantity: existingItem.quantity + quantity })
+        .where('id', '=', existingItem.id)
+        .execute();
+    } else {
+      await db
+        .insertInto('MainHubUpgradeV001ForInternalCart')
+        .values({
+          user_id: req.user.userId,
+          product_id,
+          quantity
+        })
+        .execute();
+    }
+
+    res.json({ message: 'Item added to cart' });
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET - Get user's internal cart
+router.get('/cart', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const cartItems = await db
+      .selectFrom('MainHubUpgradeV001ForInternalCart')
+      .leftJoin('MainHubUpgradeV001ForProducts', 'product_id', 'MainHubUpgradeV001ForProducts.id')
+      .selectAll('MainHubUpgradeV001ForInternalCart')
+      .selectAll('MainHubUpgradeV001ForProducts')
+      .where('MainHubUpgradeV001ForInternalCart.user_id', '=', req.user.userId)
+      .execute();
+
+    res.json(cartItems);
+  } catch (error) {
+    console.error('Error fetching cart:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// DELETE - Remove item from cart
+router.delete('/cart/:itemId', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const { itemId } = req.params;
+
+    const cartItem = await db
+      .selectFrom('MainHubUpgradeV001ForInternalCart')
+      .selectAll()
+      .where('id', '=', parseInt(itemId))
+      .executeTakeFirst();
+
+    if (!cartItem || cartItem.user_id !== req.user.userId) {
+      res.status(403).json({ message: 'You do not own this cart item' });
+      return;
+    }
+
+    await db
+      .deleteFrom('MainHubUpgradeV001ForInternalCart')
+      .where('id', '=', parseInt(itemId))
+      .execute();
+
+    res.json({ message: 'Item removed from cart' });
+  } catch (error) {
+    console.error('Error removing from cart:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+```
+
+---
+
+## WooCommerce Integration Upgrade
+
+### Update Cart Button to Use Correct URL
+
+**File**: `/home/app/client/src/features/profile/MainUhubFeatureV001ForMyProfileModal.tsx`
+
+**BEFORE**:
+```typescript
+<a href="https://uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+  <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500">
+    <ShoppingCart />
+  </Button>
+</a>
+```
+
+**AFTER**:
+```typescript
+<a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+  <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500">
+    <ShoppingCart />
+  </Button>
+</a>
+```
+
+### Add Product to WooCommerce with SKU Linking
+
+When a high-high-high admin adds a product to the main store, it should:
+
+1. **Create product in database** with `store_type = 'main'`
+2. **Link to WooCommerce SKU** (if one is provided)
+3. **Add to Cart** button redirects to WooCommerce with that product
+
+**Update `/home/app/server/products.ts`**:
+
+```typescript
+// Add this field to product creation
+// In the insertInto().values() section, add:
+
+woo_commerce_sku: req.body.woo_sku || null,  // Link to WooCommerce product SKU
+
+// Then update your database schema:
+// ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN woo_commerce_sku TEXT;
+```
+
+**Frontend - When Showing WooCommerce Cart Button**:
+
+```typescript
+const handleWooCommerceAddToCart = (product: Product) => {
+  if (product.woo_commerce_sku) {
+    // Direct link with SKU
+    window.open(
+      `https://page001.uminion.com/cart/?add-to-cart=${product.woo_commerce_sku}`,
+      '_blank'
+    );
+  } else {
+    // General cart
+    window.open('https://page001.uminion.com/cart/', '_blank');
+  }
+};
+```
+
+---
+
+## User Store Payment Methods
+
+### Displaying Payment Method in Product Detail
+
+**File**: `/home/app/client/src/features/profile/MainUhubFeatureV001ForProductDetailModal.tsx`
+
+**Add Payment Section**:
+```typescript
+const PaymentMethodDisplay = ({ method, url }) => {
+  const methods = {
+    own_website: {
+      icon: '🌐',
+      text: 'Available on seller\'s website',
+      action: () => window.open(url, '_blank')
+    },
+    venmo: {
+      icon: '💳',
+      text: 'Venmo/CashApp available - DM seller',
+      action: () => openDirectMessage()
+    },
+    cash: {
+      icon: '💵',
+      text: 'Cash payment - DM seller to arrange',
+      action: () => openDirectMessage()
+    },
+    card_coming_soon: {
+      icon: '🔒',
+      text: 'Card payments coming soon',
+      action: () => alert('Card payments will be available soon')
+    },
+    other: {
+      icon: '❓',
+      text: 'Contact seller for payment options',
+      action: () => openDirectMessage()
+    }
+  };
+
+  const methodInfo = methods[method];
+
+  return (
+    <div className="border rounded-lg p-4 mt-4">
+      <h4 className="font-bold mb-2">Payment Method</h4>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-2xl">{methodInfo.icon}</span>
+        <span className="text-sm">{methodInfo.text}</span>
+      </div>
+      <Button
+        onClick={methodInfo.action}
+        variant="outline"
+        className="w-full"
+      >
+        {method === 'own_website' ? 'Visit Website' : 'Message Seller'}
+      </Button>
+    </div>
+  );
+};
+```
+
+---
+
+## Home Modal with Account & Inventory
+
+### Step 1: Create Home Modal Component
+
+**File**: `/home/app/client/src/features/profile/HomeModal.tsx` (NEW FILE)
+
+```typescript
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { useAuth } from '../../hooks/useAuth';
+import { Switch } from '../../components/ui/switch';
+import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
+import { Button } from '../../components/ui/button';
+import { Trash2, Plus } from 'lucide-react';
+
+interface HomeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const HomeModal: React.FC<HomeModalProps> = ({ isOpen, onClose }) => {
+  const { user } = useAuth();
+  const [privacySettings, setPrivacySettings] = useState({
+    allow_view_friends: true,
+    allow_non_logged_view_posts: true,
+    allow_friends_only_view_posts: false,
+    allow_non_logged_like_posts: true,
+    allow_non_logged_comment_posts: true,
+    allow_non_logged_share_posts: true,
+    allow_logged_like_posts: true,
+    allow_logged_comment_posts: true,
+    allow_logged_share_posts: true,
+    allow_friends_only_like: false,
+    allow_friends_only_comment: false,
+    allow_friends_only_share: false,
+    allow_unlikes: true
+  });
+
+  const [newPost, setNewPost] = useState('');
+  const [posts, setPosts] = useState([]);
+  const [inventory, setInventory] = useState([]);
+
+  const handlePrivacyToggle = (setting: string) => {
+    setPrivacySettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
+  };
+
+  const handleCreatePost = () => {
+    if (newPost.trim()) {
+      setPosts(prev => [...prev, {
+        id: Date.now(),
+        content: newPost,
+        createdAt: new Date()
+      }]);
+      setNewPost('');
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Home</DialogTitle>
+        </DialogHeader>
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* Top Row - MyAccount, MyStore */}
+          <div className="border rounded-lg p-4">
+            <h3 className="font-bold mb-4">My Account</h3>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <Label>Allow others to see friends list</Label>
+                <Switch
+                  checked={privacySettings.allow_view_friends}
+                  onCheckedChange={() => handlePrivacyToggle('allow_view_friends')}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label>Allow non-logged users to see posts</Label>
+                <Switch
+                  checked={privacySettings.allow_non_logged_view_posts}
+                  onCheckedChange={() => handlePrivacyToggle('allow_non_logged_view_posts')}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label>Only friends can see posts</Label>
+                <Switch
+                  checked={privacySettings.allow_friends_only_view_posts}
+                  onCheckedChange={() => handlePrivacyToggle('allow_friends_only_view_posts')}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label>Allow unlikes on posts</Label>
+                <Switch
+                  checked={privacySettings.allow_unlikes}
+                  onCheckedChange={() => handlePrivacyToggle('allow_unlikes')}
+                />
+              </div>
+              {/* Add more privacy settings as needed */}
+            </div>
+          </div>
+
+          <div className="border rounded-lg p-4">
+            <h3 className="font-bold mb-4">My Store</h3>
+            <div className="text-center text-muted-foreground">
+              Your store preview will appear here
+            </div>
+          </div>
+
+          {/* Bottom Row - MyPosts, MyFeed, MyInventory */}
+          <div className="border rounded-lg p-4 col-span-2">
+            <h3 className="font-bold mb-4">My Posts</h3>
+            <Textarea
+              placeholder="Write a post..."
+              value={newPost}
+              onChange={(e) => setNewPost(e.target.value)}
+              className="mb-2"
+            />
+            <Button onClick={handleCreatePost} className="w-full">
+              Create Post
+            </Button>
+            <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
+              {posts.map(post => (
+                <div key={post.id} className="border rounded p-2">
+                  <p className="text-sm">{post.content}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Button variant="ghost" size="sm">Edit</Button>
+                    <Button variant="ghost" size="sm" className="text-red-500">
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* MyFeed */}
+          <div className="border rounded-lg p-4">
+            <h3 className="font-bold mb-4">My Feed</h3>
+            <div className="text-center text-muted-foreground text-sm">
+              Posts from friends will appear here
+            </div>
+          </div>
+
+          {/* MyInventory */}
+          <div className="border rounded-lg p-4">
+            <h3 className="font-bold mb-4">My Inventory</h3>
+            <div className="space-y-2">
+              {inventory.length > 0 ? (
+                inventory.map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between border rounded p-2">
+                    <span className="text-sm">{item.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setInventory(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground text-sm">
+                  No items in inventory yet
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default HomeModal;
+```
+
+### Step 2: Add Home Button and Custom Buttons to Profile
+
+**File**: `/home/app/client/src/features/profile/MainUhubFeatureV001ForMyProfileModal.tsx`
+
+**Add to the UI near avatar**:
+```typescript
+const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
+const [isCustomButton1Open, setIsCustomButton1Open] = useState(false);
+// ... add state for buttons 2-6
+
+// In the JSX, near the avatar area, add:
+<div className="grid grid-cols-2 gap-2 mt-4">
+  {/* First column */}
+  <div className="space-y-2">
+    <Button
+      className="w-full"
+      onClick={() => setIsHomeModalOpen(true)}
+      title="Home"
+    >
+      🏠 Home
+    </Button>
+    <Button className="w-full" title="Custom Feature 1">
+      1. Customize
+    </Button>
+    <Button className="w-full" title="Custom Feature 3">
+      3. Customize
+    </Button>
+    <Button className="w-full" title="Custom Feature 5">
+      5. Customize
+    </Button>
+  </div>
+
+  {/* Second column */}
+  <div className="space-y-2">
+    <Button className="w-full" title="Custom Feature 2">
+      2. Customize
+    </Button>
+    <Button className="w-full" title="Custom Feature 4">
+      4. Customize
+    </Button>
+    <Button className="w-full" title="Custom Feature 6">
+      6. Customize
+    </Button>
+  </div>
+</div>
+
+{/* Add modal components */}
+<HomeModal isOpen={isHomeModalOpen} onClose={() => setIsHomeModalOpen(false)} />
+```
+
+---
+
+## Backend API Endpoints
+
+### Summary of All New Endpoints to Create
+
+**Products** (`/api/products`):
+- `POST /` - Create new product
+- `GET /store/:storeId` - Get products for a specific store
+- `GET /user/:userId` - Get user's products
+- `POST /:productId/trash` - Move to trash
+- `POST /:productId/recover` - Recover from trash
+- `GET /store/:storeId/featured` - Get featured products for store
+- `POST /store/:storeId/featured` - Set featured products (admin only)
+
+**Internal Cart** (`/api/products/cart`):
+- `POST /cart/add` - Add item to internal cart
+- `GET /cart` - Get user's cart items
+- `DELETE /cart/:itemId` - Remove from cart
+- `PUT /cart/:itemId` - Update quantity
+
+**User Inventory** (`/api/inventory`):
+- `GET /` - Get user's inventory items
+- `POST /add` - Add custom button to inventory
+- `POST /slot/:slotNumber` - Assign button to slot (1-6)
+- `DELETE /slot/:slotNumber` - Remove button from slot
+
+**Privacy Settings** (`/api/privacy`):
+- `GET /` - Get user's privacy settings
+- `PUT /` - Update privacy settings
+
+**Direct Messages for Products** (`/api/product-messages`):
+- `POST /` - Send message about product
+- `GET /product/:productId` - Get messages for product
+- `GET /` - Get user's product messages
+
+---
+
+## Implementation Checklist
+
+Use this checklist to track your progress:
+
+### Database Migrations
+- [ ] Run migration to add `is_high_high_high_admin`, `is_high_high_admin`, `is_blocked` to users table
+- [ ] Run migration to add `store_id`, `payment_method`, `payment_url`, `woo_commerce_sku`, `is_in_trash` to products table
+- [ ] Create `MainHubUpgradeV001ForStores` table
+- [ ] Create `MainHubUpgradeV001ForFeaturedProducts` table
+- [ ] Create `MainHubUpgradeV001ForProductTrash` table
+- [ ] Create `MainHubUpgradeV001ForInternalCart` table
+- [ ] Create `MainHubUpgradeV001ForProductMessages` table
+- [ ] Create `MainHubUpgradeV001ForUserInventory` table
+- [ ] Create `MainHubUpgradeV001ForCustomButtons` table
+- [ ] Create `MainHubUpgradeV001ForUserPosts` table
+- [ ] Create `MainHubUpgradeV001ForPrivacySettings` table
+
+### Backend Implementation
+- [ ] Create `/server/products.ts` with all product endpoints
+- [ ] Create `/server/inventory.ts` for inventory endpoints
+- [ ] Create `/server/privacy.ts` for privacy settings
+- [ ] Create `/server/product-messages.ts` for DM system
+- [ ] Register all new routers in `/server/index.ts`
+- [ ] Update `/server/auth.ts` to set admin flags on signup
+- [ ] Add file upload handling for product images
+
+### Frontend Components
+- [ ] Create `HikerMarketplaceButton.tsx` component
+- [ ] Create `HikerMarketplaceModal.tsx` component (10-page browser)
+- [ ] Create `ProductManagementSection.tsx` component
+- [ ] Create `ProductCarousel.tsx` component
+- [ ] Create `HomeModal.tsx` component
+- [ ] Update `MainUhubFeatureV001ForMyProfileModal.tsx` to integrate hiker button
+- [ ] Update `MainUhubFeatureV001ForAddProductModal.tsx` with payment methods
+- [ ] Update `MainUhubFeatureV001ForProductDetailModal.tsx` with payment display
+- [ ] Add WooCommerce cart URL updates (https://page001.uminion.com/cart/)
+
+### Features to Test
+- [ ] Admin role hierarchy working correctly
+- [ ] High-high-high admins can add to main store
+- [ ] High-high admins can manage regional stores
+- [ ] Regular users can only manage their own store
+- [ ] 10-page marketplace browser shows correct products per page
+- [ ] Products move to trash and can be recovered
+- [ ] Internal cart separate from WooCommerce cart
+- [ ] Payment method selection displays correctly
+- [ ] Direct messages for products work
+- [ ] Home modal displays all sections
+- [ ] Privacy settings save and apply correctly
+
+---
+
+## Notes & Future Enhancements
+
+### Block/Unblock Functionality
+When implementing blocking for high-high-high admins:
+1. Set `is_blocked = 1` for user in database
+2. Hide all their products from stores
+3. Hide their broadcasts/episodes
+4. Prevent them from creating new products
+5. Log the action for audit trail
+
+### Custom Buttons & Marketplace
+For the "CreateAmodal?" feature in K.1:
+1. Users submit JavaScript/React code for a modal
+2. Create record in `MainHubUpgradeV001ForCustomButtons`
+3. Other users can "buy" this button (add to inventory)
+4. Assign to one of 6 slots on profile
+5. When clicked, renders that custom modal
+
+### Real-Time Updates
+Consider adding Socket.IO events for:
+- Product added to store (notify admins)
+- Direct messages about products (real-time notifications)
+- Marketplace refreshing (live product list updates)
+
+---
+
+This completes StoreIntegration002. Copy and paste the code sections into their respective files, run the database migrations, and test each feature systematically.
