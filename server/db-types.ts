@@ -67,6 +67,46 @@ export interface MainHubUpgradeV001ForProducts {
   image_url: string | null;
   store_type: "main" | "user";
   user_id: number | null;
+  store_id: number | null;
+  payment_method: string | null;
+  payment_url: string | null;
+  is_in_trash: Boolean;
+  sku_id: string | null;
+  created_at: Generated<string | null>;
+}
+
+export interface MainHubUpgradeV001ForProductTrash {
+  id: Generated<number>;
+  product_id: number;
+  user_id: number;
+  deleted_at: Generated<string | null>;
+}
+
+export interface MainHubUpgradeV001ForInternalCart {
+  id: Generated<number>;
+  user_id: number;
+  product_id: number;
+  quantity: Generated<number>;
+  added_at: Generated<string | null>;
+}
+
+export interface MainHubUpgradeV001ForLookingFor {
+  id: Generated<number>;
+  user_id: number;
+  store_id: number;
+  item_name: string;
+  description: string | null;
+  created_at: Generated<string | null>;
+}
+
+export interface MainHubUpgradeV001ForStores {
+  id: Generated<number>;
+  store_number: number;
+  store_name: string;
+  store_type: string;
+  chatroom_id: number | null;
+  description: string | null;
+  created_at: Generated<string | null>;
 }
 
 export interface Messages {
@@ -108,6 +148,14 @@ export interface Users {
   phone_number: string | null;
   profile_image_url: string | null;
   cover_photo_url: string | null;
+  is_high_high_high_admin: Boolean;
+  is_high_high_admin: Boolean;
+  is_high_admin: Boolean;
+  is_special_user: Boolean;
+  is_special_special_user: Boolean;
+  is_special_special_special_user: Boolean;
+  is_blocked: Boolean;
+  is_banned_from_chatrooms: Boolean;
 }
 
 export interface DB {
@@ -119,6 +167,10 @@ export interface DB {
   MainHubUpgradeV001ForEpisodes: MainHubUpgradeV001ForEpisodes;
   MainHubUpgradeV001ForEpisodeTags: MainHubUpgradeV001ForEpisodeTags;
   MainHubUpgradeV001ForProducts: MainHubUpgradeV001ForProducts;
+  MainHubUpgradeV001ForProductTrash: MainHubUpgradeV001ForProductTrash;
+  MainHubUpgradeV001ForInternalCart: MainHubUpgradeV001ForInternalCart;
+  MainHubUpgradeV001ForLookingFor: MainHubUpgradeV001ForLookingFor;
+  MainHubUpgradeV001ForStores: MainHubUpgradeV001ForStores;
   messages: Messages;
   reports: Reports;
   user_chatrooms: UserChatrooms;
