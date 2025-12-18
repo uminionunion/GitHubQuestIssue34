@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import cookieParser from 'cookie-parser';
+import fileUpload from 'express-fileupload';
 import path from 'path';
 import fs from 'fs';
 
@@ -89,12 +90,16 @@ if (RouterProto) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+// ADD THIS LINE: Enable file upload handling
+app.use(fileUpload({
+  createParentPath: true,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
+}));
 
 /**
  * Dynamic-import the modules that may register routes
- * UPDATED: Added productsRouter
  */
-const [{ setupStaticServing }, authMod, friendsMod, chatMod, productsMod] = await Promise.all([
+const [{ setupStaticServing }, authMod, friendsMod, { setupChat }, productsMod] = await Promise.all([
   import('./static-serve.js'),
   import('./auth.js'),
   import('./friends.js'),
@@ -106,13 +111,10 @@ const authRouter: Router = (authMod && (authMod as any).default) ? (authMod as a
 const friendsRouter: Router = (friendsMod && (friendsMod as any).default) ? (friendsMod as any).default as Router : (friendsMod as any) as Router;
 const productsRouter: Router = (productsMod && (productsMod as any).default) ? (productsMod as any).default as Router : (productsMod as any) as Router;
 
-// Register all API routers
 app.use('/api/auth', authRouter);
 app.use('/api/friends', friendsRouter);
 app.use('/api/products', productsRouter);
 
-// Setup socket.io chat
-const { setupChat } = chatMod;
 setupChat(io);
 
 function resolvePublicPath(): string {
@@ -170,6 +172,7 @@ export async function startServer(port: number | string) {
 
       app.use(express.static(publicPath, { index: false }));
 
+      // ✅ FIXED: regex catch-all instead of "*"
       app.get(/.*/, (req, res, next) => {
         if (req.path.startsWith('/api/')) return next();
         const indexFile = path.join(publicPath, 'index.html');
@@ -188,7 +191,6 @@ export async function startServer(port: number | string) {
 
     server.listen(port, () => {
       console.log(`API Server running on port ${port}`);
-      logRegisteredRoutes();
     });
   } catch (err) {
     console.error('Failed to start server:', err);
