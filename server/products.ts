@@ -47,7 +47,7 @@ router.post('/', authenticate, async (req, res) => {
 
     // Determine store assignment based on user role
     let storeType = 'user';
-    let finalStoreId = null;
+    let finalStoreId: number | null = null;
     let finalWooSku = null;
 
     if (user.is_high_high_high_admin === 1) {
