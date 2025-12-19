@@ -90,7 +90,7 @@ const MainUhubFeatureV001ForSocialIcon = ({ href, children }: { href: string, ch
 interface Product {
   id: number;
   name: string;
-  price: number | null;
+  price?: number | null;
   image_url: string | null;
   store_type: string;
   user_id?: number;
@@ -171,13 +171,13 @@ const BroadcastView = ({ broadcast }) => (
     </div>
 );
 
-// QUADRANTS MODAL - 4-QUADRANT LAYOUT
-const QuadrantsModal = ({ isOpen, onClose, stores, selectedStore, onSelectStore }) => {
+// QUADRANTS MODAL - Launches as modal on top
+const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-      <div className="bg-background border rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
+      <div className="bg-background border rounded-lg p-6 max-w-4xl w-[90%] max-h-[90vh] overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Store Quadrants (All 30 Stores)</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -194,7 +194,7 @@ const QuadrantsModal = ({ isOpen, onClose, stores, selectedStore, onSelectStore 
               {stores.map(store => (
                 <Button
                   key={store.id}
-                  variant={selectedStore?.id === store.id ? "default" : "outline"}
+                  variant="outline"
                   onClick={() => {
                     onSelectStore(store);
                     onClose();
@@ -235,11 +235,110 @@ const QuadrantsModal = ({ isOpen, onClose, stores, selectedStore, onSelectStore 
   );
 };
 
+// HOME MODAL - MyAccount, MyStore, MyPosts, MyFeed, MyInventory
+const HomeModal = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
+      <div className="bg-background border rounded-lg p-6 max-w-4xl w-[90%] max-h-[90vh] overflow-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Home</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+
+        {/* 2x3 Grid */}
+        <div className="grid grid-cols-2 gap-4 h-[70vh]">
+          {/* Top Left: MyAccount */}
+          <div className="border rounded-lg p-4 overflow-auto">
+            <h3 className="font-bold mb-4">My Account</h3>
+            <div className="space-y-3">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" defaultChecked className="w-4 h-4" />
+                <span className="text-sm">Allow others to see friends list</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" defaultChecked className="w-4 h-4" />
+                <span className="text-sm">Allow non-logged users to see posts</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" className="w-4 h-4" />
+                <span className="text-sm">Only friends can see posts</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" defaultChecked className="w-4 h-4" />
+                <span className="text-sm">Allow unlikes on posts</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Top Right: MyStore */}
+          <div className="border rounded-lg p-4 overflow-auto">
+            <h3 className="font-bold mb-4">My Store</h3>
+            <div className="text-center text-muted-foreground py-8">
+              Your store preview appears here when visitors come to your profile
+            </div>
+          </div>
+
+          {/* Bottom Left: MyPosts */}
+          <div className="border rounded-lg p-4 overflow-auto">
+            <h3 className="font-bold mb-4">My Posts</h3>
+            <textarea className="w-full p-2 border rounded mb-2" placeholder="Write a post..." rows={3}></textarea>
+            <Button className="w-full">Create Post</Button>
+          </div>
+
+          {/* Bottom Middle: MyFeed */}
+          <div className="border rounded-lg p-4 overflow-auto">
+            <h3 className="font-bold mb-4">My Feed</h3>
+            <div className="text-center text-muted-foreground py-8">
+              Posts from friends appear here
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Row: MyInventory spans full width */}
+        <div className="border rounded-lg p-4 mt-4 h-32 overflow-auto">
+          <h3 className="font-bold mb-3">My Inventory</h3>
+          <div className="text-center text-muted-foreground">
+            Custom features you've purchased appear here
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// CUSTOMIZE MODAL - For buttons 3-8
+const CustomizeModal = ({ isOpen, onClose, buttonNumber }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
+      <div className="bg-background border rounded-lg p-6 max-w-2xl w-[90%]">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Customize A Modal</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+
+        <div className="text-center py-8">
+          <p className="text-lg mb-4">Customize a Modal & Sell it through your myStore for others to use!</p>
+          <p className="text-sm text-muted-foreground mb-4">Button {buttonNumber}</p>
+          <Button onClick={onClose}>Create Custom Feature</Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
   const { user } = useAuth();
   const MainUhubFeatureV001ForUHomeHubButtons = Array.from({ length: 30 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
-  const [products, setProducts] = useState<Record<string, Product[]>>({});
+  const [products, setProducts] = useState<any>({});
   const [centerRightView, setCenterRightView] = useState(ALL_STORES[20]); // Start at UnionSAM#20
   const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -256,8 +355,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [rightWidthDesktop, setRightWidthDesktop] = useState(20);
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
   const [isDraggingRight, setIsDraggingRight] = useState(false);
-  const [showQuadrantsModal, setShowQuadrantsModal] = useState(false);
-  const [cart, setCart] = useState<Product[]>([]);
+  
+  // NEW: Modal states for Hiker, Home, and Custom buttons
+  const [isQuadrantsModalOpen, setIsQuadrantsModalOpen] = useState(false);
+  const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
+  const [customizeModalOpen, setCustomizeModalOpen] = useState<number | null>(null);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -279,63 +381,30 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   }, [user, isOpen]);
 
   useEffect(() => {
-    const allProducts: Record<string, Product[]> = {};
-
-    // UnionSAM#20
-    allProducts['UnionSAM#20'] = [
-        { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://page001.uminion.com/product/byoct/', store_type: 'main' },
-        { id: 2, name: 'uT-Shirt', price: 34.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://page001.uminion.com/product/tshirt/', store_type: 'user' },
-        { id: 3, name: 'Classic Poster', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/shop/', store_type: 'user' },
-        { id: 4, name: 'Ukraine', price: 5.24, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store_type: 'user' },
-        { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://page001.uminion.com/product/official-uminion-union-card/', store_type: 'user' },
-    ];
-
-    // UnionPolitic#19
-    allProducts['UnionPolitic#19'] = [
-        { id: 6, name: 'Support unionCandidates as a WHOLE', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'main' },
-        { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
-        { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
-        { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
-    ];
-
-    // UnionEvent#12 + placeholder for all other stores
-    const eventProduct = { id: 100, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-12-unionevent12-2024classica/', store_type: 'main' };
-    
-    // Add placeholder for #0-30 (except 12, 19, 20 which are done above)
-    ALL_STORES.forEach(store => {
-      if (store.id !== 12 && store.id !== 19 && store.id !== 20) {
-        allProducts[store.displayName] = [
-          { ...eventProduct, id: 200 + store.id }
-        ];
-      } else if (store.id === 12) {
-        allProducts['UnionEvent#12'] = [eventProduct];
-      }
-    });
-
+    const allProducts = {
+        'UnionSAM#20': [
+            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://page001.uminion.com/product/byoct/', store: 'main' },
+            { id: 2, name: 'uT-Shirt', price: 34.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://page001.uminion.com/product/tshirt/', store: 'user' },
+            { id: 3, name: 'Classic Poster', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/shop/', store: 'user' },
+            { id: 4, name: 'Ukraine', price: 5.24, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store: 'user' },
+            { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://page001.uminion.com/product/official-uminion-union-card/', store: 'user' },
+        ],
+        'UnionPolitic#19': [
+            { id: 6, name: 'Support unionCandidates as a WHOLE', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
+            { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
+            { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
+            { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
+        ],
+        'UnionEvent#12': [
+            { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-12-unionevent12-2024classica/' },
+        ],
+    };
     setProducts(allProducts);
   }, []);
 
-  const handleMagnify = (product: Product) => {
+  const handleMagnify = (product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
-  };
-
-  const handleAddToCart = (product: Product) => {
-    setCart(prev => {
-      const existing = prev.find(p => p.id === product.id);
-      if (existing) {
-        return prev;
-      }
-      return [...prev, product];
-    });
-    
-    if (user) {
-      fetch('/api/products/cart/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: product.id, quantity: 1 }),
-      }).catch(err => console.error('Error adding to cart:', err));
-    }
   };
 
   const MainUhubFeatureV001ForSisterUnionPages = [
@@ -347,17 +416,23 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     'SisterUnion016UnionDrive', 'SisterUnion017UnionArchiveAndEducation', 'SisterUnion018UnionTech',
     'SisterUnion019UnionPolitic', 'SisterUnion020UnionSAM', 'SisterUnion021UnionUkraineAndTheCrystalPalace',
     'SisterUnion022FestyLove', 'SisterUnion023UnionLegal', 'SisterUnion024UnionMarket',
-    'SisterUnion025', 'SisterUnion026', 'SisterUnion027', 'SisterUnion028', 'SisterUnion029', 'SisterUnion030',
   ];
   const MainUhubFeatureV001ForModalColors = Array.from({ length: 30 }, (_, i) => `hsl(${i * 12}, 70%, 50%)`);
 
   const handleUHomeHubClick = (buttonNumber: number) => setActiveChatModal(buttonNumber);
   const handleCloseChatModal = () => setActiveChatModal(null);
 
+  // FIXED: Navigate through ALL_STORES instead of FEATURED_STORES
   const navigateCenterRight = (direction: 'left' | 'right') => {
     const currentIndex = ALL_STORES.findIndex(s => s.id === centerRightView.id);
     const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + ALL_STORES.length) % ALL_STORES.length;
     setCenterRightView(ALL_STORES[nextIndex]);
+  };
+
+  const navigateBroadcast = (direction: 'left' | 'right') => {
+    const currentIndex = broadcastKeys.indexOf(broadcastView);
+    const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + broadcastKeys.length) % broadcastKeys.length;
+    setBroadcastView(broadcastKeys[nextIndex]);
   };
 
   const handleStartDragMobile = () => {
@@ -417,46 +492,10 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     };
   }, [isDraggingLeft, isDraggingRight, leftWidthMobile, leftWidthDesktop]);
 
-  const renderCenterContent = () => {
-    switch (centerView) {
-        case 'friends':
-            return <MainUhubFeatureV001ForFriendsView pendingRequests={pendingFriendRequests} setPendingRequests={setPendingFriendRequests} />;
-        case 'settings':
-            return <MainUhubFeatureV001ForSettingsView />;
-        case 'broadcasts':
-        default:
-            const currentBroadcast = broadcasts[broadcastView];
-            return (
-                <>
-                    <div className="flex items-center justify-center mb-4">
-                        <Button variant="ghost" size="icon" onClick={() => {
-                          const currentIndex = broadcastKeys.indexOf(broadcastView);
-                          const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
-                          setBroadcastView(broadcastKeys[nextIndex]);
-                        }}>
-                            <ChevronLeft />
-                        </Button>
-                        <h3 className="text-center font-bold mx-4">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
-                        <Button variant="ghost" size="icon" onClick={() => {
-                          const currentIndex = broadcastKeys.indexOf(broadcastView);
-                          const nextIndex = (currentIndex + 1) % broadcastKeys.length;
-                          setBroadcastView(broadcastKeys[nextIndex]);
-                        }}>
-                            <ChevronRight />
-                        </Button>
-                    </div>
-                    {broadcastView === 'MyBroadcasts' ? 
-                        (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
-                        : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
-                </>
-            );
-    }
-  };
-
   const renderCenterRightContent = () => {
     const currentProducts = products[centerRightView.displayName] || [];
-    const mainStoreProducts = currentProducts.filter(p => p.store_type === 'main');
-    const userStoreProducts = currentProducts.filter(p => p.store_type !== 'main');
+    const mainStoreProducts = currentProducts.filter(p => p.store === 'main');
+    const userStoreProducts = currentProducts.filter(p => p.store !== 'main');
 
     return (
         <>
@@ -470,7 +509,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                     </a>
                 </div>
                 <div className="space-y-2">
-                    {mainStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)}
+                    {mainStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={() => {}} />)}
                 </div>
             </div>
             <div id="MainUhubFeatureV001ForYourStore" className="border rounded-md p-2">
@@ -489,15 +528,43 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                     </div>
                 </div>
                 <div className="space-y-2">
-                    {userStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)}
+                    {userStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={() => {}} />)}
                 </div>
             </div>
         </>
     );
   };
 
+  const renderCenterContent = () => {
+    switch (centerView) {
+        case 'friends':
+            return <MainUhubFeatureV001ForFriendsView pendingRequests={pendingFriendRequests} setPendingRequests={setPendingFriendRequests} />;
+        case 'settings':
+            return <MainUhubFeatureV001ForSettingsView />;
+        case 'broadcasts':
+        default:
+            const currentBroadcast = broadcasts[broadcastView];
+            return (
+                <>
+                    <div className="flex items-center justify-center mb-4">
+                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')}>
+                            <ChevronLeft />
+                        </Button>
+                        <h3 className="text-center font-bold mx-4">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
+                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
+                            <ChevronRight />
+                        </Button>
+                    </div>
+                    {broadcastView === 'MyBroadcasts' ? 
+                        (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
+                        : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
+                </>
+            );
+    }
+  };
+
   const handleTopLeftButtonClick = (view: string) => {
-    if (!user && view !== 'broadcasts') {
+    if (!user) {
       alert("You must be logged in to use this feature.");
       return;
     }
@@ -543,63 +610,74 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
           <X className="h-6 w-6" />
           <span className="sr-only">Close</span>
         </Button>
-
-         {/* Top Section - Left Buttons */}
+         {/* Top Section */}
          <div className="md:flex md:flex-row hidden md:p-4 md:border-b md:gap-0">
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="md:w-1/5 grid grid-cols-4 md:grid-cols-2 grid-rows-1 md:grid-rows-2 gap-2 md:pr-4">
-             <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+             <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
                {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
                <Users className="h-4 w-4 mb-1" /> Friends
              </Button>
-             <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Broadcast" onClick={() => handleTopLeftButtonClick('broadcasts')}><Megaphone className="h-4 w-4 mb-1" /> Broadcast</Button>
+             <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="h-4 w-4 mb-1" /> Broadcast</Button>
              <a href="https://github.com/uminionunion/GitHubQuestIssue34" target="_blank" rel="noopener noreferrer" className="w-full h-full">
                <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center text-xs" title="Code" disabled={!user}><Code className="h-4 w-4 mb-1" /> Code</Button>
              </a>
              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="h-4 w-4 mb-1" /> Settings</Button>
            </div>
-
-           {/* Cover Photo */}
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-3/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png')" }}>
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
-
-           {/* Avatar + Hiker Button */}
-           <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex flex-col justify-start md:justify-center items-center md:pl-4 gap-2">
+           <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
              <div onClick={handleProfileImageClick} className="cursor-pointer">
                <Avatar className="h-24 w-24 md:h-32 md:w-32">
                  <AvatarImage src={user?.profile_image_url || "https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg"} alt="Profile" />
                  <AvatarFallback>U</AvatarFallback>
                </Avatar>
              </div>
-             {user && <Button size="sm" className="">Edit</Button>}
-             <div className="flex items-center gap-2">
+             {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
+             <div className="absolute bottom-0 right-0 flex items-center gap-2">
                  <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
                  <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
              </div>
            </div>
          </div>
 
-         {/* New Row: Hiker Button + Home Button (Between Avatar and Timeline) */}
-         <div className="md:flex hidden md:flex-row md:p-4 md:border-b md:gap-4">
-           <div className="md:w-1/5"></div>
-           <div className="md:w-3/5 grid grid-cols-2 gap-2">
-             <Button 
-               variant={showQuadrantsModal ? "default" : "outline"}
-               onClick={() => setShowQuadrantsModal(!showQuadrantsModal)}
-               className="flex flex-col h-12 items-center justify-center text-xs"
-               title="Store Quadrants Hiker"
-             >
-               <Mountain className="h-4 w-4 mb-1" /> Hiker
-             </Button>
-             <Button 
+         {/* NEW: 8-Button Grid Container (between avatar and timeline) */}
+         <div className="hidden md:flex md:p-4 md:border-b md:justify-center md:gap-4">
+           <div className="grid grid-cols-2 gap-4 w-fit">
+             {/* Top Row: Hiker + Home */}
+             <Button
                variant="outline"
-               className="flex flex-col h-12 items-center justify-center text-xs"
+               size="lg"
+               className="flex flex-col items-center justify-center h-20 w-20 gap-1"
+               onClick={() => setIsQuadrantsModalOpen(true)}
+               title="HikingToAllStores"
+             >
+               <Mountain className="h-6 w-6" />
+             </Button>
+             <Button
+               variant="outline"
+               size="lg"
+               className="flex flex-col items-center justify-center h-20 w-20 gap-1"
+               onClick={() => setIsHomeModalOpen(true)}
                title="Home"
              >
-               <Home className="h-4 w-4 mb-1" /> Home
+               <Home className="h-6 w-6" />
              </Button>
+
+             {/* Bottom Row: Custom Buttons 3-8 */}
+             {Array.from({ length: 6 }, (_, i) => (
+               <Button
+                 key={i + 3}
+                 variant="outline"
+                 size="lg"
+                 className="flex flex-col items-center justify-center h-20 w-20 gap-1 text-xs"
+                 onClick={() => setCustomizeModalOpen(i + 3)}
+                 title={`Custom ${i + 3}`}
+               >
+                 {i + 3}
+               </Button>
+             ))}
            </div>
-           <div className="md:w-1/5"></div>
          </div>
 
          {/* Mobile Top Row */}
@@ -612,11 +690,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                </Avatar>
              </div>
              <div className="flex gap-1 flex-1">
-               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
                  {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
                  <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
                </Button>
-               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => handleTopLeftButtonClick('broadcasts')}>
+               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => setCenterView('broadcasts')}>
                  <Megaphone className="h-3 w-3" /><span className="text-xxs">Broadcast</span>
                </Button>
                <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="flex-1">
@@ -631,21 +709,6 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
            <div className="h-24 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/StoreProductsAndImagery/UminionLogo28.2024Classic.png')" }}>
              {user && <Button className="absolute bottom-1 right-1 text-xs h-6" size="sm">Change</Button>}
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <Button 
-               variant={showQuadrantsModal ? "default" : "outline"}
-               onClick={() => setShowQuadrantsModal(!showQuadrantsModal)}
-               className="flex flex-col h-10 items-center justify-center text-xs"
-             >
-               <Mountain className="h-3 w-3 mb-0.5" /> Hiker
-             </Button>
-             <Button 
-               variant="outline"
-               className="flex flex-col h-10 items-center justify-center text-xs"
-             >
-               <Home className="h-3 w-3 mb-0.5" /> Home
-             </Button>
            </div>
          </div>
 
@@ -676,78 +739,92 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-         {/* Bottom Section */}
-         <div className="flex border-t md:h-auto h-12">
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-2 border-r flex items-center">
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
-             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
-               {socialLinkPagesLeft[socialPageLeft].map(link => (
-                 <div key={link.id} className="text-xs md:text-xs">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
-             </div>
-             <div className="flex-grow md:hidden flex justify-center items-center">
-               {socialLinkPagesLeft[socialPageLeft].slice(0, 1).map(link => (
-                 <div key={link.id} className="text-2xl">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
-             </div>
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
-           </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-2 flex items-center justify-center">
-             <a href="https://page001.uminion.com/product/official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-sm">
-               Become an Official Member of the Union via getting your Union Card Today!
-             </a>
-           </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-2 border-l flex items-center">
-              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
-             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
-               {socialLinkPagesRight[socialPageRight].map(link => (
-                 <div key={link.id} className="text-xs md:text-xs">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
-             </div>
-             <div className="flex-grow md:hidden flex justify-center items-center">
-               {socialLinkPagesRight[socialPageRight].slice(0, 1).map(link => (
-                 <div key={link.id} className="text-2xl">
-                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                 </div>
-               ))}
-             </div>
-             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
-           </div>
-         </div>
-       </div>
+          {/* Bottom Section */}
+          <div className="flex border-t md:h-auto h-12">
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-2 border-r flex items-center">
+              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
+                {socialLinkPagesLeft[socialPageLeft].map(link => (
+                  <div key={link.id} className="text-xs md:text-xs">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
+              </div>
+              <div className="flex-grow md:hidden flex justify-center items-center">
+                {socialLinkPagesLeft[socialPageLeft].slice(0, 1).map(link => (
+                  <div key={link.id} className="text-2xl">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+            </div>
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-2 flex items-center justify-center">
+              <a href="https://page001.uminion.com/product/official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-sm">
+                Become an Official Member of the Union via getting your Union Card Today!
+              </a>
+            </div>
+            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-2 border-l flex items-center">
+               <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
+                {socialLinkPagesRight[socialPageRight].map(link => (
+                  <div key={link.id} className="text-xs md:text-xs">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
+              </div>
+              <div className="flex-grow md:hidden flex justify-center items-center">
+                {socialLinkPagesRight[socialPageRight].slice(0, 1).map(link => (
+                  <div key={link.id} className="text-2xl">
+                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+            </div>
+          </div>
+        </div>
 
-       {activeChatModal !== null && (
-         <MainUhubFeatureV001ForChatModal
-             isOpen={activeChatModal !== null}
-             onClose={handleCloseChatModal}
-             pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-             backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-             modalNumber={activeChatModal}
-           />
-         )}
-         {isAddProductModalOpen && (
-           <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
-         )}
-         {isProductDetailModalOpen && (
-           <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
-         )}
-         <QuadrantsModal 
-           isOpen={showQuadrantsModal} 
-           onClose={() => setShowQuadrantsModal(false)}
-           stores={ALL_STORES}
-           selectedStore={centerRightView}
-           onSelectStore={(store) => {
-             setCenterRightView(store);
-           }}
-         />
-     </>
-     );
-   };
+      {activeChatModal !== null && (
+        <MainUhubFeatureV001ForChatModal
+            isOpen={activeChatModal !== null}
+            onClose={handleCloseChatModal}
+            pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+            backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+            modalNumber={activeChatModal}
+          />
+        )}
+        {isAddProductModalOpen && (
+          <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
+        )}
+        {isProductDetailModalOpen && (
+          <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
+        )}
+
+        {/* NEW: Quadrants Modal */}
+        <QuadrantsModal 
+          isOpen={isQuadrantsModalOpen}
+          onClose={() => setIsQuadrantsModalOpen(false)}
+          stores={ALL_STORES}
+          onSelectStore={(store) => setCenterRightView(store)}
+        />
+
+        {/* NEW: Home Modal */}
+        <HomeModal 
+          isOpen={isHomeModalOpen}
+          onClose={() => setIsHomeModalOpen(false)}
+        />
+
+        {/* NEW: Customize Modal (for buttons 3-8) */}
+        {customizeModalOpen && (
+          <CustomizeModal
+            isOpen={customizeModalOpen !== null}
+            onClose={() => setCustomizeModalOpen(null)}
+            buttonNumber={customizeModalOpen}
+          />
+        )}
+    </>
+    );
+  };
 
 export default MainUhubFeatureV001ForMyProfileModal;
