@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
-import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X } from 'lucide-react';
+import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain } from 'lucide-react';
 import MainUhubFeatureV001ForChatModal from '../uminion/MainUhubFeatureV001ForChatModal';
 import { useAuth } from '../../hooks/useAuth';
 import MainUhubFeatureV001ForAddProductModal from './MainUhubFeatureV001ForAddProductModal';
@@ -16,6 +15,41 @@ interface MainUhubFeatureV001ForMyProfileModalProps {
   onClose: () => void;
   onOpenAuthModal: (mode: 'login' | 'signup') => void;
 }
+
+// All 30 stores in your database
+const ALL_STORES = [
+  { id: 0, name: 'Union Main Store', number: 0 },
+  { id: 1, name: 'NewEngland', number: 1 },
+  { id: 2, name: 'UnionStore', number: 2 },
+  { id: 3, name: 'UnionEconomic', number: 3 },
+  { id: 4, name: 'UnionEnvironment', number: 4 },
+  { id: 5, name: 'UnionHealth', number: 5 },
+  { id: 6, name: 'UnionEducation', number: 6 },
+  { id: 7, name: 'UnionCulture', number: 7 },
+  { id: 8, name: 'UnionTech', number: 8 },
+  { id: 9, name: 'UnionCreate', number: 9 },
+  { id: 10, name: 'UnionCommunity', number: 10 },
+  { id: 11, name: 'UnionWelcome', number: 11 },
+  { id: 12, name: 'UnionEvent', number: 12 },
+  { id: 13, name: 'UnionConnections', number: 13 },
+  { id: 14, name: 'UnionNews', number: 14 },
+  { id: 15, name: 'UnionRadio', number: 15 },
+  { id: 16, name: 'UnionFood', number: 16 },
+  { id: 17, name: 'UnionTravel', number: 17 },
+  { id: 18, name: 'UnionHomeLiving', number: 18 },
+  { id: 19, name: 'UnionPolitic', number: 19 },
+  { id: 20, name: 'UnionSAM', number: 20 },
+  { id: 21, name: 'UnionArtisan', number: 21 },
+  { id: 22, name: 'UnionBooks', number: 22 },
+  { id: 23, name: 'UnionGames', number: 23 },
+  { id: 24, name: 'UnionFitness', number: 24 },
+  { id: 25, name: 'UnionArena', number: 25 },
+  { id: 26, name: 'UnionTrades', number: 26 },
+  { id: 27, name: 'UnionSecret', number: 27 },
+  { id: 28, name: 'UnionSports', number: 28 },
+  { id: 29, name: 'UnionHousing', number: 29 },
+  { id: 30, name: 'UnionHealthcare', number: 30 },
+];
 
 const socialLinksLeft = [
   { id: 'facebook', href: 'https://www.facebook.com/groups/1615679026489537', icon: <Facebook /> },
@@ -53,11 +87,27 @@ const MainUhubFeatureV001ForSocialIcon = ({ href, children }: { href: string, ch
   </a>
 );
 
-const ProductBox = ({ product, onMagnify }) => {
+interface Product {
+  id: number;
+  name: string;
+  price: number | null;
+  image_url: string | null;
+  store_type: string;
+  user_id?: number;
+  url?: string;
+  time?: string;
+  location?: string;
+}
+
+const ProductBox = ({ product, onMagnify, onAddToCart }) => {
     const [inCart, setInCart] = useState(false);
 
-    const handleCartClick = () => {
-        setInCart(!inCart);
+    const handleCartClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!inCart) {
+        onAddToCart(product);
+      }
+      setInCart(!inCart);
     };
 
     if (!product) return <div className="h-36 md:h-48 border rounded-md p-2 flex items-center justify-center text-muted-foreground">No Product</div>;
@@ -123,15 +173,14 @@ const BroadcastView = ({ broadcast }) => (
 
 const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
   const { user } = useAuth();
-  const MainUhubFeatureV001ForUHomeHubButtons = Array.from({ length: 24 }, (_, i) => i + 1);
+  const MainUhubFeatureV001ForUHomeHubButtons = Array.from({ length: 30 }, (_, i) => i + 1); // NOW 30 BUTTONS
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
-  const [products, setProducts] = useState<any>({});
-  const [centerRightView, setCenterRightView] = useState('UnionSAM#20');
-  const centerRightViews = ['UnionEvent#12', 'UnionPolitic#19', 'UnionSAM#20'];
+  const [products, setProducts] = useState<Record<number, Product[]>>({});
+  const [selectedStoreId, setSelectedStoreId] = useState<number>(20); // UnionSAM default
   const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
-  const [centerView, setCenterView] = useState('broadcasts');
+  const [centerView, setCenterView] = useState('stores');
   const [pendingFriendRequests, setPendingFriendRequests] = useState([]);
   const [socialPageLeft, setSocialPageLeft] = useState(0);
   const [socialPageRight, setSocialPageRight] = useState(0);
@@ -143,6 +192,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [rightWidthDesktop, setRightWidthDesktop] = useState(20);
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
   const [isDraggingRight, setIsDraggingRight] = useState(false);
+  const [cart, setCart] = useState<Product[]>([]);
+  const [showQuadrants, setShowQuadrants] = useState(false); // Hiker button toggle
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -163,31 +214,51 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     }
   }, [user, isOpen]);
 
+  // Load products for each store
   useEffect(() => {
-    const allProducts = {
-        'UnionSAM#20': [
-            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://page001.uminion.com/product/byoct/', store: 'main' },
-            { id: 2, name: 'uT-Shirt', price: 34.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://page001.uminion.com/product/tshirt/', store: 'user' },
-            { id: 3, name: 'Classic Poster', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/shop/', store: 'user' },
-            { id: 4, name: 'Ukraine', price: 5.24, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store: 'user' },
-            { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://page001.uminion.com/product/official-uminion-union-card/', store: 'user' },
-        ],
-        'UnionPolitic#19': [
-            { id: 6, name: 'Support unionCandidates as a WHOLE', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
-            { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
-            { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
-            { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
-        ],
-        'UnionEvent#12': [
-            { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-12-unionevent12-2024classica/' },
-        ],
+    const loadStoreProducts = async () => {
+      const allProducts: Record<number, Product[]> = {};
+      
+      for (const store of ALL_STORES) {
+        try {
+          const response = await fetch(`/api/products/store/${store.id}`);
+          if (response.ok) {
+            allProducts[store.id] = await response.json();
+          }
+        } catch (error) {
+          console.error(`Error loading store ${store.id}:`, error);
+          allProducts[store.id] = [];
+        }
+      }
+      
+      setProducts(allProducts);
     };
-    setProducts(allProducts);
+
+    loadStoreProducts();
   }, []);
 
-  const handleMagnify = (product) => {
+  const handleMagnify = (product: Product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
+  };
+
+  const handleAddToCart = (product: Product) => {
+    setCart(prev => {
+      const existing = prev.find(p => p.id === product.id);
+      if (existing) {
+        return prev.map(p => p.id === product.id ? p : p);
+      }
+      return [...prev, product];
+    });
+    
+    // Also add to backend cart if authenticated
+    if (user) {
+      fetch('/api/products/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: product.id, quantity: 1 }),
+      }).catch(err => console.error('Error adding to cart:', err));
+    }
   };
 
   const MainUhubFeatureV001ForSisterUnionPages = [
@@ -199,23 +270,12 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     'SisterUnion016UnionDrive', 'SisterUnion017UnionArchiveAndEducation', 'SisterUnion018UnionTech',
     'SisterUnion019UnionPolitic', 'SisterUnion020UnionSAM', 'SisterUnion021UnionUkraineAndTheCrystalPalace',
     'SisterUnion022FestyLove', 'SisterUnion023UnionLegal', 'SisterUnion024UnionMarket',
+    'SisterUnion025', 'SisterUnion026', 'SisterUnion027', 'SisterUnion028', 'SisterUnion029', 'SisterUnion030',
   ];
-  const MainUhubFeatureV001ForModalColors = Array.from({ length: 24 }, (_, i) => `hsl(${i * 15}, 70%, 50%)`);
+  const MainUhubFeatureV001ForModalColors = Array.from({ length: 30 }, (_, i) => `hsl(${i * 12}, 70%, 50%)`);
 
   const handleUHomeHubClick = (buttonNumber: number) => setActiveChatModal(buttonNumber);
   const handleCloseChatModal = () => setActiveChatModal(null);
-
-  const navigateCenterRight = (direction: 'left' | 'right') => {
-    const currentIndex = centerRightViews.indexOf(centerRightView);
-    const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + centerRightViews.length) % centerRightViews.length;
-    setCenterRightView(centerRightViews[nextIndex]);
-  };
-
-  const navigateBroadcast = (direction: 'left' | 'right') => {
-    const currentIndex = broadcastKeys.indexOf(broadcastView);
-    const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + broadcastKeys.length) % broadcastKeys.length;
-    setBroadcastView(broadcastKeys[nextIndex]);
-  };
 
   const handleStartDragMobile = () => {
     setIsDraggingLeft(true);
@@ -274,49 +334,6 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     };
   }, [isDraggingLeft, isDraggingRight, leftWidthMobile, leftWidthDesktop]);
 
-  const renderCenterRightContent = () => {
-    const currentProducts = products[centerRightView] || [];
-    const mainStoreProducts = currentProducts.filter(p => p.store === 'main');
-    const userStoreProducts = currentProducts.filter(p => p.store !== 'main');
-
-    return (
-        <>
-            <div id="MainUhubFeatureV001ForMainStore" className="border rounded-md p-2">
-                <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-semibold text-center">Main Store</h4>
-                    <a href="https://uminion.com/cart/" target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500" id="MainUhubFeatureV001ForUnionSAM#20ViewCart">
-                            <ShoppingCart />
-                        </Button>
-                    </a>
-                </div>
-                <div className="space-y-2">
-                    {mainStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} />)}
-                </div>
-            </div>
-            <div id="MainUhubFeatureV001ForYourStore" className="border rounded-md p-2">
-                <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center">
-                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 mr-2" onClick={() => {
-                            if (!user) {
-                                alert('You must be logged in to add a product.');
-                                return;
-                            }
-                            setAddProductModalOpen(true)
-                        }}>
-                            <Eye />
-                        </Button>
-                        <h4 className="font-semibold text-center">Your Store:</h4>
-                    </div>
-                </div>
-                <div className="space-y-2">
-                    {userStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} />)}
-                </div>
-            </div>
-        </>
-    );
-  };
-
   const renderCenterContent = () => {
     switch (centerView) {
         case 'friends':
@@ -324,16 +341,23 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
         case 'settings':
             return <MainUhubFeatureV001ForSettingsView />;
         case 'broadcasts':
-        default:
             const currentBroadcast = broadcasts[broadcastView];
             return (
                 <>
                     <div className="flex items-center justify-center mb-4">
-                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')}>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          const currentIndex = broadcastKeys.indexOf(broadcastView);
+                          const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
+                          setBroadcastView(broadcastKeys[nextIndex]);
+                        }}>
                             <ChevronLeft />
                         </Button>
                         <h3 className="text-center font-bold mx-4">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
-                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          const currentIndex = broadcastKeys.indexOf(broadcastView);
+                          const nextIndex = (currentIndex + 1) % broadcastKeys.length;
+                          setBroadcastView(broadcastKeys[nextIndex]);
+                        }}>
                             <ChevronRight />
                         </Button>
                     </div>
@@ -342,11 +366,43 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                         : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
                 </>
             );
+        case 'stores':
+        default:
+            const currentStoreProducts = products[selectedStoreId] || [];
+            const storeInfo = ALL_STORES.find(s => s.id === selectedStoreId);
+            return (
+                <>
+                    <div className="flex items-center justify-center mb-4">
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          const currentIndex = ALL_STORES.findIndex(s => s.id === selectedStoreId);
+                          const nextIndex = (currentIndex - 1 + ALL_STORES.length) % ALL_STORES.length;
+                          setSelectedStoreId(ALL_STORES[nextIndex].id);
+                        }}>
+                            <ChevronLeft />
+                        </Button>
+                        <h3 className="text-center font-bold mx-4">{storeInfo?.name} #{storeInfo?.number}</h3>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          const currentIndex = ALL_STORES.findIndex(s => s.id === selectedStoreId);
+                          const nextIndex = (currentIndex + 1) % ALL_STORES.length;
+                          setSelectedStoreId(ALL_STORES[nextIndex].id);
+                        }}>
+                            <ChevronRight />
+                        </Button>
+                    </div>
+                    <div className="space-y-2">
+                        {currentStoreProducts.length > 0 ? (
+                            currentStoreProducts.map(p => <ProductBox key={p.id} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
+                        ) : (
+                            <p className="text-center text-muted-foreground">No products in this store yet.</p>
+                        )}
+                    </div>
+                </>
+            );
     }
   };
 
   const handleTopLeftButtonClick = (view: string) => {
-    if (!user) {
+    if (!user && view !== 'broadcasts') {
       alert("You must be logged in to use this feature.");
       return;
     }
@@ -395,11 +451,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
          {/* Top Section */}
          <div className="md:flex md:flex-row hidden md:p-4 md:border-b md:gap-0">
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="md:w-1/5 grid grid-cols-4 md:grid-cols-2 grid-rows-1 md:grid-rows-2 gap-2 md:pr-4">
-             <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+             <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
                {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
                <Users className="h-4 w-4 mb-1" /> Friends
              </Button>
-             <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="h-4 w-4 mb-1" /> Broadcast</Button>
+             <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Broadcast" onClick={() => handleTopLeftButtonClick('broadcasts')}><Megaphone className="h-4 w-4 mb-1" /> Broadcast</Button>
              <a href="https://github.com/uminionunion/GitHubQuestIssue34" target="_blank" rel="noopener noreferrer" className="w-full h-full">
                <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center text-xs" title="Code" disabled={!user}><Code className="h-4 w-4 mb-1" /> Code</Button>
              </a>
@@ -408,15 +464,43 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-3/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png')" }}>
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
+           <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex flex-col justify-start md:justify-end items-end md:pl-4 gap-2">
              <div onClick={handleProfileImageClick} className="cursor-pointer">
                <Avatar className="h-24 w-24 md:h-32 md:w-32">
                  <AvatarImage src={user?.profile_image_url || "https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg"} alt="Profile" />
                  <AvatarFallback>U</AvatarFallback>
                </Avatar>
              </div>
-             {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
-             <div className="absolute bottom-0 right-0 flex items-center gap-2">
+             {user && <Button size="sm" className="absolute top-8 right-2">Edit</Button>}
+             {/* HIKER BUTTON (QUADRANTS) - Now shows all 30 stores */}
+             <Button 
+               size="sm" 
+               variant={showQuadrants ? "default" : "outline"}
+               onClick={() => setShowQuadrants(!showQuadrants)}
+               className="mt-2"
+               title="View Store Quadrants"
+             >
+               <Mountain className="h-4 w-4 mr-1" /> Hiker
+             </Button>
+             <div className={`absolute top-40 right-2 bg-background border rounded-md p-2 grid grid-cols-6 gap-1 ${showQuadrants ? 'block' : 'hidden'}`} style={{width: '300px'}}>
+               {ALL_STORES.map(store => (
+                 <Button
+                   key={store.id}
+                   size="sm"
+                   variant={selectedStoreId === store.id ? "default" : "outline"}
+                   onClick={() => {
+                     setSelectedStoreId(store.id);
+                     setCenterView('stores');
+                     setShowQuadrants(false);
+                   }}
+                   className="text-xs h-6"
+                   title={store.name}
+                 >
+                   #{store.number}
+                 </Button>
+               ))}
+             </div>
+             <div className="absolute bottom-2 right-2 flex items-center gap-2">
                  <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
                  <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
              </div>
@@ -433,11 +517,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                </Avatar>
              </div>
              <div className="flex gap-1 flex-1">
-               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
                  {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
                  <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
                </Button>
-               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => setCenterView('broadcasts')}>
+               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => handleTopLeftButtonClick('broadcasts')}>
                  <Megaphone className="h-3 w-3" /><span className="text-xxs">Broadcast</span>
                </Button>
                <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="flex-1">
@@ -471,13 +555,16 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
            <div className="w-1 bg-gray-300 cursor-ew-resize hover:bg-green-500" onMouseDown={handleStartDragRight}></div>
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:border-l overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : `${rightWidthDesktop}%` }}>
-             <div className="flex items-center justify-center mb-2 md:mb-4">
-                 <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-                 <h3 className="text-center font-bold mx-1 md:mx-2 text-xs md:text-base">{centerRightView}</h3>
-                 <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
+             <div className="flex items-center justify-between mb-2 md:mb-4">
+                 <h3 className="text-center font-bold text-xs md:text-base">Cart ({cart.length})</h3>
+                 <span className="text-xs text-muted-foreground">Your Shopping Cart</span>
              </div>
              <div className="space-y-1 md:space-y-4">
-               {renderCenterRightContent()}
+               {cart.length > 0 ? (
+                 cart.map(p => <ProductBox key={p.id} product={p} onMagnify={handleMagnify} onAddToCart={() => {}} />)
+               ) : (
+                 <p className="text-center text-muted-foreground text-sm">Your cart is empty</p>
+               )}
              </div>
            </div>
          </div>
