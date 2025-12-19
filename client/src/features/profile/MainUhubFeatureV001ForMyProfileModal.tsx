@@ -965,8 +965,20 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
           />
         )}
         {isAddProductModalOpen && (
-          <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
-        )}
+  <MainUhubFeatureV001ForAddProductModal 
+    isOpen={isAddProductModalOpen} 
+    onClose={() => setAddProductModalOpen(false)}
+    onProductAdded={() => {
+      // Refresh user products
+      if (user) {
+        fetch(`/api/products/user/${user.id}`)
+          .then(res => res.json())
+          .then(data => setUserStoreProducts(Array.isArray(data) ? data : []))
+          .catch(err => console.error('Error refreshing products:', err));
+      }
+    }}
+  />
+)}
         {isProductDetailModalOpen && (
           <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
         )}
