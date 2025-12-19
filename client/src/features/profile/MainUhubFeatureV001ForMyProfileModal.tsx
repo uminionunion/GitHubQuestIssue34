@@ -97,6 +97,7 @@ interface Product {
   time?: string;
   location?: string;
   store_id?: number;
+  sku_id?: string;
 }
 
 const ProductBox = ({ product, onMagnify, onAddToCart }) => {
@@ -490,6 +491,20 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     }
   };
 
+  const getCartUrl = (product: Product | null): string => {
+    if (!product) {
+      return 'https://page001.uminion.com/cart/';
+    }
+
+    // If product has SKU, link directly to WooCommerce with SKU
+    if (product.sku_id) {
+      return `https://page001.uminion.com/cart/?add-to-cart=${encodeURIComponent(product.sku_id)}`;
+    }
+
+    // Default to general cart
+    return 'https://page001.uminion.com/cart/';
+  };
+
   const MainUhubFeatureV001ForSisterUnionPages = [
     'SisterUnion001NewEngland', 'SisterUnion002CentralEastCoast', 'SisterUnion003SouthEast',
     'SisterUnion004TheGreatLakesAndAppalachia', 'SisterUnion005CentralSouth', 'SisterUnion006CentralNorth',
@@ -582,7 +597,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                     <div id="MainUhubFeatureV001ForUnionStore" className="border rounded-md p-2">
                         <div className="flex justify-between items-center mb-2">
                             <h4 className="font-semibold text-center flex-1">Union Store</h4>
-                            <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+                            <a href={getCartUrl(mainProducts[0] || null)} target="_blank" rel="noopener noreferrer">
                                 <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
                                     <ShoppingCart className="h-4 w-4" />
                                 </Button>
@@ -639,7 +654,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                 <div id="MainUhubFeatureV001ForStoreColumn" className="border rounded-md p-2 flex flex-col h-full">
                     <div className="flex justify-between items-center mb-2">
                         <h4 className="font-semibold text-center flex-1">Store {String(centerRightView.number).padStart(2, '0')}</h4>
-                        <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+                        <a href={getCartUrl(storeProducts[centerRightView.number]?.[0] || null)} target="_blank" rel="noopener noreferrer">
                             <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
                                 <ShoppingCart className="h-4 w-4" />
                             </Button>
