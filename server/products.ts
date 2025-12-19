@@ -46,9 +46,9 @@ router.post('/', authenticate, async (req, res) => {
     }
 
     // Determine store assignment based on user role
-    let storeType = 'user';
+    let storeType: 'main' | 'user' = 'user';
     let finalStoreId: number | null = null;
-    let finalWooSku = null;
+    let finalWooSku: string | null = null;
 
     if (user.is_high_high_high_admin === 1) {
       // HIGH-HIGH-HIGH ADMIN: Can add to main store (#0) or with SKU
@@ -61,7 +61,7 @@ router.post('/', authenticate, async (req, res) => {
         res.status(400).json({ message: 'HIGH-HIGH ADMIN must specify store 1-30' });
         return;
       }
-      storeType = 'chatroom';
+      storeType = 'user';
       finalStoreId = parseInt(store_id);
     } else {
       // Regular user: Personal store
