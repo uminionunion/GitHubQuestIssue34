@@ -1,36 +1,38 @@
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
+import { X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface MainUhubFeatureV001ForAddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
+  storeId?: number; // For HIGH-HIGH ADMIN - pre-selected store
 }
 
-const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddProductModalProps> = ({ isOpen, onClose }) => {
+const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddProductModalProps> = ({ 
+  isOpen, 
+  onClose,
+  storeId: preSelectedStoreId
+}) => {
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [website, setWebsite] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('own_website');
   const [paymentUrl, setPaymentUrl] = useState('');
   const [wooSku, setWooSku] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [storeId, setStoreId] = useState(String(preSelectedStoreId || ''));
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  if (!isOpen || !user) return null;
+
+  const isHighHighHighAdmin = user.is_high_high_high_admin === 1;
+  const isHighHighAdmin = user.is_high_high_admin === 1;
 
   const paymentOptions = [
     { value: 'own_website', label: 'Pay through my website' },
@@ -40,27 +42,27 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
     { value: 'other', label: 'Other method' }
   ];
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
       setImage(e.target.files[0]);
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
 
-    // Validate required fields
-    if (!title || !price || !image) {
-      setError('Title, price, and image are required');
+    if (!title || !image || !price) {
+      setError('Please fill in title, image, and price');
       return;
     }
 
-    if (isNaN(parseFloat(price))) {
-      setError('Price must be a valid number');
+    if (isHighHighAdmin && (!storeId || parseInt(storeId) < 1 || parseInt(storeId) > 30)) {
+      setError('Please select a valid store (01-30)');
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       const formData = new FormData();
@@ -70,207 +72,188 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
       formData.append('price', price);
       formData.append('payment_method', paymentMethod);
       formData.append('payment_url', paymentUrl);
-      formData.append('website', website);
       formData.append('image', image);
       
-      // Only include WooCommerce SKU if user is admin
-      if (user?.is_high_high_high_admin === 1 && wooSku) {
+      if (isHighHighHighAdmin) {
         formData.append('woo_sku', wooSku);
+      }
+      if (isHighHighAdmin) {
+        formData.append('store_id', storeId);
       }
 
       const response = await fetch('/api/products', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        setTitle('');
+        setSubtitle('');
+        setDescription('');
+        setPrice('');
+        setImage(null);
+        setPaymentMethod('own_website');
+        setPaymentUrl('');
+        setWooSku('');
+        setStoreId(String(preSelectedStoreId || ''));
+        onClose();
+        window.location.reload();
+      } else {
         const errorData = await response.json();
         setError(errorData.message || 'Failed to create product');
-        return;
       }
-
-      // Success - close modal and refresh
-      console.log('Product created successfully');
-      onClose();
-      window.location.reload();
     } catch (error) {
       console.error('Error creating product:', error);
       setError('An error occurred while creating the product');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex p-0">
-        <div className="w-1/2 p-6 flex flex-col overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add a New Product</DialogTitle>
-            <DialogDescription>Fill in the details for your new product.</DialogDescription>
-          </DialogHeader>
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[10000]">
+      <div className="bg-background border rounded-lg p-6 max-w-2xl w-[90%] max-h-[90vh] overflow-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Add Product</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
 
-          <div className="flex-grow space-y-4 pr-2">
-            {error && (
-              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <Label htmlFor="title">Title (max 100 chars) *</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={100}
-                placeholder="Product name"
-              />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 bg-red-900 bg-opacity-20 border border-red-500 rounded text-red-400 text-sm">
+              {error}
             </div>
+          )}
 
+          <div>
+            <label className="block text-sm font-medium mb-2">Product Name *</label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter product name"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Subtitle</label>
+            <Input
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              placeholder="Optional subtitle"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Description</label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your product..."
+              rows={4}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="subtitle">Subheader (max 300 chars)</Label>
+              <label className="block text-sm font-medium mb-2">Price *</label>
               <Input
-                id="subtitle"
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                maxLength={300}
-                placeholder="Short description"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description (max 1000 chars)</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                maxLength={1000}
-                rows={4}
-                placeholder="Detailed description"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="price">Price *</Label>
-              <Input
-                id="price"
                 type="number"
                 step="0.01"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="0.00"
+                required
               />
             </div>
 
             <div>
-              <Label htmlFor="website">Website / Product Link</Label>
-              <Input
-                id="website"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.com"
-              />
+              <label className="block text-sm font-medium mb-2">Image *</label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="flex-1"
+                  required
+                />
+                {image && <span className="text-xs text-green-400">✓</span>}
+              </div>
             </div>
-
-            <div>
-              <Label htmlFor="payment-method">Payment Method *</Label>
-              <select
-                id="payment-method"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                {paymentOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {(paymentMethod === 'venmo' || paymentMethod === 'cash' || paymentMethod === 'other') && (
-              <div>
-                <Label htmlFor="payment-url">Payment Details / Contact Info</Label>
-                <Input
-                  id="payment-url"
-                  value={paymentUrl}
-                  onChange={(e) => setPaymentUrl(e.target.value)}
-                  placeholder="e.g., @venmoUsername or cash payment location"
-                />
-              </div>
-            )}
-
-            {paymentMethod === 'own_website' && (
-              <div>
-                <Label htmlFor="payment-url">Website Payment URL</Label>
-                <Input
-                  id="payment-url"
-                  value={paymentUrl}
-                  onChange={(e) => setPaymentUrl(e.target.value)}
-                  placeholder="https://example.com/checkout"
-                />
-              </div>
-            )}
-
-            {user?.is_high_high_high_admin === 1 && (
-              <div>
-                <Label htmlFor="woo-sku">WooCommerce SKU (Admin Only)</Label>
-                <Input
-                  id="woo-sku"
-                  value={wooSku}
-                  onChange={(e) => setWooSku(e.target.value)}
-                  placeholder="e.g., TAPESTRY-001"
-                />
-                <p className="text-xs text-gray-500 mt-1">Links product to WooCommerce inventory</p>
-              </div>
-            )}
           </div>
 
-          <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
+          {isHighHighHighAdmin && (
+            <div>
+              <label className="block text-sm font-medium mb-2">WooCommerce SKU</label>
+              <Input
+                value={wooSku}
+                onChange={(e) => setWooSku(e.target.value)}
+                placeholder="e.g., TAPESTRY-001"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Links to WooCommerce product at page001.uminion.com</p>
+            </div>
+          )}
+
+          {isHighHighAdmin && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Store Number *</label>
+              <Input
+                type="number"
+                min="1"
+                max="30"
+                value={storeId}
+                onChange={(e) => setStoreId(e.target.value)}
+                placeholder="Enter store number (1-30)"
+                required
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Payment Method</label>
+            <select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="w-full p-2 border rounded bg-background text-foreground"
             >
+              {paymentOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {paymentMethod !== 'cash' && paymentMethod !== 'card_coming_soon' && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Payment URL</label>
+              <Input
+                value={paymentUrl}
+                onChange={(e) => setPaymentUrl(e.target.value)}
+                placeholder="https://..."
+              />
+              <p className="text-xs text-muted-foreground mt-1">Link to your website, Venmo, etc.</p>
+            </div>
+          )}
+
+          <div className="flex gap-2 justify-end pt-4 border-t">
+            <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button
-              onClick={handleSubmit}
-              disabled={isLoading || !title || !price || !image}
+              type="submit"
+              className="bg-orange-400 hover:bg-orange-500 text-white"
+              disabled={isSubmitting}
             >
-              {isLoading ? 'Creating...' : 'Create Product'}
+              {isSubmitting ? 'Creating...' : 'Create Product'}
             </Button>
-          </DialogFooter>
-        </div>
-
-        <div className="w-1/2 p-6 border-l bg-muted/40 flex flex-col items-center justify-center">
-          <DialogHeader className="mb-4">
-            <DialogTitle>Upload Product Image</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-64 border-2 border-dashed border-border rounded-md flex items-center justify-center mb-4 bg-white">
-            {image ? (
-              <img
-                src={URL.createObjectURL(image)}
-                alt="Product preview"
-                className="max-h-full max-w-full object-contain"
-              />
-            ) : (
-              <p className="text-muted-foreground text-center px-4">No image selected. Click below to upload.</p>
-            )}
           </div>
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="cursor-pointer"
-          />
-          {image && (
-            <p className="text-xs text-muted-foreground mt-2">{image.name}</p>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+        </form>
+      </div>
+    </div>
   );
 };
 
