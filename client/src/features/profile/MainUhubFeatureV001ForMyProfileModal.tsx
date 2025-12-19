@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
-import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain } from 'lucide-react';
+import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain, Home } from 'lucide-react';
 import MainUhubFeatureV001ForChatModal from '../uminion/MainUhubFeatureV001ForChatModal';
 import { useAuth } from '../../hooks/useAuth';
 import MainUhubFeatureV001ForAddProductModal from './MainUhubFeatureV001ForAddProductModal';
@@ -18,43 +18,37 @@ interface MainUhubFeatureV001ForMyProfileModalProps {
 
 // All 30 stores in database (0-30)
 const ALL_STORES = [
-  { id: 0, name: 'Union Main Store', number: 0 },
-  { id: 1, name: 'NewEngland', number: 1 },
-  { id: 2, name: 'UnionStore', number: 2 },
-  { id: 3, name: 'UnionEconomic', number: 3 },
-  { id: 4, name: 'UnionEnvironment', number: 4 },
-  { id: 5, name: 'UnionHealth', number: 5 },
-  { id: 6, name: 'UnionEducation', number: 6 },
-  { id: 7, name: 'UnionCulture', number: 7 },
-  { id: 8, name: 'UnionTech', number: 8 },
-  { id: 9, name: 'UnionCreate', number: 9 },
-  { id: 10, name: 'UnionCommunity', number: 10 },
-  { id: 11, name: 'UnionWelcome', number: 11 },
-  { id: 12, name: 'UnionEvent', number: 12 },
-  { id: 13, name: 'UnionConnections', number: 13 },
-  { id: 14, name: 'UnionNews', number: 14 },
-  { id: 15, name: 'UnionRadio', number: 15 },
-  { id: 16, name: 'UnionFood', number: 16 },
-  { id: 17, name: 'UnionTravel', number: 17 },
-  { id: 18, name: 'UnionHomeLiving', number: 18 },
-  { id: 19, name: 'UnionPolitic', number: 19 },
-  { id: 20, name: 'UnionSAM', number: 20 },
-  { id: 21, name: 'UnionArtisan', number: 21 },
-  { id: 22, name: 'UnionBooks', number: 22 },
-  { id: 23, name: 'UnionGames', number: 23 },
-  { id: 24, name: 'UnionFitness', number: 24 },
-  { id: 25, name: 'UnionArena', number: 25 },
-  { id: 26, name: 'UnionTrades', number: 26 },
-  { id: 27, name: 'UnionSecret', number: 27 },
-  { id: 28, name: 'UnionSports', number: 28 },
-  { id: 29, name: 'UnionHousing', number: 29 },
-  { id: 30, name: 'UnionHealthcare', number: 30 },
-];
-
-const FEATURED_STORES = [
-  { id: 20, name: 'UnionSAM', number: 20, displayName: 'UnionSAM#20' },
-  { id: 19, name: 'UnionPolitic', number: 19, displayName: 'UnionPolitic#19' },
+  { id: 0, name: 'Union Main Store', number: 0, displayName: 'Union Main Store#0' },
+  { id: 1, name: 'NewEngland', number: 1, displayName: '#01' },
+  { id: 2, name: 'UnionStore', number: 2, displayName: '#02' },
+  { id: 3, name: 'UnionEconomic', number: 3, displayName: '#03' },
+  { id: 4, name: 'UnionEnvironment', number: 4, displayName: '#04' },
+  { id: 5, name: 'UnionHealth', number: 5, displayName: '#05' },
+  { id: 6, name: 'UnionEducation', number: 6, displayName: '#06' },
+  { id: 7, name: 'UnionCulture', number: 7, displayName: '#07' },
+  { id: 8, name: 'UnionTech', number: 8, displayName: '#08' },
+  { id: 9, name: 'UnionCreate', number: 9, displayName: '#09' },
+  { id: 10, name: 'UnionCommunity', number: 10, displayName: '#10' },
+  { id: 11, name: 'UnionWelcome', number: 11, displayName: '#11' },
   { id: 12, name: 'UnionEvent', number: 12, displayName: 'UnionEvent#12' },
+  { id: 13, name: 'UnionConnections', number: 13, displayName: '#13' },
+  { id: 14, name: 'UnionNews', number: 14, displayName: '#14' },
+  { id: 15, name: 'UnionRadio', number: 15, displayName: '#15' },
+  { id: 16, name: 'UnionFood', number: 16, displayName: '#16' },
+  { id: 17, name: 'UnionTravel', number: 17, displayName: '#17' },
+  { id: 18, name: 'UnionHomeLiving', number: 18, displayName: '#18' },
+  { id: 19, name: 'UnionPolitic', number: 19, displayName: 'UnionPolitic#19' },
+  { id: 20, name: 'UnionSAM', number: 20, displayName: 'UnionSAM#20' },
+  { id: 21, name: 'UnionArtisan', number: 21, displayName: '#21' },
+  { id: 22, name: 'UnionBooks', number: 22, displayName: '#22' },
+  { id: 23, name: 'UnionGames', number: 23, displayName: '#23' },
+  { id: 24, name: 'UnionFitness', number: 24, displayName: '#24' },
+  { id: 25, name: 'UnionArena', number: 25, displayName: '#25' },
+  { id: 26, name: 'UnionTrades', number: 26, displayName: '#26' },
+  { id: 27, name: 'UnionSecret', number: 27, displayName: '#27' },
+  { id: 28, name: 'UnionSports', number: 28, displayName: '#28' },
+  { id: 29, name: 'UnionHousing', number: 29, displayName: '#29' },
+  { id: 30, name: 'UnionHealthcare', number: 30, displayName: '#30' },
 ];
 
 const socialLinksLeft = [
@@ -177,35 +171,64 @@ const BroadcastView = ({ broadcast }) => (
     </div>
 );
 
-// QUADRANTS MODAL - Separate modal for hiker button
+// QUADRANTS MODAL - 4-QUADRANT LAYOUT
 const QuadrantsModal = ({ isOpen, onClose, stores, selectedStore, onSelectStore }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-      <div className="bg-background border rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Store Quadrants (All 30 Stores)</h2>
+      <div className="bg-background border rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Store Quadrants (All 30 Stores)</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
+            <X className="h-6 w-6" />
           </Button>
         </div>
         
-        <div className="grid grid-cols-6 gap-2">
-          {stores.map(store => (
-            <Button
-              key={store.id}
-              variant={selectedStore?.id === store.id ? "default" : "outline"}
-              onClick={() => {
-                onSelectStore(store);
-                onClose();
-              }}
-              className="text-xs h-10"
-              title={store.name}
-            >
-              #{store.number}
-            </Button>
-          ))}
+        {/* 4-Quadrant Grid */}
+        <div className="grid grid-cols-2 gap-4 h-[70vh]">
+          {/* Top Left: All Stores */}
+          <div className="border rounded-lg p-4 overflow-auto">
+            <h3 className="font-bold mb-3 sticky top-0 bg-background">All Stores</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {stores.map(store => (
+                <Button
+                  key={store.id}
+                  variant={selectedStore?.id === store.id ? "default" : "outline"}
+                  onClick={() => {
+                    onSelectStore(store);
+                    onClose();
+                  }}
+                  className="text-xs h-10"
+                  title={store.name}
+                >
+                  #{String(store.number).padStart(2, '0')}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Top Right: Union Store (Featured) */}
+          <div className="border rounded-lg p-4 flex flex-col">
+            <h3 className="font-bold mb-3">Union Store</h3>
+            <div className="flex-1 bg-muted rounded-md bg-cover bg-center" style={{backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg')`}}></div>
+          </div>
+
+          {/* Bottom Left: My Store */}
+          <div className="border rounded-lg p-4 flex flex-col">
+            <h3 className="font-bold mb-3">My Store</h3>
+            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+              (Your products)
+            </div>
+          </div>
+
+          {/* Bottom Right: Friends Stores */}
+          <div className="border rounded-lg p-4 flex flex-col">
+            <h3 className="font-bold mb-3">Friends Stores</h3>
+            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+              (Friends' products)
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -216,8 +239,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const { user } = useAuth();
   const MainUhubFeatureV001ForUHomeHubButtons = Array.from({ length: 30 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
-  const [products, setProducts] = useState<Record<number, Product[]>>({});
-  const [centerRightView, setCenterRightView] = useState(FEATURED_STORES[0]);
+  const [products, setProducts] = useState<Record<string, Product[]>>({});
+  const [centerRightView, setCenterRightView] = useState(ALL_STORES[20]); // Start at UnionSAM#20
   const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isProductDetailModalOpen, setProductDetailModalOpen] = useState(false);
@@ -239,7 +262,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
       'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
-      'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
+      'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: "https://page001.uminion.com/"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
@@ -256,24 +279,39 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   }, [user, isOpen]);
 
   useEffect(() => {
-    const allProducts = {
-        'UnionSAM#20': [
-            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://page001.uminion.com/product/byoct/', store_type: 'main' },
-            { id: 2, name: 'uT-Shirt', price: 34.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://page001.uminion.com/product/tshirt/', store_type: 'user' },
-            { id: 3, name: 'Classic Poster', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/shop/', store_type: 'user' },
-            { id: 4, name: 'Ukraine', price: 5.24, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store_type: 'user' },
-            { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://page001.uminion.com/product/official-uminion-union-card/', store_type: 'user' },
-        ],
-        'UnionPolitic#19': [
-            { id: 6, name: 'Support unionCandidates as a WHOLE', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'main' },
-            { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
-            { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
-            { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
-        ],
-        'UnionEvent#12': [
-            { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-12-unionevent12-2024classica/', store_type: 'main' },
-        ],
-    };
+    const allProducts: Record<string, Product[]> = {};
+
+    // UnionSAM#20
+    allProducts['UnionSAM#20'] = [
+        { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://page001.uminion.com/product/byoct/', store_type: 'main' },
+        { id: 2, name: 'uT-Shirt', price: 34.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://page001.uminion.com/product/tshirt/', store_type: 'user' },
+        { id: 3, name: 'Classic Poster', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/shop/', store_type: 'user' },
+        { id: 4, name: 'Ukraine', price: 5.24, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store_type: 'user' },
+        { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://page001.uminion.com/product/official-uminion-union-card/', store_type: 'user' },
+    ];
+
+    // UnionPolitic#19
+    allProducts['UnionPolitic#19'] = [
+        { id: 6, name: 'Support unionCandidates as a WHOLE', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'main' },
+        { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
+        { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
+        { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
+    ];
+
+    // UnionEvent#12 + placeholder for all other stores
+    const eventProduct = { id: 100, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-12-unionevent12-2024classica/', store_type: 'main' };
+    
+    // Add placeholder for #0-30 (except 12, 19, 20 which are done above)
+    ALL_STORES.forEach(store => {
+      if (store.id !== 12 && store.id !== 19 && store.id !== 20) {
+        allProducts[store.displayName] = [
+          { ...eventProduct, id: 200 + store.id }
+        ];
+      } else if (store.id === 12) {
+        allProducts['UnionEvent#12'] = [eventProduct];
+      }
+    });
+
     setProducts(allProducts);
   }, []);
 
@@ -317,9 +355,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const handleCloseChatModal = () => setActiveChatModal(null);
 
   const navigateCenterRight = (direction: 'left' | 'right') => {
-    const currentIndex = FEATURED_STORES.findIndex(s => s.id === centerRightView.id);
-    const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + FEATURED_STORES.length) % FEATURED_STORES.length;
-    setCenterRightView(FEATURED_STORES[nextIndex]);
+    const currentIndex = ALL_STORES.findIndex(s => s.id === centerRightView.id);
+    const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + ALL_STORES.length) % ALL_STORES.length;
+    setCenterRightView(ALL_STORES[nextIndex]);
   };
 
   const handleStartDragMobile = () => {
@@ -505,7 +543,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
           <X className="h-6 w-6" />
           <span className="sr-only">Close</span>
         </Button>
-         {/* Top Section */}
+
+         {/* Top Section - Left Buttons */}
          <div className="md:flex md:flex-row hidden md:p-4 md:border-b md:gap-0">
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="md:w-1/5 grid grid-cols-4 md:grid-cols-2 grid-rows-1 md:grid-rows-2 gap-2 md:pr-4">
              <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
@@ -518,31 +557,49 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
              </a>
              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="h-4 w-4 mb-1" /> Settings</Button>
            </div>
+
+           {/* Cover Photo */}
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-3/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png')" }}>
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
+
+           {/* Avatar + Hiker Button */}
+           <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex flex-col justify-start md:justify-center items-center md:pl-4 gap-2">
              <div onClick={handleProfileImageClick} className="cursor-pointer">
                <Avatar className="h-24 w-24 md:h-32 md:w-32">
                  <AvatarImage src={user?.profile_image_url || "https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg"} alt="Profile" />
                  <AvatarFallback>U</AvatarFallback>
                </Avatar>
              </div>
-             {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
-             <Button 
-               size="sm" 
-               variant={showQuadrantsModal ? "default" : "outline"}
-               onClick={() => setShowQuadrantsModal(!showQuadrantsModal)}
-               className="absolute top-28 right-2"
-               title="View Store Quadrants"
-             >
-               <Mountain className="h-4 w-4 mr-1" /> Hiker
-             </Button>
-             <div className="absolute bottom-0 right-0 flex items-center gap-2">
+             {user && <Button size="sm" className="">Edit</Button>}
+             <div className="flex items-center gap-2">
                  <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
                  <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
              </div>
            </div>
+         </div>
+
+         {/* New Row: Hiker Button + Home Button (Between Avatar and Timeline) */}
+         <div className="md:flex hidden md:flex-row md:p-4 md:border-b md:gap-4">
+           <div className="md:w-1/5"></div>
+           <div className="md:w-3/5 grid grid-cols-2 gap-2">
+             <Button 
+               variant={showQuadrantsModal ? "default" : "outline"}
+               onClick={() => setShowQuadrantsModal(!showQuadrantsModal)}
+               className="flex flex-col h-12 items-center justify-center text-xs"
+               title="Store Quadrants Hiker"
+             >
+               <Mountain className="h-4 w-4 mb-1" /> Hiker
+             </Button>
+             <Button 
+               variant="outline"
+               className="flex flex-col h-12 items-center justify-center text-xs"
+               title="Home"
+             >
+               <Home className="h-4 w-4 mb-1" /> Home
+             </Button>
+           </div>
+           <div className="md:w-1/5"></div>
          </div>
 
          {/* Mobile Top Row */}
@@ -575,6 +632,21 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            <div className="h-24 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/StoreProductsAndImagery/UminionLogo28.2024Classic.png')" }}>
              {user && <Button className="absolute bottom-1 right-1 text-xs h-6" size="sm">Change</Button>}
            </div>
+           <div className="grid grid-cols-2 gap-2">
+             <Button 
+               variant={showQuadrantsModal ? "default" : "outline"}
+               onClick={() => setShowQuadrantsModal(!showQuadrantsModal)}
+               className="flex flex-col h-10 items-center justify-center text-xs"
+             >
+               <Mountain className="h-3 w-3 mb-0.5" /> Hiker
+             </Button>
+             <Button 
+               variant="outline"
+               className="flex flex-col h-10 items-center justify-center text-xs"
+             >
+               <Home className="h-3 w-3 mb-0.5" /> Home
+             </Button>
+           </div>
          </div>
 
          {/* Center Section */}
@@ -604,78 +676,78 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-          {/* Bottom Section */}
-          <div className="flex border-t md:h-auto h-12">
-            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-2 border-r flex items-center">
-              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
-              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
-                {socialLinkPagesLeft[socialPageLeft].map(link => (
-                  <div key={link.id} className="text-xs md:text-xs">
-                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                  </div>
-                ))}
-              </div>
-              <div className="flex-grow md:hidden flex justify-center items-center">
-                {socialLinkPagesLeft[socialPageLeft].slice(0, 1).map(link => (
-                  <div key={link.id} className="text-2xl">
-                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                  </div>
-                ))}
-              </div>
-              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
-            </div>
-            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-2 flex items-center justify-center">
-              <a href="https://page001.uminion.com/product/official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-sm">
-                Become an Official Member of the Union via getting your Union Card Today!
-              </a>
-            </div>
-            <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-2 border-l flex items-center">
-               <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
-              <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
-                {socialLinkPagesRight[socialPageRight].map(link => (
-                  <div key={link.id} className="text-xs md:text-xs">
-                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                  </div>
-                ))}
-              </div>
-              <div className="flex-grow md:hidden flex justify-center items-center">
-                {socialLinkPagesRight[socialPageRight].slice(0, 1).map(link => (
-                  <div key={link.id} className="text-2xl">
-                    <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
-                  </div>
-                ))}
-              </div>
-              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
-            </div>
-          </div>
-        </div>
+         {/* Bottom Section */}
+         <div className="flex border-t md:h-auto h-12">
+           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-2 border-r flex items-center">
+             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
+               {socialLinkPagesLeft[socialPageLeft].map(link => (
+                 <div key={link.id} className="text-xs md:text-xs">
+                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 </div>
+               ))}
+             </div>
+             <div className="flex-grow md:hidden flex justify-center items-center">
+               {socialLinkPagesLeft[socialPageLeft].slice(0, 1).map(link => (
+                 <div key={link.id} className="text-2xl">
+                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 </div>
+               ))}
+             </div>
+             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+           </div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomCenterSection" className="w-[60%] p-1 md:p-2 flex items-center justify-center">
+             <a href="https://page001.uminion.com/product/official-uminion-union-card/" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs md:text-sm">
+               Become an Official Member of the Union via getting your Union Card Today!
+             </a>
+           </div>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsBottomRightSection" className="w-[20%] p-1 md:p-2 border-l flex items-center">
+              <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+             <div className="flex-grow hidden md:grid grid-cols-3 gap-0.5 md:gap-2 place-items-center">
+               {socialLinkPagesRight[socialPageRight].map(link => (
+                 <div key={link.id} className="text-xs md:text-xs">
+                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 </div>
+               ))}
+             </div>
+             <div className="flex-grow md:hidden flex justify-center items-center">
+               {socialLinkPagesRight[socialPageRight].slice(0, 1).map(link => (
+                 <div key={link.id} className="text-2xl">
+                   <MainUhubFeatureV001ForSocialIcon href={link.href}>{link.icon}</MainUhubFeatureV001ForSocialIcon>
+                 </div>
+               ))}
+             </div>
+             <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavRight('right')}><ChevronRight className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
+           </div>
+         </div>
+       </div>
 
-      {activeChatModal !== null && (
-        <MainUhubFeatureV001ForChatModal
-            isOpen={activeChatModal !== null}
-            onClose={handleCloseChatModal}
-            pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-            backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-            modalNumber={activeChatModal}
-          />
-        )}
-        {isAddProductModalOpen && (
-          <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
-        )}
-        {isProductDetailModalOpen && (
-          <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
-        )}
-        <QuadrantsModal 
-          isOpen={showQuadrantsModal} 
-          onClose={() => setShowQuadrantsModal(false)}
-          stores={ALL_STORES}
-          selectedStore={centerRightView}
-          onSelectStore={(store) => {
-            setCenterRightView(FEATURED_STORES.find(s => s.id === store.id) || FEATURED_STORES[0]);
-          }}
-        />
-    </>
-    );
-  };
+       {activeChatModal !== null && (
+         <MainUhubFeatureV001ForChatModal
+             isOpen={activeChatModal !== null}
+             onClose={handleCloseChatModal}
+             pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+             backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+             modalNumber={activeChatModal}
+           />
+         )}
+         {isAddProductModalOpen && (
+           <MainUhubFeatureV001ForAddProductModal isOpen={isAddProductModalOpen} onClose={() => setAddProductModalOpen(false)} />
+         )}
+         {isProductDetailModalOpen && (
+           <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
+         )}
+         <QuadrantsModal 
+           isOpen={showQuadrantsModal} 
+           onClose={() => setShowQuadrantsModal(false)}
+           stores={ALL_STORES}
+           selectedStore={centerRightView}
+           onSelectStore={(store) => {
+             setCenterRightView(store);
+           }}
+         />
+     </>
+     );
+   };
 
 export default MainUhubFeatureV001ForMyProfileModal;
