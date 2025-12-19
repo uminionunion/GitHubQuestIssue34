@@ -12,7 +12,7 @@ router.post('/', authenticate, async (req, res) => {
     return;
   }
 
-  const { name, subtitle, description, price, payment_method, payment_url, store_id, sku_id } = req.body;
+  const { name, subtitle, description, price, payment_method, payment_url, store_id, woo_sku } = req.body;
 
   // Validate required fields
   if (!name || price === undefined) {
@@ -45,6 +45,30 @@ router.post('/', authenticate, async (req, res) => {
       imageUrl = `/api/uploads/${filename}`;
     }
 
+    // Determine store assignment based on user role
+    let storeType = 'user';
+    let finalStoreId = null;
+    let finalWooSku = null;
+
+    if (user.is_high_high_high_admin === 1) {
+      // HIGH-HIGH-HIGH ADMIN: Can add to main store (#0) or with SKU
+      storeType = 'main';
+      finalStoreId = 0;
+      finalWooSku = woo_sku || null;
+    } else if (user.is_high_high_admin === 1) {
+      // HIGH-HIGH ADMIN: Must specify store #01-#30
+      if (!store_id || parseInt(store_id) < 1 || parseInt(store_id) > 30) {
+        res.status(400).json({ message: 'HIGH-HIGH ADMIN must specify store 1-30' });
+        return;
+      }
+      storeType = 'chatroom';
+      finalStoreId = parseInt(store_id);
+    } else {
+      // Regular user: Personal store
+      storeType = 'user';
+      finalStoreId = null;
+    }
+
     // Create the product
     const product = await db
       .insertInto('MainHubUpgradeV001ForProducts')
@@ -54,12 +78,12 @@ router.post('/', authenticate, async (req, res) => {
         description: description || null,
         price: price ? parseFloat(price) : null,
         image_url: imageUrl,
-        store_type: 'user',
-        user_id: req.user.userId,
-        store_id: store_id ? parseInt(store_id) : null,
+        store_type: storeType,
+        user_id: user.is_high_high_high_admin === 1 ? null : req.user.userId,
+        store_id: finalStoreId,
         payment_method: payment_method || null,
         payment_url: payment_url || null,
-        sku_id: sku_id || null,
+        sku_id: finalWooSku,
         is_in_trash: 0,
       })
       .returning('id')
@@ -117,8 +141,8 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
-// PUT - Move product to trash (soft delete)
-router.put('/:productId/trash', authenticate, async (req, res) => {
+// POST - Move product to trash (soft delete)
+router.post('/:productId/trash', authenticate, async (req, res) => {
   if (!req.user) {
     res.status(401).json({ message: 'Unauthorized' });
     return;
@@ -166,8 +190,8 @@ router.put('/:productId/trash', authenticate, async (req, res) => {
   }
 });
 
-// PUT - Restore product from trash
-router.put('/:productId/restore', authenticate, async (req, res) => {
+// POST - Restore product from trash
+router.post('/:productId/restore', authenticate, async (req, res) => {
   if (!req.user) {
     res.status(401).json({ message: 'Unauthorized' });
     return;
@@ -339,6 +363,8 @@ router.post('/looking-for/add', authenticate, async (req, res) => {
     return;
   }
 
+  console.log(`[Looking For] User ${req.user.userId} adding item to store #${store_id}`);
+
   try {
     await db
       .insertInto('MainHubUpgradeV001ForLookingFor')
@@ -350,7 +376,7 @@ router.post('/looking-for/add', authenticate, async (req, res) => {
       })
       .execute();
 
-    res.json({ message: 'Item added to Looking For' });
+    res.json({ message: 'Item added to looking for' });
   } catch (error) {
     console.error('[PRODUCTS] Error adding to looking for:', error);
     res.status(500).json({ message: 'Failed to add to looking for' });
@@ -361,20 +387,41 @@ router.post('/looking-for/add', authenticate, async (req, res) => {
 router.get('/looking-for/store/:storeId', async (req, res) => {
   const { storeId } = req.params;
 
+  console.log(`[Looking For] Fetching items for store #${storeId}`);
+
   try {
     const items = await db
       .selectFrom('MainHubUpgradeV001ForLookingFor')
-      .leftJoin('users', 'MainHubUpgradeV001ForLookingFor.user_id', 'users.id')
-      .selectAll('MainHubUpgradeV001ForLookingFor')
-      .select(['users.username', 'users.id'])
-      .where('MainHubUpgradeV001ForLookingFor.store_id', '=', parseInt(storeId))
-      .orderBy('MainHubUpgradeV001ForLookingFor.created_at', 'desc')
+      .selectAll()
+      .where('store_id', '=', parseInt(storeId))
+      .orderBy('created_at', 'desc')
       .execute();
 
     res.json(items);
   } catch (error) {
     console.error('[PRODUCTS] Error fetching looking for items:', error);
     res.status(500).json({ message: 'Failed to fetch looking for items' });
+  }
+});
+
+// GET - Get "Looking For" items for current user across all stores
+router.get('/looking-for/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  console.log(`[Looking For] Fetching items for user ${userId}`);
+
+  try {
+    const items = await db
+      .selectFrom('MainHubUpgradeV001ForLookingFor')
+      .selectAll()
+      .where('user_id', '=', parseInt(userId))
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    res.json(items);
+  } catch (error) {
+    console.error('[PRODUCTS] Error fetching user looking for items:', error);
+    res.status(500).json({ message: 'Failed to fetch user looking for items' });
   }
 });
 
@@ -385,9 +432,11 @@ router.delete('/looking-for/:itemId', authenticate, async (req, res) => {
     return;
   }
 
-  try {
-    const { itemId } = req.params;
+  const { itemId } = req.params;
 
+  console.log(`[Looking For] User ${req.user.userId} deleting item ${itemId}`);
+
+  try {
     const item = await db
       .selectFrom('MainHubUpgradeV001ForLookingFor')
       .selectAll()
@@ -408,119 +457,6 @@ router.delete('/looking-for/:itemId', authenticate, async (req, res) => {
   } catch (error) {
     console.error('[PRODUCTS] Error removing from looking for:', error);
     res.status(500).json({ message: 'Failed to remove item' });
-  }
-});
-
-// === LOOKING FOR ===
-
-// POST - Add item to "Looking For"
-router.post('/looking-for/add', authenticate, async (req: Request, res: Response) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { store_id, item_name, description } = req.body;
-
-  if (!store_id || !item_name) {
-    res.status(400).json({ message: 'store_id and item_name are required' });
-    return;
-  }
-
-  console.log(`[Looking For] User ${req.user.username} adding item to store #${store_id}`);
-
-  try {
-    await db
-      .insertInto('MainHubUpgradeV001ForLookingFor')
-      .values({
-        user_id: req.user.userId,
-        store_id: parseInt(store_id),
-        item_name,
-        description: description || null,
-      })
-      .execute();
-
-    res.json({ message: 'Item added to looking for' });
-  } catch (error) {
-    console.error('[Error] Adding to looking for:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// GET - Get "Looking For" items for a store
-router.get('/looking-for/store/:storeId', async (req: Request, res: Response) => {
-  const { storeId } = req.params;
-
-  console.log(`[Looking For] Fetching items for store #${storeId}`);
-
-  try {
-    const items = await db
-      .selectFrom('MainHubUpgradeV001ForLookingFor')
-      .selectAll()
-      .where('store_id', '=', parseInt(storeId))
-      .orderBy('created_at', 'desc')
-      .execute();
-
-    res.json(items);
-  } catch (error) {
-    console.error('[Error] Fetching looking for items:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// GET - Get "Looking For" items for current user across all stores
-router.get('/looking-for/user/:userId', async (req: Request, res: Response) => {
-  const { userId } = req.params;
-
-  console.log(`[Looking For] Fetching items for user ${userId}`);
-
-  try {
-    const items = await db
-      .selectFrom('MainHubUpgradeV001ForLookingFor')
-      .selectAll()
-      .where('user_id', '=', parseInt(userId))
-      .orderBy('created_at', 'desc')
-      .execute();
-
-    res.json(items);
-  } catch (error) {
-    console.error('[Error] Fetching user looking for items:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// DELETE - Remove item from "Looking For"
-router.delete('/looking-for/:itemId', authenticate, async (req: Request, res: Response) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { itemId } = req.params;
-
-  console.log(`[Looking For] User ${req.user.username} deleting item ${itemId}`);
-
-  try {
-    const item = await db
-      .selectFrom('MainHubUpgradeV001ForLookingFor')
-      .selectAll()
-      .where('id', '=', parseInt(itemId))
-      .executeTakeFirst();
-
-    if (!item || item.user_id !== req.user.userId) {
-      res.status(403).json({ message: 'You do not own this item' });
-      return;
-    }
-
-    await db
-      .deleteFrom('MainHubUpgradeV001ForLookingFor')
-      .where('id', '=', parseInt(itemId))
-      .execute();
-
-    res.json({ message: 'Item removed from looking for' });
-  } catch (error) {
-    console.error('[Error] Deleting looking for item:', error);
-    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
