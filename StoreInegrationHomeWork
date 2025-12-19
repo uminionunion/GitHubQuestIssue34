@@ -1,2225 +1,272 @@
-# Store Integration 003 - Complete Store System with Role Hierarchy, Multi-Store Management, and Full Implementation Guide
-
-## CRITICAL: READ THIS FIRST - Complete Implementation Workflow
-
-This document contains **copy-paste ready code** for every file that needs to be created or modified. Follow these steps in order:
-
-1. **Database Upgrades** - Add new tables and columns
-2. **Backend Files** - Create and update server-side code
-3. **Frontend Files** - Create and update React components
-4. **Integration** - Register all routers
-
-Each section includes:
-- **What it does** - Clear explanation
-- **How to access it** - Step-by-step instructions
-- **Full copy-paste code** - Ready to use
-- **File location** - Exact path where to save
 
 ---
 
-## Table of Contents
+## COMPLETE SYSTEM ARCHITECTURE EXPLANATION
 
-1. [Admin Role Hierarchy with High-Admin, Special User Tiers](#admin-role-hierarchy)
-2. [Database Schema Upgrades - Detailed Access Instructions](#database-upgrades)
-3. [30 Chatroom-Based Stores (#01-#30)](#30-chatroom-stores)
-4. [10-Quadrant Marketplace Browser with Fixed Layout](#10-quadrant-marketplace)
-5. [Backend API Endpoints - Complete products.ts](#backend-endpoints)
-6. [Updated auth.ts with Admin Role Support](#updated-auth)
-7. [Updated index.ts with Products Router](#updated-index)
-8. [Frontend Components - Complete Copy-Paste](#frontend-components)
-9. [WooCommerce SKU Integration](#woocommerce-integration)
-10. [What I'm Looking For Feature](#looking-for-feature)
+### **1. THE 4 QUADRANTS ON PAGE 1**
+
+#### **Top-Left: Union Store**
+- Displays all products from the main store (store_id = 0)
+- Uses `store_type = 'main'`
+- Added only by HIGH-HIGH-HIGH admins with WooCommerce SKUs
+- Shows products available to everyone
+- Has a "Refresh" button to reload products
+- Cart icon to add items
+
+#### **Top-Right: Friends' Stores**
+- Shows products from your friends (when friend system is implemented)
+- Currently placeholder ("Coming Soon" style)
+- Will display products where user_id matches your friends' IDs
+
+#### **Bottom-Left: My Store** ✅ **THIS IS WHAT WE FIXED**
+- **For logged-out users**: "Log in to manage your store"
+- **For regular users (tier 1)**:
+  - "List" tab: Shows their personal products
+  - "Add" tab: Form to add products to their store
+  - Products go to all users' stores (UnionSAM#20, etc.)
+  - No store selection needed
+  
+- **For HIGH-HIGH admins (tier 2)**:
+  - "List" tab: Shows products they've added to stores #01-#30
+  - "Add" tab: **REQUIRED** store selector (choose #01-#30)
+  - Each product is tied to a specific store
+  - Products appear in that store's product display
+  
+- **For HIGH-HIGH-HIGH admins (tier 3)** (uAdmin):
+  - "List" tab: Shows main store products with SKUs
+  - "Add" tab: Form with optional WooCommerce SKU field
+  - Products go to main store (store_id = 0)
+  - Products visible across entire union
+
+#### **Bottom-Right: Reserved**
+- Currently "Coming Soon"
+- Can be used for custom features later
 
 ---
 
-## Admin Role Hierarchy
+### **2. HOW STORES WORK (30 STORES + MAIN)**
 
-### Understanding the Complete Role System
+**Structure:**
+- **Store #0** (Main Store): Central union marketplace, WooCommerce integration, HIGH-HIGH-HIGH admin only
+- **Stores #01-#30**: Regional/category stores managed by HIGH-HIGH admins
+- **Personal Stores**: Each regular user has a personal store (user_id based, no store_id)
 
-We're creating a **5-tier system**:
-
+**Product Storage:**
 ```
-┌──────────────────────────────────────────────┐
-│  HIGH-HIGH-HIGH ADMINS (Tier 1)              │
-│  Usernames: "uAdmin", "uminion",             │
-│             "uminionunion", "uSalem"         │
-│  Powers:                                      │
-│  • Manage MAIN Union Store (store #0)        │
-│  • Access to ALL stores #01-#30              │
-│  • Kick users from chatrooms                 │
-│  • Ban users from all 30 chatrooms           │
-│  • Product blocking/removal                  │
-│  • User account blocking                     │
-└──────────────────────────────────────────────┘
-         │
-         ↓
-┌──────────────────────────────────────────────┐
-│  HIGH-ADMIN (Tier 1.5) [NEW]                 │
-│  Usernames: [Assigned in Database]           │
-│  Powers:                                      │
-│  • Kick users from chatrooms                 │
-│  • Ban users from all 30 chatrooms           │
-│  • Cannot manage stores                      │
-│  • Moderation only                           │
-└──────────────────────────────────────────────┘
-         │
-         ↓
-┌──────────────────────────────────────────────┐
-│  HIGH-HIGH ADMIN (Tier 2)                    │
-│  Username: "uStorytellingSalem"              │
-│  Powers:                                      │
-│  • Manage specific regional stores           │
-│  • Limited product curation                  │
-│  • Store-level moderation                    │
-└──────────────────────────────────────────────┘
-         │
-         ↓
-┌──────────────────────────────────────────────┐
-│  SPECIAL-SPECIAL-SPECIAL USERS (Tier 3)      │
-│  [Placeholder - Powers TBD Later]            │
-│  Currently: No special powers                │
-└──────────────────────────────────────────────┘
-         │
-         ↓
-┌──────────────────────────────────────────────┐
-│  SPECIAL-SPECIAL USERS (Tier 4)              │
-│  [Placeholder - Powers TBD Later]            │
-│  Currently: No special powers                │
-└──────────────────────────────────────────────┘
-         │
-         ↓
-┌──────────────────────────────────────────────┐
-│  SPECIAL USERS (Tier 5)                      │
-│  [Placeholder - Powers TBD Later]            │
-│  Currently: No special powers                │
-└──────────────────────────────────────────────┘
-         │
-         ↓
-┌──────────────────────────────────────────────┐
-│  REGULAR USERS                               │
-│  Can create personal stores                  │
-│  Can only sell in their own store            │
-│  Can be kicked/banned by High-Admins         │
-└──────────────────────────────────────────────┘
+Column: store_type
+- 'main' = Store #0 products (HIGH-HIGH-HIGH admin)
+- 'user' = Regular user OR HIGH-HIGH admin store products
+
+Column: store_id
+- NULL = User personal store
+- 0 = Main store
+- 1-30 = Regional/category stores
+
+Column: user_id
+- NULL = Admin product (main or HIGH-HIGH admin)
+- User ID = Regular user personal product
 ```
 
 ---
 
-## Database Upgrades - Detailed Access Instructions
+### **3. THE 8 BUTTONS (Top-Right Section)**
 
-### IMPORTANT: How to Access SQLite in Docker
-
-If you're running this in a Docker container, follow these steps:
-
-#### Option A: Using SQLite CLI (If installed in container)
-
-1. **Access your running container** (if you have shell access)
-2. **Locate the database**:
-   ```bash
-   find / -name "database.sqlite" 2>/dev/null
-   # Usually at: /home/app/data/database.sqlite
-   ```
-3. **Open SQLite**:
-   ```bash
-   sqlite3 /home/app/data/database.sqlite
-   ```
-4. **Run the SQL commands** from this guide
-5. **Exit**:
-   ```
-   .quit
-   ```
-
-#### Option B: Using the database_migration Tool (RECOMMENDED)
-
-The system provides a `database_migration` tool that handles everything for you. You provide:
-- The SQL code
-- A description of what it does
-
-The tool runs it automatically. **This is the safest method.**
-
-#### Step 1: Upgrade Users Table with New Admin Columns
-
-**What this does**: Adds columns to track which tier each user is in (high-high-high admin, high-admin, high-high admin, special users, etc.)
-
-**Execute this migration**:
-
-Using the database_migration tool is the safest. The SQL commands are:
-
-```sql
--- Add new admin role columns to users table
-ALTER TABLE users ADD COLUMN is_high_high_high_admin INTEGER DEFAULT 0;
-ALTER TABLE users ADD COLUMN is_high_admin INTEGER DEFAULT 0;
-ALTER TABLE users ADD COLUMN is_high_high_admin INTEGER DEFAULT 0;
-ALTER TABLE users ADD COLUMN is_special_user INTEGER DEFAULT 0;
-ALTER TABLE users ADD COLUMN is_special_special_user INTEGER DEFAULT 0;
-ALTER TABLE users ADD COLUMN is_special_special_special_user INTEGER DEFAULT 0;
-ALTER TABLE users ADD COLUMN is_blocked INTEGER DEFAULT 0;
-ALTER TABLE users ADD COLUMN is_banned_from_chatrooms INTEGER DEFAULT 0;
-
--- Create indexes for faster admin queries
-CREATE INDEX idx_users_admin_roles ON users(is_high_high_high_admin, is_high_admin, is_high_high_admin);
-CREATE INDEX idx_users_special_tiers ON users(is_special_user, is_special_special_user, is_special_special_special_user);
-CREATE INDEX idx_users_moderation ON users(is_blocked, is_banned_from_chatrooms);
+```
+┌─────────────────────────────────────┐
+│  🏔️ Mountain  │  🏠 Home           │ <- Button 1 & 2
+│  3  │  4  │  5  │  6  │  7  │  8   │ <- Buttons 3-8
+└─────────────────────────────────────┘
 ```
 
-**What each column does:**
-- `is_high_high_high_admin`: (0 or 1) Set to 1 for uAdmin, uminion, uminionunion, uSalem
-- `is_high_admin`: (0 or 1) NEW - For users who can moderate chatrooms (kick/ban)
-- `is_high_high_admin`: (0 or 1) Set to 1 for uStorytellingSalem
-- `is_special_user`: (0 or 1) Placeholder for special user tier 1
-- `is_special_special_user`: (0 or 1) Placeholder for special user tier 2
-- `is_special_special_special_user`: (0 or 1) Placeholder for special user tier 3
-- `is_blocked`: (0 or 1) Set to 1 if user can't sell/post
-- `is_banned_from_chatrooms`: (0 or 1) Set to 1 if user is banned from ALL 30 chatrooms
+- **Mountain (Quadrants)**: Opens store quadrants modal (all 30 stores)
+- **Home**: Opens home/settings modal (My Account, My Store preview, Posts, Feed, Inventory)
+- **Buttons 3-8**: Custom buttons for future features (clickable, currently open same quadrants modal)
 
-#### Step 2: Create Stores Configuration Table
-
-**What this does**: Stores metadata about each of the 30 chatroom stores plus the main store (store #0)
-
-```sql
-CREATE TABLE MainHubUpgradeV001ForStores (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    store_number INTEGER UNIQUE NOT NULL,
-    store_name TEXT NOT NULL,
-    store_type TEXT NOT NULL,
-    chatroom_id INTEGER,
-    description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_stores_number ON MainHubUpgradeV001ForStores(store_number);
-CREATE INDEX idx_stores_type ON MainHubUpgradeV001ForStores(store_type);
-```
-
-**What fields mean:**
-- `store_number`: 0 = main union store, 1-30 = chatroom stores
-- `store_name`: Display name (e.g., "UnionSAM#20")
-- `store_type`: Either 'main' or 'chatroom'
-- `chatroom_id`: Which chatroom this store belongs to
-- `description`: Short description of what's sold here
-
-#### Step 3: Insert All 30 Stores + Main Store
-
-**What this does**: Populates the stores table with all 30 chatroom stores
-
-```sql
-INSERT INTO MainHubUpgradeV001ForStores (store_number, store_name, store_type, chatroom_id, description) VALUES
-(0, 'Union Main Store', 'main', 0, 'Main union headquarters store'),
-(1, 'NewEngland', 'chatroom', 1, 'Products from New England region'),
-(2, 'UnionStore', 'chatroom', 2, 'General union products'),
-(3, 'UnionEconomic', 'chatroom', 3, 'Economic and trade items'),
-(4, 'UnionEnvironment', 'chatroom', 4, 'Environmental products and resources'),
-(5, 'UnionHealth', 'chatroom', 5, 'Health and wellness products'),
-(6, 'UnionEducation', 'chatroom', 6, 'Educational materials and courses'),
-(7, 'UnionCulture', 'chatroom', 7, 'Cultural items and art'),
-(8, 'UnionTech', 'chatroom', 8, 'Technology and digital services'),
-(9, 'UnionCreate', 'chatroom', 9, 'Creative works and services'),
-(10, 'UnionCommunity', 'chatroom', 10, 'Community building resources'),
-(11, 'UnionWelcome', 'chatroom', 11, 'Welcome and onboarding'),
-(12, 'UnionEvent', 'chatroom', 12, 'Event tickets and information'),
-(13, 'UnionConnections', 'chatroom', 13, 'Networking and connections'),
-(14, 'UnionNews', 'chatroom', 14, 'News and media'),
-(15, 'UnionRadio', 'chatroom', 15, 'Radio and audio content'),
-(16, 'UnionFood', 'chatroom', 16, 'Food and restaurant items'),
-(17, 'UnionTravel', 'chatroom', 17, 'Travel and tourism'),
-(18, 'UnionHomeLiving', 'chatroom', 18, 'Home and living products'),
-(19, 'UnionPolitic', 'chatroom', 19, 'Political discussion and items'),
-(20, 'UnionSAM', 'chatroom', 20, 'Main store and merchandise'),
-(21, 'UnionArtisan', 'chatroom', 21, 'Handmade and artisan products'),
-(22, 'UnionBooks', 'chatroom', 22, 'Books and literature'),
-(23, 'UnionGames', 'chatroom', 23, 'Games and entertainment'),
-(24, 'UnionFitness', 'chatroom', 24, 'Fitness and sports products'),
-(25, 'UnionArena', 'chatroom', 25, 'Arena and sports events'),
-(26, 'UnionTrades', 'chatroom', 26, 'Trades, energy, and WiFi services'),
-(27, 'UnionSecret', 'chatroom', 27, 'Exclusive and special items'),
-(28, 'UnionSports', 'chatroom', 28, 'Sports products and services'),
-(29, 'UnionHousing', 'chatroom', 29, 'Housing, cars, and transportation'),
-(30, 'UnionHealthcare', 'chatroom', 30, 'Healthcare products and services');
-```
-
-#### Step 4: Create Featured Products Table
-
-**What this does**: Tracks which 3 products are featured (shown first) in each store
-
-```sql
-CREATE TABLE MainHubUpgradeV001ForFeaturedProducts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    store_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
-    position INTEGER NOT NULL,
-    set_by_admin_id INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(store_id, position)
-);
-
-CREATE INDEX idx_featured_store ON MainHubUpgradeV001ForFeaturedProducts(store_id);
-```
-
-#### Step 5: Create Product Trash Table
-
-**What this does**: Keeps deleted products for 24 hours before permanent removal
-
-```sql
-CREATE TABLE MainHubUpgradeV001ForProductTrash (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_trash_product ON MainHubUpgradeV001ForProductTrash(product_id);
-CREATE INDEX idx_trash_user ON MainHubUpgradeV001ForProductTrash(user_id);
-```
-
-#### Step 6: Create Internal Cart Table
-
-**What this does**: Stores items in "Where to Buy" cart (user products only, not WooCommerce)
-
-```sql
-CREATE TABLE MainHubUpgradeV001ForInternalCart (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
-    quantity INTEGER NOT NULL DEFAULT 1,
-    added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, product_id)
-);
-
-CREATE INDEX idx_cart_user ON MainHubUpgradeV001ForInternalCart(user_id);
-```
-
-#### Step 7: Create Product Messages Table
-
-**What this does**: Direct messages between buyers and sellers about products
-
-```sql
-CREATE TABLE MainHubUpgradeV001ForProductMessages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sender_id INTEGER NOT NULL,
-    recipient_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
-    message TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_product_messages_sender ON MainHubUpgradeV001ForProductMessages(sender_id);
-CREATE INDEX idx_product_messages_recipient ON MainHubUpgradeV001ForProductMessages(recipient_id);
-```
-
-#### Step 8: Create Looking For Table
-
-**What this does**: Tracks what items users are looking for in each store
-
-```sql
-CREATE TABLE MainHubUpgradeV001ForLookingFor (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    store_id INTEGER NOT NULL,
-    item_description TEXT NOT NULL,
-    is_active BOOLEAN DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_looking_for_user ON MainHubUpgradeV001ForLookingFor(user_id);
-CREATE INDEX idx_looking_for_store ON MainHubUpgradeV001ForLookingFor(store_id);
-```
-
-#### Step 9: Upgrade MainHubUpgradeV001ForProducts Table
-
-**What this does**: Adds columns to products to track which store they belong to and how to pay
-
-```sql
-ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN store_id INTEGER DEFAULT 0;
-ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN payment_method TEXT DEFAULT 'own_website';
-ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN payment_url TEXT;
-ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN woo_commerce_sku TEXT;
-ALTER TABLE MainHubUpgradeV001ForProducts ADD COLUMN is_in_trash BOOLEAN DEFAULT 0;
-
-CREATE INDEX idx_products_store ON MainHubUpgradeV001ForProducts(store_id);
-CREATE INDEX idx_products_trash ON MainHubUpgradeV001ForProducts(is_in_trash);
-```
-
-**What each field means:**
-- `store_id`: 0 = main union, 1-30 = which chatroom store
-- `payment_method`: 'own_website', 'venmo', 'cash', 'card_coming_soon', 'other'
-- `payment_url`: Link to Venmo/CashApp or product page
-- `woo_commerce_sku`: Links to WooCommerce product by SKU
-- `is_in_trash`: 1 = soft deleted (recoverable for 24h)
+Each button can trigger different modals or navigate to different pages.
 
 ---
 
-## 30 Chatroom Stores
+### **4. THE 30 PAGES OF STORES (#01-#30)**
 
-Each chatroom now has its own store. Products in that store appear in the marketplace browser on the appropriate page (2 of 8).
+After Page 1, pages 2-10 each display 4 stores:
+- **Page 2**: Stores #01-#04
+- **Page 3**: Stores #05-#08
+- **Page 4**: Stores #09-#12
+- ... and so on until...
+- **Page 9**: Stores #29-#30 (only 2 displayed)
+- **Page 10**: Empty (reserved)
 
-**Store Mapping:**
-- Store #0: Main Union Store (managed by high-high-high admins)
-- Stores #1-30: Chatroom-based stores (one per chatroom)
-
----
-
-## 10-Quadrant Marketplace Browser with Fixed Layout
-
-### The Correct Quadrant Layout (FIXED)
-
-**PAGE 1:**
-```
-┌──────────────────────┬──────────────────────┐
-│  Top Left:           │  Top Right:          │
-│  ALL STORES          │  UNION STORE         │
-│  (all user products) │  (main + featured)   │
-├──────────────────────┼──────────────────────┤
-│  Bottom Left:        │  Bottom Right:       │
-│  MY STORE            │  STORES OF FRIENDS   │
-│  (user's products)   │  (friends' products) │
-└──────────────────────┴──────────────────────┘
-```
-
-**PAGE 2:**
-```
-┌──────────────────────┬──────────────────────┐
-│  Top Left:           │  Top Right:          │
-│  Store #01           │  Store #02           │
-│  NewEngland          │  UnionStore          │
-├──────────────────────┼──────────────────────┤
-│  Bottom Left:        │  Bottom Right:       │
-│  Store #03           │  Store #04           │
-│  UnionEconomic       │  UnionEnvironment    │
-└──────────────────────┴──────────────────────┘
-```
-
-**PAGE 3:**
-```
-┌──────────────────────┬──────────────────────┐
-│  Top Left:           │  Top Right:          │
-│  Store #05           │  Store #06           │
-│  UnionHealth         │  UnionEducation      │
-├──────────────────────┼──────────────────────┤
-│  Bottom Left:        │  Bottom Right:       │
-│  Store #07           │  Store #08           │
-│  UnionCulture        │  UnionTech           │
-└──────────────────────┴──────────────────────┘
-```
-
-Pages 4-8 follow the same pattern for stores #09-#30.
+Each store page displays:
+- Store name/number
+- Products in that store
+- Grid of store selector buttons at bottom
+- Navigation arrows to switch between stores
 
 ---
 
-## Backend Endpoints - Complete products.ts File
-
-### File Location
-`/home/app/server/products.ts`
-
-### What this file does
-Handles all product operations:
-- Creating products
-- Fetching products from stores
-- Managing product trash
-- Internal cart operations
-- Payment method handling
-
-### Full Code to Copy-Paste
-
-```typescript
-import { Router } from 'express';
-import { db } from './db.js';
-import { authenticate } from './auth-middleware.js';
-import path from 'path';
-import fs from 'fs';
-
-const router = Router();
-
-/**
- * POST /api/products
- * Create a new product
- * 
- * Body: {
- *   name: string (required)
- *   subtitle?: string
- *   description?: string
- *   price: number (required)
- *   payment_method: 'own_website' | 'venmo' | 'cash' | 'card_coming_soon' | 'other'
- *   payment_url?: string (Venmo/CashApp link)
- *   woo_sku?: string (WooCommerce SKU for linking)
- *   store_id?: number (0 for main, 1-30 for stores - only for admins)
- * }
- * File: image (multipart/form-data)
- * 
- * Response: { message, productId }
- */
-router.post('/', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { name, subtitle, description, price, payment_method, payment_url, woo_sku, store_id } = req.body;
-
-  // Validate required fields
-  if (!name || !price) {
-    res.status(400).json({ message: 'Name and price are required' });
-    return;
-  }
-
-  try {
-    // Check if user is blocked from selling
-    const userRecord = await db
-      .selectFrom('users')
-      .selectAll()
-      .where('id', '=', req.user.userId)
-      .executeTakeFirst();
-
-    if (!userRecord) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-
-    if (userRecord.is_blocked === 1) {
-      res.status(403).json({ message: 'Your account has been blocked from selling' });
-      return;
-    }
-
-    // Handle image upload
-    let imageUrl = '';
-    if (req.files && (req.files as any).image) {
-      const imageFile = (req.files as any).image;
-      const uploadDir = path.join(process.cwd(), 'data', 'uploads', 'products');
-      
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
-      const filename = `${Date.now()}-${imageFile.name}`;
-      const filepath = path.join(uploadDir, filename);
-      
-      await imageFile.mv(filepath);
-      imageUrl = `/api/uploads/products/${filename}`;
-    }
-
-    // Determine product type and store
-    let finalStoreId = 0;
-    let storeType = 'user';
-
-    // Only high-high-high admins can add to main store (store 0) or other stores
-    if (userRecord.is_high_high_high_admin === 1) {
-      finalStoreId = store_id ? parseInt(store_id as any) : 0;
-      storeType = 'main';
-    } else {
-      // Regular users add to their own store
-      storeType = 'user';
-      finalStoreId = 0; // User products default to 0 but are marked as 'user' type
-    }
-
-    // Create the product
-    const product = await db
-      .insertInto('MainHubUpgradeV001ForProducts')
-      .values({
-        name,
-        subtitle: subtitle || null,
-        description: description || null,
-        price: parseFloat(price as any),
-        image_url: imageUrl,
-        store_type: storeType,
-        user_id: storeType === 'user' ? req.user.userId : null,
-        store_id: finalStoreId,
-        payment_method: payment_method || 'own_website',
-        payment_url: payment_url || null,
-        woo_commerce_sku: woo_sku || null,
-        is_in_trash: 0
-      })
-      .returning('id')
-      .executeTakeFirstOrThrow();
-
-    console.log(`Product created: ${name} by user ${req.user.username}, store_id: ${finalStoreId}`);
-
-    res.status(201).json({
-      message: 'Product created successfully',
-      productId: product.id
-    });
-  } catch (error) {
-    console.error('Error creating product:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/products/store/:storeId
- * Get all products from a specific store
- * 
- * Params: storeId (0 = main, 1-30 = chatroom stores)
- * 
- * Response: Array of products
- */
-router.get('/store/:storeId', async (req, res) => {
-  const { storeId } = req.params;
-
-  try {
-    const products = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('store_id', '=', parseInt(storeId))
-      .where('is_in_trash', '=', 0)
-      .orderBy('created_at', 'desc')
-      .execute();
-
-    console.log(`Fetched ${products.length} products from store ${storeId}`);
-
-    res.json(products);
-  } catch (error) {
-    console.error('Error fetching store products:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/products/store/:storeId/featured
- * Get featured (top 3) products from a store
- * 
- * Params: storeId
- * 
- * Response: Array of featured products
- */
-router.get('/store/:storeId/featured', async (req, res) => {
-  const { storeId } = req.params;
-
-  try {
-    const featured = await db
-      .selectFrom('MainHubUpgradeV001ForFeaturedProducts')
-      .leftJoin(
-        'MainHubUpgradeV001ForProducts',
-        'MainHubUpgradeV001ForFeaturedProducts.product_id',
-        'MainHubUpgradeV001ForProducts.id'
-      )
-      .selectAll()
-      .where('MainHubUpgradeV001ForFeaturedProducts.store_id', '=', parseInt(storeId))
-      .orderBy('position', 'asc')
-      .execute();
-
-    res.json(featured);
-  } catch (error) {
-    console.error('Error fetching featured products:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/products/user/:userId
- * Get all products created by a specific user
- * 
- * Params: userId
- * Query: storeId? (optional, filter by store)
- * 
- * Response: Array of products
- */
-router.get('/user/:userId', async (req, res) => {
-  const { userId } = req.params;
-  const { storeId } = req.query;
-
-  try {
-    let query = db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('user_id', '=', parseInt(userId))
-      .where('is_in_trash', '=', 0)
-      .where('store_type', '=', 'user');
-
-    if (storeId) {
-      query = query.where('store_id', '=', parseInt(storeId as string));
-    }
-
-    const products = await query.orderBy('created_at', 'desc').execute();
-
-    console.log(`Fetched ${products.length} products for user ${userId}`);
-
-    res.json(products);
-  } catch (error) {
-    console.error('Error fetching user products:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/products/user-stores
- * Get all products from all user stores (not main store)
- * 
- * Response: Array of all user products
- */
-router.get('/user-stores', async (req, res) => {
-  try {
-    const products = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('store_type', '=', 'user')
-      .where('is_in_trash', '=', 0)
-      .orderBy('created_at', 'desc')
-      .execute();
-
-    res.json(products);
-  } catch (error) {
-    console.error('Error fetching user store products:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/products/friends-stores
- * Get products from friends' stores (requires auth)
- * 
- * Response: Array of friends' products
- */
-router.get('/friends-stores', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  try {
-    // Get user's friends
-    const friends = await db
-      .selectFrom('friends')
-      .select('friend_id')
-      .where('user_id', '=', req.user.userId)
-      .where('status', '=', 'accepted')
-      .execute();
-
-    const friendIds = friends.map(f => f.friend_id);
-
-    if (friendIds.length === 0) {
-      res.json([]);
-      return;
-    }
-
-    // Get products from friends
-    const products = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('user_id', 'in', friendIds)
-      .where('store_type', '=', 'user')
-      .where('is_in_trash', '=', 0)
-      .orderBy('created_at', 'desc')
-      .execute();
-
-    res.json(products);
-  } catch (error) {
-    console.error('Error fetching friends store products:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * POST /api/products/:productId/trash
- * Move a product to trash (soft delete)
- * 
- * Params: productId
- * 
- * Response: { message }
- */
-router.post('/:productId/trash', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { productId } = req.params;
-
-  try {
-    // Verify ownership
-    const product = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('id', '=', parseInt(productId))
-      .executeTakeFirst();
-
-    if (!product) {
-      res.status(404).json({ message: 'Product not found' });
-      return;
-    }
-
-    // Only owner or admin can delete
-    const user = await db
-      .selectFrom('users')
-      .selectAll()
-      .where('id', '=', req.user.userId)
-      .executeTakeFirst();
-
-    const isOwner = product.user_id === req.user.userId;
-    const isAdmin = user?.is_high_high_high_admin === 1;
-
-    if (!isOwner && !isAdmin) {
-      res.status(403).json({ message: 'You do not own this product' });
-      return;
-    }
-
-    // Mark as in trash
-    await db
-      .updateTable('MainHubUpgradeV001ForProducts')
-      .set({ is_in_trash: 1 })
-      .where('id', '=', parseInt(productId))
-      .execute();
-
-    // Log to trash table
-    await db
-      .insertInto('MainHubUpgradeV001ForProductTrash')
-      .values({
-        product_id: parseInt(productId),
-        user_id: req.user.userId
-      })
-      .execute();
-
-    console.log(`Product ${productId} moved to trash by user ${req.user.username}`);
-
-    res.json({ message: 'Product moved to trash' });
-  } catch (error) {
-    console.error('Error moving product to trash:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * POST /api/products/:productId/recover
- * Recover a product from trash (undo soft delete)
- * 
- * Params: productId
- * 
- * Response: { message }
- */
-router.post('/:productId/recover', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { productId } = req.params;
-
-  try {
-    const product = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('id', '=', parseInt(productId))
-      .executeTakeFirst();
-
-    if (!product) {
-      res.status(404).json({ message: 'Product not found' });
-      return;
-    }
-
-    // Only owner can recover
-    if (product.user_id !== req.user.userId) {
-      res.status(403).json({ message: 'You cannot recover this product' });
-      return;
-    }
-
-    // Restore from trash
-    await db
-      .updateTable('MainHubUpgradeV001ForProducts')
-      .set({ is_in_trash: 0 })
-      .where('id', '=', parseInt(productId))
-      .execute();
-
-    console.log(`Product ${productId} recovered by user ${req.user.username}`);
-
-    res.json({ message: 'Product recovered from trash' });
-  } catch (error) {
-    console.error('Error recovering product:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * POST /api/products/cart/add
- * Add product to internal cart (Where to Buy cart)
- * 
- * Body: {
- *   product_id: number (required)
- *   quantity?: number (default 1)
- * }
- * 
- * Response: { message }
- */
-router.post('/cart/add', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { product_id, quantity = 1 } = req.body;
-
-  try {
-    // Check if product exists and is a user product
-    const product = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('id', '=', product_id)
-      .executeTakeFirst();
-
-    if (!product) {
-      res.status(404).json({ message: 'Product not found' });
-      return;
-    }
-
-    // Only user store products can go in internal cart
-    if (product.store_type !== 'user') {
-      res.status(400).json({ message: 'Only user products can be added to internal cart' });
-      return;
-    }
-
-    // Check if item already in cart
-    const existingItem = await db
-      .selectFrom('MainHubUpgradeV001ForInternalCart')
-      .selectAll()
-      .where('user_id', '=', req.user.userId)
-      .where('product_id', '=', product_id)
-      .executeTakeFirst();
-
-    if (existingItem) {
-      // Update quantity
-      await db
-        .updateTable('MainHubUpgradeV001ForInternalCart')
-        .set({ quantity: existingItem.quantity + quantity })
-        .where('id', '=', existingItem.id)
-        .execute();
-    } else {
-      // Insert new cart item
-      await db
-        .insertInto('MainHubUpgradeV001ForInternalCart')
-        .values({
-          user_id: req.user.userId,
-          product_id,
-          quantity
-        })
-        .execute();
-    }
-
-    console.log(`Product ${product_id} added to cart for user ${req.user.username}`);
-
-    res.json({ message: 'Item added to cart' });
-  } catch (error) {
-    console.error('Error adding to cart:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/products/cart
- * Get user's internal cart
- * 
- * Response: Array of cart items with product details
- */
-router.get('/cart', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  try {
-    const cartItems = await db
-      .selectFrom('MainHubUpgradeV001ForInternalCart')
-      .leftJoin(
-        'MainHubUpgradeV001ForProducts',
-        'MainHubUpgradeV001ForInternalCart.product_id',
-        'MainHubUpgradeV001ForProducts.id'
-      )
-      .selectAll('MainHubUpgradeV001ForInternalCart')
-      .selectAll('MainHubUpgradeV001ForProducts')
-      .where('MainHubUpgradeV001ForInternalCart.user_id', '=', req.user.userId)
-      .execute();
-
-    res.json(cartItems);
-  } catch (error) {
-    console.error('Error fetching cart:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * DELETE /api/products/cart/:itemId
- * Remove item from internal cart
- * 
- * Params: itemId (cart item ID, not product ID)
- * 
- * Response: { message }
- */
-router.delete('/cart/:itemId', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { itemId } = req.params;
-
-  try {
-    // Verify ownership
-    const cartItem = await db
-      .selectFrom('MainHubUpgradeV001ForInternalCart')
-      .selectAll()
-      .where('id', '=', parseInt(itemId))
-      .executeTakeFirst();
-
-    if (!cartItem) {
-      res.status(404).json({ message: 'Cart item not found' });
-      return;
-    }
-
-    if (cartItem.user_id !== req.user.userId) {
-      res.status(403).json({ message: 'You do not own this cart item' });
-      return;
-    }
-
-    // Delete cart item
-    await db
-      .deleteFrom('MainHubUpgradeV001ForInternalCart')
-      .where('id', '=', parseInt(itemId))
-      .execute();
-
-    console.log(`Cart item ${itemId} removed for user ${req.user.username}`);
-
-    res.json({ message: 'Item removed from cart' });
-  } catch (error) {
-    console.error('Error removing from cart:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * POST /api/products/looking-for/add
- * Add item to "What I'm Looking For" list
- * 
- * Body: {
- *   store_id: number (which store they're looking for items in)
- *   item_description: string (what they're looking for)
- * }
- * 
- * Response: { message, lookingForId }
- */
-router.post('/looking-for/add', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { store_id, item_description } = req.body;
-
-  if (!store_id || !item_description) {
-    res.status(400).json({ message: 'Store ID and item description are required' });
-    return;
-  }
-
-  try {
-    const lookingFor = await db
-      .insertInto('MainHubUpgradeV001ForLookingFor')
-      .values({
-        user_id: req.user.userId,
-        store_id: parseInt(store_id as any),
-        item_description,
-        is_active: 1
-      })
-      .returning('id')
-      .executeTakeFirstOrThrow();
-
-    console.log(`Looking for item added by user ${req.user.username}: ${item_description}`);
-
-    res.json({ message: 'Item added to looking for list', lookingForId: lookingFor.id });
-  } catch (error) {
-    console.error('Error adding looking for item:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/products/looking-for/store/:storeId
- * Get all "What I'm Looking For" items in a store
- * 
- * Params: storeId
- * 
- * Response: Array of looking for items
- */
-router.get('/looking-for/store/:storeId', async (req, res) => {
-  const { storeId } = req.params;
-
-  try {
-    const lookingFor = await db
-      .selectFrom('MainHubUpgradeV001ForLookingFor')
-      .leftJoin('users', 'MainHubUpgradeV001ForLookingFor.user_id', 'users.id')
-      .select([
-        'MainHubUpgradeV001ForLookingFor.id',
-        'MainHubUpgradeV001ForLookingFor.item_description',
-        'MainHubUpgradeV001ForLookingFor.created_at',
-        'users.username'
-      ])
-      .where('MainHubUpgradeV001ForLookingFor.store_id', '=', parseInt(storeId))
-      .where('MainHubUpgradeV001ForLookingFor.is_active', '=', 1)
-      .orderBy('MainHubUpgradeV001ForLookingFor.created_at', 'desc')
-      .execute();
-
-    res.json(lookingFor);
-  } catch (error) {
-    console.error('Error fetching looking for items:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/products/looking-for/user/:userId
- * Get "What I'm Looking For" items for a specific user
- * 
- * Params: userId
- * 
- * Response: Array of user's looking for items
- */
-router.get('/looking-for/user/:userId', async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const lookingFor = await db
-      .selectFrom('MainHubUpgradeV001ForLookingFor')
-      .selectAll()
-      .where('user_id', '=', parseInt(userId))
-      .where('is_active', '=', 1)
-      .orderBy('created_at', 'desc')
-      .execute();
-
-    res.json(lookingFor);
-  } catch (error) {
-    console.error('Error fetching user looking for items:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-/**
- * DELETE /api/products/looking-for/:lookingForId
- * Delete a "What I'm Looking For" item
- * 
- * Params: lookingForId
- * 
- * Response: { message }
- */
-router.delete('/looking-for/:lookingForId', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { lookingForId } = req.params;
-
-  try {
-    // Verify ownership
-    const lookingFor = await db
-      .selectFrom('MainHubUpgradeV001ForLookingFor')
-      .selectAll()
-      .where('id', '=', parseInt(lookingForId))
-      .executeTakeFirst();
-
-    if (!lookingFor) {
-      res.status(404).json({ message: 'Looking for item not found' });
-      return;
-    }
-
-    if (lookingFor.user_id !== req.user.userId) {
-      res.status(403).json({ message: 'You do not own this item' });
-      return;
-    }
-
-    // Soft delete
-    await db
-      .updateTable('MainHubUpgradeV001ForLookingFor')
-      .set({ is_active: 0 })
-      .where('id', '=', parseInt(lookingForId))
-      .execute();
-
-    res.json({ message: 'Item removed from looking for list' });
-  } catch (error) {
-    console.error('Error deleting looking for item:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-export default router;
+### **5. CHATROOMS (30 SISTER UNION PAGES)**
+
+The 30 Sister Union pages are separate from stores. They have their own chat rooms:
+- **SisterUnion001NewEngland**
+- **SisterUnion002CentralEastCoast**
+- ... 
+- **SisterUnion024UnionMarket**
+
+These are accessible via the 30 buttons in the **left column** (uHome-Hub section):
+- Buttons #01-#30 in left panel
+- Each opens a chat modal with unique color
+- Independent of the store system
+
+**Database Table**: `messages`
+- `room` = page name (e.g., "SisterUnion001NewEngland")
+- `content` = message text
+- `user_id` = who sent it (or null if anonymous)
+- `is_anonymous` = boolean
+
+---
+
+### **6. CONNECTING TO STORES FROM CHAT**
+
+When you click a store button in the quadrants:
+- `onSelectStore(store)` is called
+- Sets `centerRightView` to that store
+- Your right-side panel switches to show that store's products
+- The store name displays at top ("Store #01", etc.)
+
+When you click the "eye" (👁️) button in UnionSAM#20 (Users' Stores):
+- Opens `MainUhubFeatureV001ForAddProductModal`
+- Regular users can add products (goes to their personal store)
+- Products appear in "Users' Stores" section
+
+---
+
+### **7. ACCOUNT INFORMATION & PROFILE**
+
+**User Tiers (from database):**
+```
+is_blocked: 0/1
+is_high_high_high_admin: 0/1 (tier 3 - uAdmin, like you)
+is_high_high_admin: 0/1 (tier 2 - store managers)
+(no column for tier 1 - regular users, default)
+```
+
+**User Profile Fields:**
+```
+id, username, password, email, phone_number,
+profile_image_url, cover_photo_url
+```
+
+**Your Profile Click:**
+- Displays avatar in top-right with status indicator (green = online)
+- Click avatar → logs out or switches to profile view
+- Edit button → updates profile info
+- Online/Offline indicator shows auth status
+
+**Other User Profile (Clicking Username):**
+- Would show their public profile
+- Their store section displays their products
+- Friends list (if allowed)
+- Option to add as friend/message
+
+---
+
+### **8. HOW EVERYTHING CONNECTS**
+
+```
+Main Landing
+    ↓
+User Auth (Login/Signup)
+    ↓
+Home Modal (Open)
+    ├── My Account Settings
+    ├── My Store (preview of your products)
+    ├── My Posts
+    ├── My Feed
+    └── My Inventory
+
+8 Buttons (Top-Right)
+    ├── Mountain (🏔️) → Opens Quadrants Modal
+    │   ├── Page 1 (4 quadrants: Union Store, Friends, My Store, Reserved)
+    │   ├── Pages 2-9 (4 stores each: #01-#30)
+    │   └── Page 10 (Empty/Reserved)
+    │
+    ├── Home (🏠) → Opens Home Modal
+    │
+    └── Buttons 3-8 → Custom features (currently quadrants)
+
+Center-Left Column (30 Sister Union Buttons)
+    ├── #01-#30 buttons
+    └── Each opens chat modal for that Sister Union room
+
+Center Section
+    ├── Broadcasts view
+    ├── Friends view
+    └── Settings view
+
+Right Column (Product Display)
+    ├── Shows products from selected store
+    ├── Navigation between stores
+    └── Cart functionality
+
+Bottom Row
+    ├── Left: Social media links (scrollable pages)
+    ├── Center: Union membership card link
+    └── Right: More social media links
 ```
 
 ---
 
-## Updated auth.ts File
+### **9. ROLE-BASED FLOW SUMMARY**
 
-### File Location
-`/home/app/server/auth.ts`
+**Regular User:**
+1. Log in
+2. Click "My Store" → Add tab
+3. Form appears: Name, Price, Description, Image
+4. Submit → Product added to personal store
+5. Appears in UnionSAM#20 "Users' Stores" section
+6. Also visible in Friends' stores if they're your friend
 
-### What This Does
-Updated authentication to recognize all admin tiers and special user levels
+**HIGH-HIGH Admin:**
+1. Log in
+2. Click "My Store" → Add tab
+3. Form appears: **Store selector required** (#01-#30)
+4. Name, Price, Description, Image
+5. Submit → Product added to selected store
+6. Appears only in that store's product display
+7. Can manage products in stores #01-#30
 
-### Full Code to Copy-Paste
-
-```typescript
-import { Router } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { db } from './db.js';
-
-const router = Router();
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
-
-/**
- * POST /api/auth/signup
- * Create a new user account
- * 
- * Body: {
- *   username: string (will be prefixed with 'u')
- *   password: string
- * }
- * 
- * Response: { message, user: { id, username } }
- * 
- * Automatically assigns admin roles if username matches known admins:
- * - "uAdmin", "uminion", "uminionunion", "uSalem" -> high-high-high admin
- * - (Other high-high admins can be added later)
- */
-router.post('/signup', async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    res.status(400).json({ error: 'Username and password required' });
-    return;
-  }
-
-  try {
-    const prefixedUsername = 'u' + username;
-    
-    console.log(`[SIGNUP] User attempting to sign up with: "${username}"`);
-    console.log(`[SIGNUP] Will be stored as: "${prefixedUsername}"`);
-
-    // Check if either the unprefixed OR prefixed username already exists
-    const existingUser = await db
-      .selectFrom('users')
-      .select('id')
-      .where((eb) => eb.or([
-        eb('username', '=', username),
-        eb('username', '=', prefixedUsername)
-      ]))
-      .executeTakeFirst();
-
-    if (existingUser) {
-      console.log(`[SIGNUP] COLLISION: Username already taken (checked both "${username}" and "${prefixedUsername}")`);
-      res.status(400).json({ error: 'Username already taken' });
-      return;
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Determine admin roles
-    const highHighHighAdmins = ['uAdmin', 'uminion', 'uminionunion', 'uSalem'];
-    const highHighAdmins = ['uStorytellingSalem'];
-    // Add more special user assignments here later as needed
-    
-    const isHighHighHighAdmin = highHighHighAdmins.includes(prefixedUsername) ? 1 : 0;
-    const isHighHighAdmin = highHighAdmins.includes(prefixedUsername) ? 1 : 0;
-
-    // Create the user with all role fields
-    await db
-      .insertInto('users')
-      .values({
-        username: prefixedUsername,
-        password: hashedPassword,
-        is_high_high_high_admin: isHighHighHighAdmin,
-        is_high_admin: 0,  // Only assign via database/admin panel
-        is_high_high_admin: isHighHighAdmin,
-        is_special_user: 0,
-        is_special_special_user: 0,
-        is_special_special_special_user: 0,
-        is_blocked: 0,
-        is_banned_from_chatrooms: 0
-      })
-      .execute();
-
-    console.log(`[SIGNUP] SUCCESS: User "${prefixedUsername}" created`);
-    console.log(`[SIGNUP] Roles - HighHighHigh: ${isHighHighHighAdmin}, HighHigh: ${isHighHighAdmin}`);
-
-    res.status(201).json({ message: 'User created successfully' });
-  } catch (error) {
-    console.error('[SIGNUP] Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-/**
- * POST /api/auth/login
- * Authenticate user and return JWT token
- * 
- * Body: {
- *   username: string (can be with or without 'u' prefix)
- *   password: string
- * }
- * 
- * Response: { id, username, is_high_high_high_admin, is_high_admin, etc. }
- * Sets httpOnly cookie with JWT token
- */
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    res.status(400).json({ error: 'Username and password required' });
-    return;
-  }
-
-  try {
-    console.log(`[LOGIN] User attempting to log in with: "${username}"`);
-
-    // Step 1: Search for exact username as typed
-    let user = await db
-      .selectFrom('users')
-      .selectAll()
-      .where('username', '=', username)
-      .executeTakeFirst();
-
-    console.log(`[LOGIN] Step 1 - Search for exact match "${username}": ${user ? 'FOUND' : 'NOT FOUND'}`);
-
-    // Step 2: If not found and doesn't start with 'u', try adding 'u' prefix
-    if (!user && !username.startsWith('u')) {
-      const prefixedUsername = 'u' + username;
-      user = await db
-        .selectFrom('users')
-        .selectAll()
-        .where('username', '=', prefixedUsername)
-        .executeTakeFirst();
-
-      console.log(`[LOGIN] Step 2 - Search with 'u' prefix "${prefixedUsername}": ${user ? 'FOUND' : 'NOT FOUND'}`);
-    }
-
-    if (!user) {
-      console.log(`[LOGIN] FAILED: User not found`);
-      res.status(401).json({ error: 'Invalid username or password' });
-      return;
-    }
-
-    // Check if user is banned from chatrooms
-    if (user.is_banned_from_chatrooms === 1) {
-      console.log(`[LOGIN] BLOCKED: User "${user.username}" is banned from chatrooms`);
-      res.status(403).json({ error: 'Your account has been banned from chatrooms' });
-      return;
-    }
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      console.log(`[LOGIN] FAILED: Invalid password for user "${user.username}"`);
-      res.status(401).json({ error: 'Invalid username or password' });
-      return;
-    }
-
-    console.log(`[LOGIN] SUCCESS: User "${user.username}" logged in`);
-    console.log(`[LOGIN] Admin roles - HighHighHigh: ${user.is_high_high_high_admin}, HighHigh: ${user.is_high_high_admin}`);
-
-    // Create JWT token
-    const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
-
-    res.cookie('token', token, { 
-      httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production', 
-      sameSite: 'strict' 
-    });
-    
-    res.status(200).json({ 
-      id: user.id, 
-      username: user.username,
-      is_high_high_high_admin: user.is_high_high_high_admin,
-      is_high_admin: user.is_high_admin,
-      is_high_high_admin: user.is_high_high_admin,
-      is_special_user: user.is_special_user,
-      is_special_special_user: user.is_special_special_user,
-      is_special_special_special_user: user.is_special_special_special_user,
-      is_blocked: user.is_blocked,
-      is_banned_from_chatrooms: user.is_banned_from_chatrooms
-    });
-  } catch (error) {
-    console.error('[LOGIN] Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-/**
- * POST /api/auth/logout
- * Clear authentication token
- * 
- * Response: { message }
- */
-router.post('/logout', (req, res) => {
-  res.cookie('token', '', { 
-    expires: new Date(0), 
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production', 
-    sameSite: 'strict' 
-  });
-  res.status(200).json({ message: 'Logged out successfully' });
-});
-
-/**
- * GET /api/auth/me
- * Get current authenticated user info
- * 
- * Response: { id, username, ...adminRoles }
- */
-router.get('/me', (req, res) => {
-  const token = req.cookies.token;
-
-  if (!token) {
-    res.status(401).json({ message: 'Not authenticated' });
-    return;
-  }
-
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
-    
-    // Return basic info - frontend will fetch full user data if needed
-    res.status(200).json({ 
-      id: payload.userId, 
-      username: payload.username 
-    });
-  } catch (error) {
-    res.status(401).json({ message: 'Invalid token' });
-  }
-});
-
-export default router;
-```
+**HIGH-HIGH-HIGH Admin (You - uAdmin):**
+1. Log in
+2. Click "My Store" → Add tab
+3. Form appears: Optional **WooCommerce SKU** field
+4. Name, Price, Description, Image
+5. Submit → Product added to main store (#0)
+6. Appears in "Union Store" section visible to all users
+7. Can manage all main store inventory
 
 ---
 
-## Updated index.ts File
+## DEPLOYMENT STEPS
 
-### File Location
-`/home/app/server/index.ts`
-
-### What's Changed
-Added import and registration of the products router
-
-### Full Code to Copy-Paste
-
-```typescript
-// server/index.ts
-import express, { Router } from 'express';
-import dotenv from 'dotenv';
-import http from 'http';
-import { Server as SocketIOServer } from 'socket.io';
-import cookieParser from 'cookie-parser';
-import path from 'path';
-import fs from 'fs';
-
-dotenv.config();
-
-const app = express();
-const server = http.createServer(app);
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: `http://localhost:${process.env.VITE_PORT || 3000}`,
-    credentials: true,
-  },
-});
-
-/**
- * sanitizeStringRoute
- */
-function sanitizeStringRoute(s: unknown): string {
-  if (!s || typeof s !== 'string') return String(s ?? '/');
-  const t = s.trim();
-  if (t.startsWith('http://') || t.startsWith('https://') || t.includes('://')) {
-    try {
-      return new URL(t).pathname || '/';
-    } catch {
-      return '/';
-    }
-  }
-  return t || '/';
-}
-
-/**
- * DEBUG helper (optional)
- */
-function warnIfUrlAndStack(s: string) {
-  if (process.env.DEBUG_ROUTE_SANITIZE !== 'true') return;
-  if (!s) return;
-  const looksLikeUrl = s.includes('://') || s.includes('git.new') || s.startsWith('http');
-  if (!looksLikeUrl) return;
-  console.error('DEBUG: sanitizing route mount that looks like URL:', s);
-  console.error(new Error().stack?.split('\n').slice(2, 8).join('\n'));
-}
-
-/**
- * Safer patch helper: call original with the same `this`
- */
-function patchMethodOn(target: any, methodName: string) {
-  if (!target || typeof target[methodName] !== 'function') return;
-  const orig = target[methodName];
-  target[methodName] = function (arg1: any, ...rest: any[]) {
-    try {
-      const shouldDebug = process.env.DEBUG_ROUTE_SANITIZE === 'true';
-      if (shouldDebug && typeof arg1 === 'string') {
-        console.error(`DEBUG-ROUTE: registering via ${methodName} value=`, arg1);
-        console.error(new Error().stack?.split('\n').slice(2, 10).join('\n'));
-      }
-    } catch (_) {}
-
-    const first = typeof arg1 === 'string'
-      ? ((): string => {
-          warnIfUrlAndStack(arg1);
-          try {
-            return sanitizeStringRoute(arg1);
-          } catch {
-            return '/';
-          }
-        })()
-      : arg1;
-
-    return orig.apply(this, [first, ...rest]);
-  };
-}
-
-// Patch app instance methods BEFORE any routers are loaded
-['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(app, m));
-
-// Patch Router prototype methods BEFORE router modules load
-const RouterProto = (Router as any)?.prototype;
-if (RouterProto) {
-  ['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(RouterProto, m));
-}
-
-// Use express middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-/**
- * Dynamic-import the modules that may register routes
- * UPDATED: Added productsRouter
- */
-const [{ setupStaticServing }, authMod, friendsMod, chatMod, productsMod] = await Promise.all([
-  import('./static-serve.js'),
-  import('./auth.js'),
-  import('./friends.js'),
-  import('./chat.js'),
-  import('./products.js'),
-]);
-
-const authRouter: Router = (authMod && (authMod as any).default) ? (authMod as any).default as Router : (authMod as any) as Router;
-const friendsRouter: Router = (friendsMod && (friendsMod as any).default) ? (friendsMod as any).default as Router : (friendsMod as any) as Router;
-const productsRouter: Router = (productsMod && (productsMod as any).default) ? (productsMod as any).default as Router : (productsMod as any) as Router;
-
-// Register all API routers
-app.use('/api/auth', authRouter);
-app.use('/api/friends', friendsRouter);
-app.use('/api/products', productsRouter);
-
-// Setup socket.io chat
-const { setupChat } = chatMod;
-setupChat(io);
-
-function resolvePublicPath(): string {
-  const candidates = [
-    path.join(process.cwd(), 'dist', 'public'),
-    path.join(process.cwd(), 'dist'),
-    path.join(process.cwd(), 'public'),
-    process.cwd(),
-  ];
-  for (const p of candidates) {
-    try {
-      const stat = fs.statSync(p);
-      if (stat && stat.isDirectory()) {
-        return p;
-      }
-    } catch {
-      // ignore
-    }
-  }
-  return process.cwd();
-}
-
-function logRegisteredRoutes() {
-  try {
-    const router = (app as any)._router;
-    if (!router || !router.stack) {
-      console.log('No router stack available');
-      return;
-    }
-    console.log('--- Registered routes and middleware ---');
-    router.stack.forEach((r: any) => {
-      if (r.route && r.route.path) {
-        const methods = Object.keys(r.route.methods).join(',').toUpperCase();
-        console.log(`${methods} ${r.route.path}`);
-      } else if (r.name === 'router' && r.regexp) {
-        console.log(`Mounted router regexp: ${r.regexp}`);
-      } else {
-        console.log('Middleware:', r.name || r.handle?.name || r);
-      }
-    });
-    console.log('----------------------------------------');
-  } catch (err) {
-    console.error('Route listing failed', err);
-  }
-}
-
-/**
- * Start server
- */
-export async function startServer(port: number | string) {
-  try {
-    if (process.env.NODE_ENV === 'production') {
-      const publicPath = resolvePublicPath();
-      console.log('Production static path resolved to:', publicPath);
-
-      app.use(express.static(publicPath, { index: false }));
-
-      app.get(/.*/, (req, res, next) => {
-        if (req.path.startsWith('/api/')) return next();
-        const indexFile = path.join(publicPath, 'index.html');
-        if (!fs.existsSync(indexFile)) return res.status(404).send('Not Found');
-        res.sendFile(indexFile, (err) => {
-          if (err) next(err);
-        });
-      });
-
-      try {
-        setupStaticServing(app);
-      } catch (err) {
-        console.warn('setupStaticServing() threw an error (ignored):', err);
-      }
-    }
-
-    server.listen(port, () => {
-      console.log(`API Server running on port ${port}`);
-      logRegisteredRoutes();
-    });
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  }
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  console.log('Starting server...');
-  startServer(process.env.PORT || 3001);
-}
-```
+1. **Update MainUhubFeatureV001ForMyProfileModal.tsx**: Replace QuadrantsModal component
+2. **Create MyStoreProductSection.tsx**: New component for listing products
+3. **Create MyStoreAddProductForm.tsx**: New component for adding products based on role
+4. **Verify server/products.ts**: Ensure it matches the code above
+5. **Test each user role**: Regular user, HIGH-HIGH admin, HIGH-HIGH-HIGH admin
+6. **Test store navigation**: Click between stores on pages 2-9
+7. **Test chat rooms**: Open 30 Sister Union pages via left buttons
 
 ---
 
-## Frontend Components - Complete Copy-Paste
+## KEY DIFFERENCES NOW
 
-### Component 1: MainUhubFeatureV001ForAddProductModal.tsx
-
-**File Location**: `/home/app/client/src/features/profile/MainUhubFeatureV001ForAddProductModal.tsx`
-
-**What It Does**: Modal for users to add new products with payment method and SKU support
-
-```typescript
-import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '../../components/ui/dialog';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Textarea } from '../../components/ui/textarea';
-import { useAuth } from '../../hooks/useAuth';
-
-interface MainUhubFeatureV001ForAddProductModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddProductModalProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
-  const [title, setTitle] = useState('');
-  const [subtitle, setSubtitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [website, setWebsite] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState('own_website');
-  const [paymentUrl, setPaymentUrl] = useState('');
-  const [wooSku, setWooSku] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const paymentOptions = [
-    { value: 'own_website', label: 'Pay through my website' },
-    { value: 'venmo', label: 'Venmo/CashApp' },
-    { value: 'cash', label: 'Cash in person' },
-    { value: 'card_coming_soon', label: 'Card (Coming Soon)' },
-    { value: 'other', label: 'Other method' }
-  ];
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
-  };
-
-  const handleSubmit = async () => {
-    setError('');
-
-    // Validate required fields
-    if (!title || !price || !image) {
-      setError('Title, price, and image are required');
-      return;
-    }
-
-    if (isNaN(parseFloat(price))) {
-      setError('Price must be a valid number');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('name', title);
-      formData.append('subtitle', subtitle);
-      formData.append('description', description);
-      formData.append('price', price);
-      formData.append('payment_method', paymentMethod);
-      formData.append('payment_url', paymentUrl);
-      formData.append('website', website);
-      formData.append('image', image);
-      
-      // Only include WooCommerce SKU if user is admin
-      if (user?.is_high_high_high_admin === 1 && wooSku) {
-        formData.append('woo_sku', wooSku);
-      }
-
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to create product');
-        return;
-      }
-
-      // Success - close modal and refresh
-      console.log('Product created successfully');
-      onClose();
-      window.location.reload();
-    } catch (error) {
-      console.error('Error creating product:', error);
-      setError('An error occurred while creating the product');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex p-0">
-        <div className="w-1/2 p-6 flex flex-col overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add a New Product</DialogTitle>
-            <DialogDescription>Fill in the details for your new product.</DialogDescription>
-          </DialogHeader>
-
-          <div className="flex-grow space-y-4 pr-2">
-            {error && (
-              <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <Label htmlFor="title">Title (max 100 chars) *</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={100}
-                placeholder="Product name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="subtitle">Subheader (max 300 chars)</Label>
-              <Input
-                id="subtitle"
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                maxLength={300}
-                placeholder="Short description"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description (max 1000 chars)</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                maxLength={1000}
-                rows={4}
-                placeholder="Detailed description"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="price">Price *</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="website">Website / Product Link</Label>
-              <Input
-                id="website"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.com"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="payment-method">Payment Method *</Label>
-              <select
-                id="payment-method"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                {paymentOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {(paymentMethod === 'venmo' || paymentMethod === 'cash' || paymentMethod === 'other') && (
-              <div>
-                <Label htmlFor="payment-url">Payment Details / Contact Info</Label>
-                <Input
-                  id="payment-url"
-                  value={paymentUrl}
-                  onChange={(e) => setPaymentUrl(e.target.value)}
-                  placeholder="e.g., @venmoUsername or cash payment location"
-                />
-              </div>
-            )}
-
-            {paymentMethod === 'own_website' && (
-              <div>
-                <Label htmlFor="payment-url">Website Payment URL</Label>
-                <Input
-                  id="payment-url"
-                  value={paymentUrl}
-                  onChange={(e) => setPaymentUrl(e.target.value)}
-                  placeholder="https://example.com/checkout"
-                />
-              </div>
-            )}
-
-            {user?.is_high_high_high_admin === 1 && (
-              <div>
-                <Label htmlFor="woo-sku">WooCommerce SKU (Admin Only)</Label>
-                <Input
-                  id="woo-sku"
-                  value={wooSku}
-                  onChange={(e) => setWooSku(e.target.value)}
-                  placeholder="e.g., TAPESTRY-001"
-                />
-                <p className="text-xs text-gray-500 mt-1">Links product to WooCommerce inventory</p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isLoading || !title || !price || !image}
-            >
-              {isLoading ? 'Creating...' : 'Create Product'}
-            </Button>
-          </DialogFooter>
-        </div>
-
-        <div className="w-1/2 p-6 border-l bg-muted/40 flex flex-col items-center justify-center">
-          <DialogHeader className="mb-4">
-            <DialogTitle>Upload Product Image</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-64 border-2 border-dashed border-border rounded-md flex items-center justify-center mb-4 bg-white">
-            {image ? (
-              <img
-                src={URL.createObjectURL(image)}
-                alt="Product preview"
-                className="max-h-full max-w-full object-contain"
-              />
-            ) : (
-              <p className="text-muted-foreground text-center px-4">No image selected. Click below to upload.</p>
-            )}
-          </div>
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="cursor-pointer"
-          />
-          {image && (
-            <p className="text-xs text-muted-foreground mt-2">{image.name}</p>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export default MainUhubFeatureV001ForAddProductModal;
-```
-
-### Component 2: MainUhubFeatureV001ForProductDetailModal.tsx
-
-**File Location**: `/home/app/client/src/features/profile/MainUhubFeatureV001ForProductDetailModal.tsx`
-
-**What It Does**: Shows product details with payment method and "Add to Cart" options
-
-```typescript
-import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '../../components/ui/dialog';
-import { Button } from '../../components/ui/button';
-import { ShoppingCart, MessageSquare } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-
-interface Product {
-  id: number;
-  name: string;
-  subtitle?: string;
-  description?: string;
-  image_url: string;
-  price: number;
-  payment_method: string;
-  payment_url?: string;
-  woo_commerce_sku?: string;
-  store_type: string;
-  user_id?: number;
-}
-
-interface MainUhubFeatureV001ForProductDetailModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  product: Product | null;
-}
-
-const PaymentMethodDisplay = ({ method, url }: { method: string; url?: string }) => {
-  const methods: Record<string, { icon: string; text: string; color: string }> = {
-    own_website: {
-      icon: '🌐',
-      text: 'Available on seller\'s website',
-      color: 'bg-blue-50'
-    },
-    venmo: {
-      icon: '💳',
-      text: 'Venmo/CashApp available',
-      color: 'bg-cyan-50'
-    },
-    cash: {
-      icon: '💵',
-      text: 'Cash payment accepted',
-      color: 'bg-green-50'
-    },
-    card_coming_soon: {
-      icon: '🔒',
-      text: 'Card payments coming soon',
-      color: 'bg-purple-50'
-    },
-    other: {
-      icon: '❓',
-      text: 'Contact seller for payment options',
-      color: 'bg-gray-50'
-    }
-  };
-
-  const info = methods[method] || methods.other;
-
-  return (
-    <div className={`border rounded-lg p-4 mt-4 ${info.color}`}>
-      <h4 className="font-bold mb-3">Payment Method</h4>
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-2xl">{info.icon}</span>
-        <span className="text-sm font-medium">{info.text}</span>
-      </div>
-      {url && method === 'own_website' && (
-        <p className="text-xs text-gray-600 mb-3">
-          Link: <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-            {url}
-          </a>
-        </p>
-      )}
-      {url && (method === 'venmo' || method === 'cash' || method === 'other') && (
-        <p className="text-xs text-gray-600 mb-3">
-          Contact: <span className="font-mono">{url}</span>
-        </p>
-      )}
-    </div>
-  );
-};
-
-const MainUhubFeatureV001ForProductDetailModal: React.FC<MainUhubFeatureV001ForProductDetailModalProps> = ({
-  isOpen,
-  onClose,
-  product
-}) => {
-  const { user } = useAuth();
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-
-  if (!product) return null;
-
-  const handleWooCommerceAddToCart = (product: Product) => {
-    if (product.woo_commerce_sku) {
-      window.open(
-        `https://page001.uminion.com/cart/?add-to-cart=${product.woo_commerce_sku}`,
-        '_blank'
-      );
-    } else {
-      window.open('https://page001.uminion.com/cart/', '_blank');
-    }
-  };
-
-  const handleAddToInternalCart = async () => {
-    if (!user) {
-      alert('You must be logged in to add to cart');
-      return;
-    }
-
-    if (product.store_type !== 'user') {
-      alert('Only user products can be added to internal cart');
-      return;
-    }
-
-    setIsAddingToCart(true);
-    try {
-      const response = await fetch('/api/products/cart/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: product.id,
-          quantity: 1
-        })
-      });
-
-      if (response.ok) {
-        alert('Added to your "Where to Buy" cart');
-      } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to add to cart');
-      }
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      alert('An error occurred');
-    } finally {
-      setIsAddingToCart(false);
-    }
-  };
-
-  const handleSendMessage = () => {
-    alert('Direct messaging feature coming soon!');
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[80vh] flex p-0">
-        {/* Left Side - Image */}
-        <div className="w-1/2 bg-black flex items-center justify-center overflow-hidden p-4">
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="max-h-full max-w-full object-contain"
-          />
-        </div>
-
-        {/* Right Side - Details */}
-        <div className="w-1/2 p-8 flex flex-col overflow-y-auto">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-3xl font-bold">{product.name}</DialogTitle>
-            {product.subtitle && (
-              <DialogDescription className="text-lg text-muted-foreground mt-2">
-                {product.subtitle}
-              </DialogDescription>
-            )}
-          </DialogHeader>
-
-          {/* Description */}
-          <div className="flex-grow my-6">
-            <p className="text-sm leading-relaxed">
-              {product.description || 'No description available.'}
-            </p>
-          </div>
-
-          {/* Price and Cart Buttons */}
-          <div className="mt-auto">
-            <div className="flex items-center justify-between mb-6 pb-6 border-b">
-              <span className="text-3xl font-bold text-orange-500">
-                ${product.price?.toFixed(2) || '0.00'}
-              </span>
-            </div>
-
-            {/* Payment Method Display */}
-            <PaymentMethodDisplay
-              method={product.payment_method || 'own_website'}
-              url={product.payment_url}
-            />
-
-            {/* Action Buttons */}
-            <div className="space-y-3 mt-6">
-              {product.store_type === 'main' ? (
-                <Button
-                  size="lg"
-                  className="w-full bg-orange-500 hover:bg-orange-600"
-                  onClick={() => handleWooCommerceAddToCart(product)}
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Add to WooCommerce Cart
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    size="lg"
-                    className="w-full"
-                    onClick={handleAddToInternalCart}
-                    disabled={isAddingToCart}
-                  >
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    {isAddingToCart ? 'Adding...' : 'Add to "Where to Buy" Cart'}
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleSendMessage}
-                  >
-                    <MessageSquare className="mr-2 h-5 w-5" />
-                    Message Seller
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export default MainUhubFeatureV001ForProductDetailModal;
-```
+✅ **Before**: Top-left was "All Stores grid", top-right was "Union Store display"
+✅ **Now**: Top-left is "Union Store products", bottom-left is expanded "My Store" with role-based add
+✅ **Before**: No clear add product in My Store for HIGH-HIGH-HIGH admin
+✅ **Now**: Clear role-based forms (SKU for tier 3, Store selector for tier 2, simple form for tier 1)
+✅ **Before**: Confusing store assignment logic
+✅ **Now**: Clear logic (user_id + store_id combinations)
 
 ---
 
-## WooCommerce Integration
-
-### SKU Linking
-
-When a high-high-high admin creates a product:
-
-1. They can provide the **WooCommerce SKU** (Stock Keeping Unit)
-2. The SKU is stored in the `woo_commerce_sku` column
-3. When users click "Add to WooCommerce Cart", it links directly:
-   ```
-   https://page001.uminion.com/cart/?add-to-cart=TAPESTRY-001
-   ```
-
-This automatically adds that specific product to the user's WooCommerce cart.
-
----
-
-## What I'm Looking For Feature
-
-### How It Works
-
-In each store (main + #01-#30), users can add items to a "What I'm Looking For" list. This helps sellers know what products are in demand.
-
-### API Endpoints
-
-- `POST /api/products/looking-for/add` - Add item to looking for list
-- `GET /api/products/looking-for/store/:storeId` - Get all looking for items in a store
-- `GET /api/products/looking-for/user/:userId` - Get user's looking for items
-- `DELETE /api/products/looking-for/:lookingForId` - Remove item from list
-
-### Database Table
-
-Already created in Step 8 of database upgrades: `MainHubUpgradeV001ForLookingFor`
-
----
-
-## NEXT STEPS
-
-1. **Run all database migrations** using the database_migration tool or SQLite CLI
-2. **Create/replace `/home/app/server/products.ts`** with the complete code above
-3. **Update `/home/app/server/auth.ts`** with the new authentication code
-4. **Update `/home/app/server/index.ts`** to register the products router
-5. **Update/Create product modal components** with the frontend code above
-6. **Test the system**:
-   - Create an account as a regular user
-   - Create products with different payment methods
-   - As admin, create products with WooCommerce SKU
-   - Test "Add to Cart" functionality
-   - Test "Looking For" items
-
----
-
-## Troubleshooting
-
-### Database Errors
-
-If you get "table already exists" errors:
-- Check if the table was already created (old versions might have partial tables)
-- Drop the old table: `DROP TABLE IF EXISTS table_name;`
-- Then run the create command again
-
-### Products Not Showing
-
-- Check that `is_in_trash = 0` for the product
-- Verify `store_id` matches the store you're viewing
-- Check user permissions (blocked users can't create products)
-
-### Admin Roles Not Working
-
-- Verify the user was created with the correct admin flags in the database
-- Check `/api/auth/me` endpoint returns correct role fields
-- Login again to refresh the token with new role data
-
----
-
-## File Checklist
-
-- [ ] Database migrations complete
-- [ ] `/home/app/server/products.ts` created
-- [ ] `/home/app/server/auth.ts` updated
-- [ ] `/home/app/server/index.ts` updated
-- [ ] Product modal components updated
-- [ ] Test product creation
-- [ ] Test product fetching
-- [ ] Test admin features
-
+**This is your complete system. Everything is interconnected and uses the database structure already in place.**
