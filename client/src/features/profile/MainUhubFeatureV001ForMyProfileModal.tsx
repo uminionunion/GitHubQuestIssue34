@@ -96,6 +96,7 @@ interface Product {
   url?: string;
   time?: string;
   location?: string;
+  store_id?: number;
 }
 
 const ProductBox = ({ product, onMagnify, onAddToCart }) => {
@@ -325,23 +326,23 @@ const HomeModal = ({ isOpen, onClose }) => {
             {myAccountExpanded && (
               <div className="space-y-3 flex-1 overflow-y-auto">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer appearance-none checked:bg-gray-600 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center" />
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
                   <span className="text-sm">Allow others to see friends list</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer appearance-none checked:bg-gray-600 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center" />
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
                   <span className="text-sm">Allow non-logged in users to see posts</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer appearance-none checked:bg-gray-600 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center" />
+                  <input type="checkbox" className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
                   <span className="text-sm">Allow non-logged in users to see friends list</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer appearance-none checked:bg-gray-600 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center" />
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
                   <span className="text-sm">Allow non-logged in users to like and comment on posts</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer appearance-none checked:bg-gray-600 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center" />
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
                   <span className="text-sm">Only friends can see posts</span>
                 </label>
               </div>
@@ -388,6 +389,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const { user } = useAuth();
   const MainUhubFeatureV001ForUHomeHubButtons = Array.from({ length: 30 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
+  const [storeProducts, setStoreProducts] = useState<{ [key: number]: Product[] }>({});
   const [mainStoreProducts, setMainStoreProducts] = useState<Product[]>([]);
   const [userStoreProducts, setUserStoreProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
@@ -413,7 +415,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
       'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
-      'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: "https://page001.uminion.com/"!', website: 'https://uminion.com' },
+      'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
@@ -429,9 +431,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     }
   }, [user, isOpen]);
 
-  // Fetch database products
+  // Fetch database products for all stores
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchAllProducts = async () => {
       setIsLoadingProducts(true);
       try {
         // Fetch main store products (store #0)
@@ -445,6 +447,20 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
           const userData = await userRes.json();
           setUserStoreProducts(Array.isArray(userData) ? userData : []);
         }
+
+        // Fetch products for each store #01-#30
+        const storeProductsMap: { [key: number]: Product[] } = {};
+        for (let storeNum = 1; storeNum <= 30; storeNum++) {
+          try {
+            const storeRes = await fetch(`/api/products/store/${storeNum}`);
+            const storeData = await storeRes.json();
+            storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
+          } catch (error) {
+            console.error(`Error fetching products for store ${storeNum}:`, error);
+            storeProductsMap[storeNum] = [];
+          }
+        }
+        setStoreProducts(storeProductsMap);
       } catch (error) {
         console.error('Error fetching products:', error);
         setMainStoreProducts([]);
@@ -455,7 +471,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     };
 
     if (isOpen) {
-      fetchProducts();
+      fetchAllProducts();
     }
   }, [user, isOpen]);
 
@@ -556,56 +572,106 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const renderCenterRightContent = () => {
     const mainProducts = mainStoreProducts.length > 0 ? mainStoreProducts : [];
     const userProducts = userStoreProducts.length > 0 ? userStoreProducts : [];
+    const isUnionSAM20 = centerRightView.number === 20;
+    const isUnionPolitic19 = centerRightView.number === 19;
 
     return (
         <>
-            <div id="MainUhubFeatureV001ForUnionStore" className="border rounded-md p-2">
-                <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-semibold text-center flex-1">Union Store</h4>
-                    <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
-                            <ShoppingCart className="h-4 w-4" />
-                        </Button>
-                    </a>
-                </div>
-                <div className="space-y-2">
-                    {isLoadingProducts ? (
-                        <div className="text-center text-muted-foreground py-4">Loading products...</div>
-                    ) : mainProducts.length > 0 ? (
-                        mainProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
-                    ) : (
-                        <div className="text-center text-muted-foreground py-4">No products available</div>
-                    )}
-                </div>
-            </div>
-            <div id="MainUhubFeatureV001ForUsersStores" className="border rounded-md p-2">
-                <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center flex-1">
-                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white mr-2" onClick={() => {
-                            if (!user) {
-                                alert('You must be logged in to add a product.');
-                                return;
-                            }
-                            setAddProductModalOpen(true)
-                        }}>
-                            <Eye className="h-4 w-4" />
-                        </Button>
-                        <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
+            {isUnionSAM20 && (
+                <>
+                    <div id="MainUhubFeatureV001ForUnionStore" className="border rounded-md p-2">
+                        <div className="flex justify-between items-center mb-2">
+                            <h4 className="font-semibold text-center flex-1">Union Store</h4>
+                            <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
+                                    <ShoppingCart className="h-4 w-4" />
+                                </Button>
+                            </a>
+                        </div>
+                        <div className="space-y-2">
+                            {isLoadingProducts ? (
+                                <div className="text-center text-muted-foreground py-4">Loading products...</div>
+                            ) : mainProducts.length > 0 ? (
+                                mainProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
+                            ) : (
+                                <div className="text-center text-muted-foreground py-4">No products available</div>
+                            )}
+                        </div>
                     </div>
-                    <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-black">
-                            <ShoppingCart className="h-4 w-4" />
-                        </Button>
-                    </a>
+                    <div id="MainUhubFeatureV001ForUsersStores" className="border rounded-md p-2">
+                        <div className="flex justify-between items-center mb-2">
+                            <div className="flex items-center flex-1">
+                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white mr-2" onClick={() => {
+                                    if (!user) {
+                                        alert('You must be logged in to add a product.');
+                                        return;
+                                    }
+                                    setAddProductModalOpen(true)
+                                }}>
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                                <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
+                            </div>
+                            <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-black">
+                                    <ShoppingCart className="h-4 w-4" />
+                                </Button>
+                            </a>
+                        </div>
+                        <div className="space-y-2">
+                            {userProducts.length > 0 ? (
+                                userProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
+                            ) : (
+                                <div className="text-center text-muted-foreground py-4">No products yet</div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {isUnionPolitic19 && (
+                <div className="border rounded-md p-4 flex items-center justify-center text-muted-foreground h-48">
+                    This store is coming soon
                 </div>
-                <div className="space-y-2">
-                    {userProducts.length > 0 ? (
-                        userProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
-                    ) : (
-                        <div className="text-center text-muted-foreground py-4">No products yet</div>
-                    )}
+            )}
+
+            {!isUnionSAM20 && !isUnionPolitic19 && (
+                <div id="MainUhubFeatureV001ForStoreColumn" className="border rounded-md p-2 flex flex-col h-full">
+                    <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-semibold text-center flex-1">Store {String(centerRightView.number).padStart(2, '0')}</h4>
+                        <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
+                                <ShoppingCart className="h-4 w-4" />
+                            </Button>
+                        </a>
+                    </div>
+                    <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+                        {isLoadingProducts ? (
+                            <div className="text-center text-muted-foreground py-4">Loading products...</div>
+                        ) : (storeProducts[centerRightView.number] && storeProducts[centerRightView.number].length > 0) ? (
+                            storeProducts[centerRightView.number].map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
+                        ) : (
+                            <div className="text-center text-muted-foreground py-4">No products available</div>
+                        )}
+                    </div>
+                    <div className="border-t pt-2 mt-auto">
+                        <div className="grid grid-cols-2 gap-1">
+                            {ALL_STORES.slice(1, 31).map((store) => (
+                                <Button
+                                    key={store.id}
+                                    variant={store.id === centerRightView.id ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setCenterRightView(store)}
+                                    className="text-xs h-8"
+                                    title={store.name}
+                                >
+                                    #{String(store.number).padStart(2, '0')}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </>
     );
   };
@@ -640,7 +706,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                     </div>
                     {broadcastView === 'MyBroadcasts' ? 
                         (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
-                        : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
+                        : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}</div>
                 </>
             );
     }
@@ -710,41 +776,48 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
 
-           {/* 8-Button Grid */}
-           <div className="md:w-1/4 flex justify-center items-center md:pl-4">
-             <div className="grid grid-cols-2 gap-2 w-fit">
-               <Button
-                 variant="outline"
-                 size="sm"
-                 className="flex flex-col items-center justify-center h-12 w-12 gap-0.5 text-xs"
-                 onClick={() => setIsQuadrantsModalOpen(true)}
-                 title="HikingToAllStores"
-               >
-                 <Mountain className="h-4 w-4" />
-               </Button>
-               <Button
-                 variant="outline"
-                 size="sm"
-                 className="flex flex-col items-center justify-center h-12 w-12 gap-0.5 text-xs"
-                 onClick={() => setIsHomeModalOpen(true)}
-                 title="Home"
-               >
-                 <Home className="h-4 w-4" />
-               </Button>
-               {Array.from({ length: 6 }, (_, i) => (
-                 <Button
-                   key={i + 3}
-                   variant="outline"
-                   size="sm"
-                   className="flex flex-col items-center justify-center h-12 w-12 gap-0.5 text-xs"
-                   onClick={() => setIsQuadrantsModalOpen(true)}
-                   title={`Custom ${i + 3}`}
-                 >
-                   {i + 3}
-                 </Button>
-               ))}
-             </div>
-           </div>
+            {/* 8-Button Grid - SMALLER BUTTONS */}
+            <div className="md:w-1/4 flex justify-center items-center md:pl-4">
+              <div className="grid grid-cols-2 gap-1 w-fit">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
+                  onClick={() => setIsQuadrantsModalOpen(true)}
+                  title="HikingToAllStores"
+                >
+                  <Mountain className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
+                  onClick={() => {
+                    if (!user) {
+                      alert("You must be logged in to use this feature.");
+                      return;
+                    }
+                    setIsHomeModalOpen(true);
+                  }}
+                  title="Home"
+                  disabled={!user}
+                >
+                  <Home className="h-3 w-3" />
+                </Button>
+                {Array.from({ length: 6 }, (_, i) => (
+                  <Button
+                    key={i + 3}
+                    variant="outline"
+                    size="sm"
+                    className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
+                    onClick={() => setIsQuadrantsModalOpen(true)}
+                    title={`Custom ${i + 3}`}
+                  >
+                    {i + 3}
+                  </Button>
+                ))}
+              </div>
+            </div>
 
            {/* Avatar */}
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
