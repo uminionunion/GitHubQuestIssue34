@@ -411,4 +411,117 @@ router.delete('/looking-for/:itemId', authenticate, async (req, res) => {
   }
 });
 
+// === LOOKING FOR ===
+
+// POST - Add item to "Looking For"
+router.post('/looking-for/add', authenticate, async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { store_id, item_name, description } = req.body;
+
+  if (!store_id || !item_name) {
+    res.status(400).json({ message: 'store_id and item_name are required' });
+    return;
+  }
+
+  console.log(`[Looking For] User ${req.user.username} adding item to store #${store_id}`);
+
+  try {
+    await db
+      .insertInto('MainHubUpgradeV001ForLookingFor')
+      .values({
+        user_id: req.user.userId,
+        store_id: parseInt(store_id),
+        item_name,
+        description: description || null,
+      })
+      .execute();
+
+    res.json({ message: 'Item added to looking for' });
+  } catch (error) {
+    console.error('[Error] Adding to looking for:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET - Get "Looking For" items for a store
+router.get('/looking-for/store/:storeId', async (req: Request, res: Response) => {
+  const { storeId } = req.params;
+
+  console.log(`[Looking For] Fetching items for store #${storeId}`);
+
+  try {
+    const items = await db
+      .selectFrom('MainHubUpgradeV001ForLookingFor')
+      .selectAll()
+      .where('store_id', '=', parseInt(storeId))
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    res.json(items);
+  } catch (error) {
+    console.error('[Error] Fetching looking for items:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET - Get "Looking For" items for current user across all stores
+router.get('/looking-for/user/:userId', async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  console.log(`[Looking For] Fetching items for user ${userId}`);
+
+  try {
+    const items = await db
+      .selectFrom('MainHubUpgradeV001ForLookingFor')
+      .selectAll()
+      .where('user_id', '=', parseInt(userId))
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    res.json(items);
+  } catch (error) {
+    console.error('[Error] Fetching user looking for items:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// DELETE - Remove item from "Looking For"
+router.delete('/looking-for/:itemId', authenticate, async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { itemId } = req.params;
+
+  console.log(`[Looking For] User ${req.user.username} deleting item ${itemId}`);
+
+  try {
+    const item = await db
+      .selectFrom('MainHubUpgradeV001ForLookingFor')
+      .selectAll()
+      .where('id', '=', parseInt(itemId))
+      .executeTakeFirst();
+
+    if (!item || item.user_id !== req.user.userId) {
+      res.status(403).json({ message: 'You do not own this item' });
+      return;
+    }
+
+    await db
+      .deleteFrom('MainHubUpgradeV001ForLookingFor')
+      .where('id', '=', parseInt(itemId))
+      .execute();
+
+    res.json({ message: 'Item removed from looking for' });
+  } catch (error) {
+    console.error('[Error] Deleting looking for item:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 export default router;
