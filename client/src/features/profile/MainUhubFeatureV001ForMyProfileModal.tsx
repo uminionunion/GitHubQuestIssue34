@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
-import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain, Home } from 'lucide-react';
+import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain, Home, ChevronDown, ChevronUp } from 'lucide-react';
 import MainUhubFeatureV001ForChatModal from '../uminion/MainUhubFeatureV001ForChatModal';
 import { useAuth } from '../../hooks/useAuth';
 import MainUhubFeatureV001ForAddProductModal from './MainUhubFeatureV001ForAddProductModal';
@@ -16,7 +16,6 @@ interface MainUhubFeatureV001ForMyProfileModalProps {
   onOpenAuthModal: (mode: 'login' | 'signup') => void;
 }
 
-// All 30 stores in database (0-30)
 const ALL_STORES = [
   { id: 0, name: 'Union Main Store', number: 0, displayName: 'Union Main Store#0' },
   { id: 1, name: 'NewEngland', number: 1, displayName: '#01' },
@@ -171,8 +170,34 @@ const BroadcastView = ({ broadcast }) => (
     </div>
 );
 
-// QUADRANTS MODAL - Launches as modal on top
+// QUADRANTS MODAL - PAGE 1 (All Stores, Union Store, My Store, Friends Stores) + PAGES 2-8 (4 stores per page)
 const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // PAGE 1: Static quadrants
+  // PAGES 2-8: 4 stores per page (stores #01-#30)
+  // Store #01 starts at page 2
+  const storePages = [
+    // Page 1: Static quadrants (not in grid)
+    [],
+    // Page 2: stores 01-04
+    [stores[1], stores[2], stores[3], stores[4]],
+    // Page 3: stores 05-08
+    [stores[5], stores[6], stores[7], stores[8]],
+    // Page 4: stores 09-12
+    [stores[9], stores[10], stores[11], stores[12]],
+    // Page 5: stores 13-16
+    [stores[13], stores[14], stores[15], stores[16]],
+    // Page 6: stores 17-20
+    [stores[17], stores[18], stores[19], stores[20]],
+    // Page 7: stores 21-24
+    [stores[21], stores[22], stores[23], stores[24]],
+    // Page 8: stores 25-28
+    [stores[25], stores[26], stores[27], stores[28]],
+    // Page 9: stores 29-30 (only 2 stores)
+    [stores[29], stores[30]],
+  ];
+
   if (!isOpen) return null;
 
   return (
@@ -184,59 +209,102 @@ const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore }) => {
             <X className="h-6 w-6" />
           </Button>
         </div>
-        
-        {/* 4-Quadrant Grid */}
-        <div className="grid grid-cols-2 gap-4 h-[70vh]">
-          {/* Top Left: All Stores */}
-          <div className="border rounded-lg p-4 overflow-auto">
-            <h3 className="font-bold mb-3 sticky top-0 bg-background">All Stores</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {stores.map(store => (
-                <Button
-                  key={store.id}
-                  variant="outline"
+
+        {/* PAGE 1: Static Quadrants */}
+        {currentPage === 1 && (
+          <div className="grid grid-cols-2 gap-4 h-[70vh]">
+            {/* Top Left: All Stores */}
+            <div className="border rounded-lg p-4 overflow-auto">
+              <h3 className="font-bold mb-3 sticky top-0 bg-background">All Stores</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {stores.slice(1, 31).map(store => (
+                  <Button
+                    key={store.id}
+                    variant="outline"
+                    onClick={() => {
+                      onSelectStore(store);
+                      onClose();
+                    }}
+                    className="text-xs h-10"
+                    title={store.name}
+                  >
+                    #{String(store.number).padStart(2, '0')}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Top Right: Union Store */}
+            <div className="border rounded-lg p-4 flex flex-col">
+              <h3 className="font-bold mb-3">Union Store</h3>
+              <div className="flex-1 bg-muted rounded-md bg-cover bg-center" style={{backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg')`}}></div>
+            </div>
+
+            {/* Bottom Left: My Store */}
+            <div className="border rounded-lg p-4 flex flex-col">
+              <h3 className="font-bold mb-3">My Store</h3>
+              <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+                (Your products)
+              </div>
+            </div>
+
+            {/* Bottom Right: Friends Stores */}
+            <div className="border rounded-lg p-4 flex flex-col">
+              <h3 className="font-bold mb-3">Friends Stores</h3>
+              <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+                (Friends' products)
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PAGES 2-9: 4-Store Grids */}
+        {currentPage > 1 && currentPage <= storePages.length && (
+          <div className="grid grid-cols-2 gap-4 h-[70vh]">
+            {storePages[currentPage - 1].map((store, idx) => (
+              <div key={store.id} className="border rounded-lg p-4 flex flex-col">
+                <h3 className="font-bold mb-3">{store.displayName}</h3>
+                <div 
+                  className="flex-1 bg-muted rounded-md bg-cover bg-center cursor-pointer"
                   onClick={() => {
                     onSelectStore(store);
                     onClose();
                   }}
-                  className="text-xs h-10"
-                  title={store.name}
-                >
-                  #{String(store.number).padStart(2, '0')}
-                </Button>
-              ))}
-            </div>
+                  style={{backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png')`}}
+                  title={`Click to view ${store.name}`}
+                ></div>
+              </div>
+            ))}
           </div>
+        )}
 
-          {/* Top Right: Union Store (Featured) */}
-          <div className="border rounded-lg p-4 flex flex-col">
-            <h3 className="font-bold mb-3">Union Store</h3>
-            <div className="flex-1 bg-muted rounded-md bg-cover bg-center" style={{backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg')`}}></div>
-          </div>
-
-          {/* Bottom Left: My Store */}
-          <div className="border rounded-lg p-4 flex flex-col">
-            <h3 className="font-bold mb-3">My Store</h3>
-            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
-              (Your products)
-            </div>
-          </div>
-
-          {/* Bottom Right: Friends Stores */}
-          <div className="border rounded-lg p-4 flex flex-col">
-            <h3 className="font-bold mb-3">Friends Stores</h3>
-            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
-              (Friends' products)
-            </div>
-          </div>
+        {/* Pagination Controls */}
+        <div className="flex justify-between items-center mt-6">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+          </Button>
+          <span className="text-sm font-semibold">Page {currentPage} of {storePages.length}</span>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(storePages.length, prev + 1))}
+            disabled={currentPage === storePages.length}
+          >
+            Next <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
         </div>
       </div>
     </div>
   );
 };
 
-// HOME MODAL - MyAccount, MyStore, MyPosts, MyFeed, MyInventory
+// HOME MODAL - MyAccount+, MyStore, MyPosts, MyFeed, MyInventory
 const HomeModal = ({ isOpen, onClose }) => {
+  const [myAccountExpanded, setMyAccountExpanded] = useState(false);
+
   if (!isOpen) return null;
 
   return (
@@ -251,48 +319,61 @@ const HomeModal = ({ isOpen, onClose }) => {
 
         {/* 2x3 Grid */}
         <div className="grid grid-cols-2 gap-4 h-[70vh]">
-          {/* Top Left: MyAccount */}
-          <div className="border rounded-lg p-4 overflow-auto">
-            <h3 className="font-bold mb-4">My Account</h3>
-            <div className="space-y-3">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked className="w-4 h-4" />
-                <span className="text-sm">Allow others to see friends list</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked className="w-4 h-4" />
-                <span className="text-sm">Allow non-logged users to see posts</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" className="w-4 h-4" />
-                <span className="text-sm">Only friends can see posts</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked className="w-4 h-4" />
-                <span className="text-sm">Allow unlikes on posts</span>
-              </label>
-            </div>
+          {/* Top Left: MyAccount+ (Collapsible) */}
+          <div className="border rounded-lg p-4 overflow-auto flex flex-col">
+            <button
+              onClick={() => setMyAccountExpanded(!myAccountExpanded)}
+              className="flex items-center justify-between font-bold mb-4 hover:text-orange-400 transition"
+            >
+              My Account{myAccountExpanded ? '-' : '+'}
+              {myAccountExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            
+            {myAccountExpanded && (
+              <div className="space-y-3 flex-1 overflow-y-auto">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
+                  <span className="text-sm">Allow others to see friends list</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
+                  <span className="text-sm">Allow non-logged users to see posts</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
+                  <span className="text-sm">Only friends can see posts</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-700 border border-gray-600 cursor-pointer" />
+                  <span className="text-sm">Allow unlikes on posts</span>
+                </label>
+              </div>
+            )}
           </div>
 
           {/* Top Right: MyStore */}
-          <div className="border rounded-lg p-4 overflow-auto">
+          <div className="border rounded-lg p-4 overflow-auto flex flex-col">
             <h3 className="font-bold mb-4">My Store</h3>
-            <div className="text-center text-muted-foreground py-8">
+            <div className="text-center text-muted-foreground py-8 flex-1 flex items-center justify-center">
               Your store preview appears here when visitors come to your profile
             </div>
           </div>
 
           {/* Bottom Left: MyPosts */}
-          <div className="border rounded-lg p-4 overflow-auto">
+          <div className="border rounded-lg p-4 overflow-auto flex flex-col">
             <h3 className="font-bold mb-4">My Posts</h3>
-            <textarea className="w-full p-2 border rounded mb-2" placeholder="Write a post..." rows={3}></textarea>
+            <textarea 
+              className="w-full p-2 border rounded mb-2 bg-gray-800 text-white placeholder-gray-400 flex-1" 
+              placeholder="Write a post..." 
+              rows={3}
+            ></textarea>
             <Button className="w-full">Create Post</Button>
           </div>
 
           {/* Bottom Middle: MyFeed */}
-          <div className="border rounded-lg p-4 overflow-auto">
+          <div className="border rounded-lg p-4 overflow-auto flex flex-col">
             <h3 className="font-bold mb-4">My Feed</h3>
-            <div className="text-center text-muted-foreground py-8">
+            <div className="text-center text-muted-foreground py-8 flex-1 flex items-center justify-center">
               Posts from friends appear here
             </div>
           </div>
@@ -310,35 +391,11 @@ const HomeModal = ({ isOpen, onClose }) => {
   );
 };
 
-// CUSTOMIZE MODAL - For buttons 3-8
-const CustomizeModal = ({ isOpen, onClose, buttonNumber }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
-      <div className="bg-background border rounded-lg p-6 max-w-2xl w-[90%]">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Customize A Modal</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-
-        <div className="text-center py-8">
-          <p className="text-lg mb-4">Customize a Modal & Sell it through your myStore for others to use!</p>
-          <p className="text-sm text-muted-foreground mb-4">Button {buttonNumber}</p>
-          <Button onClick={onClose}>Create Custom Feature</Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
   const { user } = useAuth();
   const MainUhubFeatureV001ForUHomeHubButtons = Array.from({ length: 30 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
-  const [products, setProducts] = useState<any>({});
+  const [products, setProducts] = useState<Record<string, Product[]>>({});
   const [centerRightView, setCenterRightView] = useState(ALL_STORES[20]); // Start at UnionSAM#20
   const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -355,11 +412,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [rightWidthDesktop, setRightWidthDesktop] = useState(20);
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
   const [isDraggingRight, setIsDraggingRight] = useState(false);
-  
-  // NEW: Modal states for Hiker, Home, and Custom buttons
   const [isQuadrantsModalOpen, setIsQuadrantsModalOpen] = useState(false);
   const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
-  const [customizeModalOpen, setCustomizeModalOpen] = useState<number | null>(null);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -383,28 +437,49 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   useEffect(() => {
     const allProducts = {
         'UnionSAM#20': [
-            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://page001.uminion.com/product/byoct/', store: 'main' },
-            { id: 2, name: 'uT-Shirt', price: 34.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://page001.uminion.com/product/tshirt/', store: 'user' },
-            { id: 3, name: 'Classic Poster', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/shop/', store: 'user' },
-            { id: 4, name: 'Ukraine', price: 5.24, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store: 'user' },
-            { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://page001.uminion.com/product/official-uminion-union-card/', store: 'user' },
+            { id: 1, name: 'Tapestry', price: 1999.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', url: 'https://page001.uminion.com/product/byoct/', store_type: 'main' },
+            { id: 2, name: 'uT-Shirt', price: 34.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', url: 'https://page001.uminion.com/product/tshirt/', store_type: 'user' },
+            { id: 3, name: 'Classic Poster', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/shop/', store_type: 'user' },
+            { id: 4, name: 'Ukraine', price: 5.24, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png', url: 'https://u24.gov.ua/', store_type: 'user' },
+            { id: 5, name: 'Official Union Card', price: 14.95, image_url: 'https://page001.uminion.com/StoreProductsAndImagery/UminionCardVersion001.png', url: 'https://page001.uminion.com/product/official-uminion-union-card/', store_type: 'user' },
         ],
         'UnionPolitic#19': [
-            { id: 6, name: 'Support unionCandidates as a WHOLE', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
-            { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
-            { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
-            { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/' },
+            { id: 6, name: 'Support unionCandidates as a WHOLE', price: 69.95, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'main' },
+            { id: 7, name: 'unionCandidateX', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
+            { id: 8, name: 'unionCandidateY', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
+            { id: 9, name: 'unionCandidateZ', price: 5.25, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.21-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-19-unionpolitic19-2024classica/', store_type: 'user' },
         ],
         'UnionEvent#12': [
-            { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-12-unionevent12-2024classica/' },
+            { id: 10, name: 'Monthly Rally: This 24th!', time: '9am-9pm', location: 'Where: Downtown &/or: Outside your Local City Hall/State House!', image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: 'https://page001.uminion.com/product/poster-sister-union-12-unionevent12-2024classica/', store_type: 'main' },
         ],
     };
+    
+    // Add placeholder products for all other stores (same as UnionEvent#12)
+    for (let i = 1; i <= 30; i++) {
+      const displayName = i === 12 ? 'UnionEvent#12' : i === 19 ? 'UnionPolitic#19' : i === 20 ? 'UnionSAM#20' : `#${String(i).padStart(2, '0')}`;
+      if (!allProducts[displayName]) {
+        allProducts[displayName] = [
+          { id: 100 + i, name: `Event from ${displayName}`, time: '9am-9pm', location: `Location varies for ${displayName}`, image_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png', url: '#', store_type: 'main' },
+        ];
+      }
+    }
+    
     setProducts(allProducts);
   }, []);
 
-  const handleMagnify = (product) => {
+  const handleMagnify = (product: Product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
+  };
+
+  const handleAddToCart = (product: Product) => {
+    if (user) {
+      fetch('/api/products/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: product.id, quantity: 1 }),
+      }).catch(err => console.error('Error adding to cart:', err));
+    }
   };
 
   const MainUhubFeatureV001ForSisterUnionPages = [
@@ -416,23 +491,18 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     'SisterUnion016UnionDrive', 'SisterUnion017UnionArchiveAndEducation', 'SisterUnion018UnionTech',
     'SisterUnion019UnionPolitic', 'SisterUnion020UnionSAM', 'SisterUnion021UnionUkraineAndTheCrystalPalace',
     'SisterUnion022FestyLove', 'SisterUnion023UnionLegal', 'SisterUnion024UnionMarket',
+    'SisterUnion025', 'SisterUnion026', 'SisterUnion027', 'SisterUnion028', 'SisterUnion029', 'SisterUnion030',
   ];
   const MainUhubFeatureV001ForModalColors = Array.from({ length: 30 }, (_, i) => `hsl(${i * 12}, 70%, 50%)`);
 
   const handleUHomeHubClick = (buttonNumber: number) => setActiveChatModal(buttonNumber);
   const handleCloseChatModal = () => setActiveChatModal(null);
 
-  // FIXED: Navigate through ALL_STORES instead of FEATURED_STORES
+  // Navigate through ALL_STORES in sequence (0-30)
   const navigateCenterRight = (direction: 'left' | 'right') => {
     const currentIndex = ALL_STORES.findIndex(s => s.id === centerRightView.id);
     const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + ALL_STORES.length) % ALL_STORES.length;
     setCenterRightView(ALL_STORES[nextIndex]);
-  };
-
-  const navigateBroadcast = (direction: 'left' | 'right') => {
-    const currentIndex = broadcastKeys.indexOf(broadcastView);
-    const nextIndex = (currentIndex + (direction === 'right' ? 1 : -1) + broadcastKeys.length) % broadcastKeys.length;
-    setBroadcastView(broadcastKeys[nextIndex]);
   };
 
   const handleStartDragMobile = () => {
@@ -494,8 +564,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
   const renderCenterRightContent = () => {
     const currentProducts = products[centerRightView.displayName] || [];
-    const mainStoreProducts = currentProducts.filter(p => p.store === 'main');
-    const userStoreProducts = currentProducts.filter(p => p.store !== 'main');
+    const mainStoreProducts = currentProducts.filter(p => p.store_type === 'main');
+    const userStoreProducts = currentProducts.filter(p => p.store_type !== 'main');
 
     return (
         <>
@@ -509,7 +579,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                     </a>
                 </div>
                 <div className="space-y-2">
-                    {mainStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={() => {}} />)}
+                    {mainStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)}
                 </div>
             </div>
             <div id="MainUhubFeatureV001ForYourStore" className="border rounded-md p-2">
@@ -528,7 +598,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                     </div>
                 </div>
                 <div className="space-y-2">
-                    {userStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={() => {}} />)}
+                    {userStoreProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)}
                 </div>
             </div>
         </>
@@ -547,11 +617,19 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             return (
                 <>
                     <div className="flex items-center justify-center mb-4">
-                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('left')}>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          const currentIndex = broadcastKeys.indexOf(broadcastView);
+                          const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
+                          setBroadcastView(broadcastKeys[nextIndex]);
+                        }}>
                             <ChevronLeft />
                         </Button>
                         <h3 className="text-center font-bold mx-4">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
-                        <Button variant="ghost" size="icon" onClick={() => navigateBroadcast('right')}>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          const currentIndex = broadcastKeys.indexOf(broadcastView);
+                          const nextIndex = (currentIndex + 1) % broadcastKeys.length;
+                          setBroadcastView(broadcastKeys[nextIndex]);
+                        }}>
                             <ChevronRight />
                         </Button>
                     </div>
@@ -611,9 +689,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
           <span className="sr-only">Close</span>
         </Button>
          {/* Top Section */}
-         <div className="md:flex md:flex-row hidden md:p-4 md:border-b md:gap-0">
+         <div className="md:flex md:flex-row hidden md:p-4 md:border-b md:gap-2">
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="md:w-1/5 grid grid-cols-4 md:grid-cols-2 grid-rows-1 md:grid-rows-2 gap-2 md:pr-4">
-             <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+             <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
                {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-3 h-3 bg-orange-500 rounded-full"></div>}
                <Users className="h-4 w-4 mb-1" /> Friends
              </Button>
@@ -623,9 +701,47 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
              </a>
              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="h-4 w-4 mb-1" /> Settings</Button>
            </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-3/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png')" }}>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-2/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png')" }}>
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
+
+           {/* NEW: 8-Button Grid (between timeline and avatar) */}
+           <div className="md:w-1/4 flex justify-center items-center md:pl-4">
+             <div className="grid grid-cols-2 gap-3 w-fit">
+               <Button
+                 variant="outline"
+                 size="lg"
+                 className="flex flex-col items-center justify-center h-16 w-16 gap-1"
+                 onClick={() => setIsQuadrantsModalOpen(true)}
+                 title="HikingToAllStores"
+               >
+                 <Mountain className="h-5 w-5" />
+               </Button>
+               <Button
+                 variant="outline"
+                 size="lg"
+                 className="flex flex-col items-center justify-center h-16 w-16 gap-1"
+                 onClick={() => setIsHomeModalOpen(true)}
+                 title="Home"
+               >
+                 <Home className="h-5 w-5" />
+               </Button>
+               {Array.from({ length: 6 }, (_, i) => (
+                 <Button
+                   key={i + 3}
+                   variant="outline"
+                   size="lg"
+                   className="flex flex-col items-center justify-center h-16 w-16 gap-1 text-xs"
+                   onClick={() => setIsQuadrantsModalOpen(true)}
+                   title={`Custom ${i + 3}`}
+                 >
+                   {i + 3}
+                 </Button>
+               ))}
+             </div>
+           </div>
+
+           {/* Avatar */}
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
              <div onClick={handleProfileImageClick} className="cursor-pointer">
                <Avatar className="h-24 w-24 md:h-32 md:w-32">
@@ -641,45 +757,6 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
            </div>
          </div>
 
-         {/* NEW: 8-Button Grid Container (between avatar and timeline) */}
-         <div className="hidden md:flex md:p-4 md:border-b md:justify-center md:gap-4">
-           <div className="grid grid-cols-2 gap-4 w-fit">
-             {/* Top Row: Hiker + Home */}
-             <Button
-               variant="outline"
-               size="lg"
-               className="flex flex-col items-center justify-center h-20 w-20 gap-1"
-               onClick={() => setIsQuadrantsModalOpen(true)}
-               title="HikingToAllStores"
-             >
-               <Mountain className="h-6 w-6" />
-             </Button>
-             <Button
-               variant="outline"
-               size="lg"
-               className="flex flex-col items-center justify-center h-20 w-20 gap-1"
-               onClick={() => setIsHomeModalOpen(true)}
-               title="Home"
-             >
-               <Home className="h-6 w-6" />
-             </Button>
-
-             {/* Bottom Row: Custom Buttons 3-8 */}
-             {Array.from({ length: 6 }, (_, i) => (
-               <Button
-                 key={i + 3}
-                 variant="outline"
-                 size="lg"
-                 className="flex flex-col items-center justify-center h-20 w-20 gap-1 text-xs"
-                 onClick={() => setCustomizeModalOpen(i + 3)}
-                 title={`Custom ${i + 3}`}
-               >
-                 {i + 3}
-               </Button>
-             ))}
-           </div>
-         </div>
-
          {/* Mobile Top Row */}
          <div className="md:hidden flex flex-col p-2 border-b gap-2">
            <div className="flex gap-2 items-center">
@@ -690,7 +767,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                </Avatar>
              </div>
              <div className="flex gap-1 flex-1">
-               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="FriendsFam&Others" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
                  {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
                  <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
                </Button>
@@ -800,8 +877,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
         {isProductDetailModalOpen && (
           <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
         )}
-
-        {/* NEW: Quadrants Modal */}
+        
+        {/* Quadrants Modal (Hiker Button) */}
         <QuadrantsModal 
           isOpen={isQuadrantsModalOpen}
           onClose={() => setIsQuadrantsModalOpen(false)}
@@ -809,20 +886,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
           onSelectStore={(store) => setCenterRightView(store)}
         />
 
-        {/* NEW: Home Modal */}
+        {/* Home Modal */}
         <HomeModal 
           isOpen={isHomeModalOpen}
           onClose={() => setIsHomeModalOpen(false)}
         />
-
-        {/* NEW: Customize Modal (for buttons 3-8) */}
-        {customizeModalOpen && (
-          <CustomizeModal
-            isOpen={customizeModalOpen !== null}
-            onClose={() => setCustomizeModalOpen(null)}
-            buttonNumber={customizeModalOpen}
-          />
-        )}
     </>
     );
   };
