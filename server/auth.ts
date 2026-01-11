@@ -210,7 +210,7 @@ router.post('/logout', (req, res) => {
  * 
  * Response: { id, username, ...adminRoles }
  */
-router.get('/me', (req, res) => {
+router.get('/me', async (req, res) => {
   const token = req.cookies.token;
 
   if (!token) {
@@ -221,10 +221,24 @@ router.get('/me', (req, res) => {
   try {
     const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
     
-    // Return basic info - frontend will fetch full user data if needed
+    // Fetch fresh user data from database to get admin status
+    const user = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', payload.userId)
+      .executeTakeFirst();
+
+    if (!user) {
+      res.status(401).json({ message: 'User not found' });
+      return;
+    }
+
     res.status(200).json({ 
-      id: payload.userId, 
-      username: payload.username 
+      id: user.id, 
+      username: user.username,
+      is_high_high_high_admin: user.is_high_high_high_admin || 0,
+      is_high_high_admin: user.is_high_high_admin || 0,
+      is_high_admin: user.is_high_admin || 0
     });
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });
