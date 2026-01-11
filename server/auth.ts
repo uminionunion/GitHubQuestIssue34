@@ -173,9 +173,9 @@ router.post('/login', async (req, res) => {
     res.status(200).json({ 
       id: user.id, 
       username: user.username,
-      is_high_high_high_admin: user.is_high_high_high_admin,
-      is_high_admin: user.is_high_admin,
-      is_high_high_admin: user.is_high_high_admin,
+      is_high_high_high_admin: user.is_high_high_high_admin || 0,
+      is_high_high_admin: user.is_high_high_admin || 0,
+      is_high_admin: user.is_high_admin || 0,
       is_special_user: user.is_special_user,
       is_special_special_user: user.is_special_special_user,
       is_special_special_special_user: user.is_special_special_special_user,
