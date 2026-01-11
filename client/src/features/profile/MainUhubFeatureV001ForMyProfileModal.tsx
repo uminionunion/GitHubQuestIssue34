@@ -229,87 +229,96 @@ const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore, user }) => {
             </div>
 
             {/* BOTTOM LEFT: My Store - FULLY REDESIGNED */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
-              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
-                <h3 className="font-bold">My Store</h3>
-                <div className="flex gap-1">
-                  <Button 
-                    variant={myStoreView === 'list' ? 'default' : 'outline'} 
-                    size="sm" 
-                    className="h-6 text-xs"
-                    onClick={() => setMyStoreView('list')}
-                  >
-                    List
-                  </Button>
-                  {user && (
-                    <Button 
-                      variant={myStoreView === 'add-product' ? 'default' : 'outline'} 
-                      size="sm" 
-                      className="h-6 text-xs"
-                      onClick={() => setMyStoreView('add-product')}
-                    >
-                      + Add
-                    </Button>
-                  )}
-                </div>
-              </div>
+            {/* BOTTOM LEFT: My Store */}
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
+    <h3 className="font-bold">My Store</h3>
+    <div className="flex gap-1">
+      <Button 
+        variant={myStoreView === 'list' ? 'default' : 'outline'} 
+        size="sm" 
+        className="h-6 text-xs"
+        onClick={() => setMyStoreView('list')}
+      >
+        List
+      </Button>
+      {user && (
+        <Button 
+          variant={myStoreView === 'add-product' ? 'default' : 'outline'} 
+          size="sm" 
+          className="h-6 text-xs"
+          onClick={() => setMyStoreView('add-product')}
+        >
+          + Add
+        </Button>
+      )}
+    </div>
+  </div>
 
-              <div className="flex-1 overflow-y-auto">
-                {!user ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    Log in to manage your store
-                  </div>
-                ) : myStoreView === 'list' ? (
-                  <div className="space-y-2">
-                    {/* Display user's products here */}
-                    {/* This will be populated from state */}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Add Product Form - Role-Based */}
-                    {user.is_high_high_high_admin === 1 ? (
-                      <div>
-                        <h4 className="font-semibold mb-3">Add to Main Store (WooCommerce)</h4>
-                        <div className="space-y-3 text-sm">
-                          <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground" />
-                          <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground" />
-                          <input type="text" placeholder="WooCommerce SKU (optional)" className="w-full border rounded px-2 py-1 bg-background text-foreground" />
-                          <input type="file" accept="image/*" className="w-full text-xs" />
-                          <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">Add to Main Store</Button>
-                        </div>
-                      </div>
-                    ) : user.is_high_high_admin === 1 ? (
-                      <div>
-                        <h4 className="font-semibold mb-3">Add to Store #01-#30</h4>
-                        <div className="space-y-3 text-sm">
-                          <select className="w-full border rounded px-2 py-1 bg-background text-foreground">
-                            <option value="">Select Store</option>
-                            {Array.from({ length: 30 }, (_, i) => (
-                              <option key={i + 1} value={i + 1}>Store #{String(i + 1).padStart(2, '0')}</option>
-                            ))}
-                          </select>
-                          <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground" />
-                          <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground" />
-                          <input type="file" accept="image/*" className="w-full text-xs" />
-                          <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">Add Product</Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <h4 className="font-semibold mb-3">Add to Your Personal Store</h4>
-                        <div className="space-y-3 text-sm">
-                          <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground" />
-                          <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground" />
-                          <textarea placeholder="Description" className="w-full border rounded px-2 py-1 bg-background text-foreground text-xs resize-none" rows={3}></textarea>
-                          <input type="file" accept="image/*" className="w-full text-xs" />
-                          <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">Add Product</Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+  <div className="flex-1 overflow-y-auto">
+    {!user ? (
+      <div className="flex items-center justify-center h-full text-muted-foreground">
+        Log in to manage your store
+      </div>
+    ) : myStoreView === 'list' ? (
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground">Your products list would appear here</p>
+      </div>
+    ) : (
+      <div className="space-y-4">
+        {/* Add Product Form - Role-Based */}
+        {user.is_high_high_high_admin === 1 ? (
+          <div>
+            <h4 className="font-semibold mb-3 text-sm">Add to Main Store (WooCommerce)</h4>
+            <p className="text-xs text-green-400 mb-3">✓ You are logged in as HIGH-HIGH-HIGH Admin</p>
+            <div className="space-y-3 text-sm">
+              <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
+              <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
+              <input type="text" placeholder="WooCommerce SKU (optional)" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
+              <input type="file" accept="image/*" className="w-full text-xs" />
+              <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">
+                Add to Main Store
+              </Button>
             </div>
+          </div>
+        ) : user.is_high_high_admin === 1 ? (
+          <div>
+            <h4 className="font-semibold mb-3 text-sm">Add to Store #01-#30</h4>
+            <p className="text-xs text-green-400 mb-3">✓ You are logged in as HIGH-HIGH Admin</p>
+            <div className="space-y-3 text-sm">
+              <select className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm">
+                <option value="">Select Store #01-#30</option>
+                {Array.from({ length: 30 }, (_, i) => (
+                  <option key={i + 1} value={i + 1}>Store #{String(i + 1).padStart(2, '0')}</option>
+                ))}
+              </select>
+              <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
+              <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
+              <input type="file" accept="image/*" className="w-full text-xs" />
+              <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">
+                Add Product
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h4 className="font-semibold mb-3 text-sm">Add to Your Personal Store</h4>
+            <p className="text-xs text-blue-400 mb-3">✓ You are logged in as Regular User</p>
+            <div className="space-y-3 text-sm">
+              <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
+              <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
+              <textarea placeholder="Description" className="w-full border rounded px-2 py-1 bg-background text-foreground text-xs resize-none" rows={3} />
+              <input type="file" accept="image/*" className="w-full text-xs" />
+              <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">
+                Add Product
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</div>
 
             {/* BOTTOM RIGHT: Empty for now */}
             <div className="border rounded-lg p-4 flex flex-col h-full">
