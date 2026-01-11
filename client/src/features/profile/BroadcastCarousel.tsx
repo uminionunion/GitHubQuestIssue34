@@ -34,6 +34,21 @@ const defaultBroadcasts: BroadcastItem[] = [
   },
   // Add more items (total of 30) following this pattern
   // Items 4-30 can be added later
+
+//TEMPLATE ON HOW TO DO THIS:>>>
+  
+    // ADD ITEMS 4-30 HERE TEMPLATE
+  // Template for item 4:
+  // {
+  //   id: 4,
+  //   title: "Your Title",
+  //   imageUrl: "https://[IMAGE-URL].jpg",
+  //   clickUrl: "https://[CLICK-URL]/"
+  // },
+
+//TEMPLATE ON HOW TO DO THIS:<<<
+
+  
 ];
 
 export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ items = defaultBroadcasts }) => {
