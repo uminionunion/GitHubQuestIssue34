@@ -23,10 +23,22 @@ router.post('/', authenticate, async (req, res) => {
     return;
   }
 
-  const { name, subtitle, description, price, payment_method, payment_url, store_id, sku_id } = req.body;
+  console.log('[PRODUCTS] POST /api/products called');
+  console.log('[PRODUCTS] req.body:', req.body);
+  console.log('[PRODUCTS] req.files:', (req as any).files);
+
+  // Handle both form data and JSON
+  let name = req.body.name;
+  let subtitle = req.body.subtitle;
+  let description = req.body.description;
+  let price = req.body.price;
+  let payment_method = req.body.payment_method;
+  let payment_url = req.body.payment_url;
+  let store_id = req.body.store_id;
+  let sku_id = req.body.sku_id;
 
   // Validate required fields
-  if (!name || price === undefined) {
+  if (!name || price === undefined || price === '') {
     res.status(400).json({ message: 'Name and price are required' });
     return;
   }
@@ -55,6 +67,7 @@ router.post('/', authenticate, async (req, res) => {
 
       await uploadedFile.mv(filepath);
       imageUrl = `/api/uploads/${filename}`;
+      console.log('[PRODUCTS] Image uploaded:', imageUrl);
     }
 
     // Determine store type based on user role
@@ -65,7 +78,7 @@ router.post('/', authenticate, async (req, res) => {
       // HIGH-HIGH-HIGH admin: can add to main store
       storeType = 'main';
       finalStoreId = 0;
-      console.log(`[PRODUCTS] HIGH-HIGH-HIGH admin ${user.username} adding to main store`);
+      console.log(`[PRODUCTS] HIGH-HIGH-HIGH admin ${user.username} adding to main store (store_id=0)`);
     } else if (user.is_high_high_admin === 1) {
       // HIGH-HIGH admin: can add to specific stores #01-#30
       if (!store_id) {
@@ -88,27 +101,26 @@ router.post('/', authenticate, async (req, res) => {
     }
 
     // Create the product
-     const product = await db
-       .insertInto('MainHubUpgradeV001ForProducts')
-       .values({
-         name,
-         subtitle: subtitle || null,
-         description: description || null,
-         price: price ? parseFloat(price) : null,
-         image_url: imageUrl,
-         store_type: storeType,
-         user_id: storeType === 'user' ? req.user.userId : null,
-         store_id: finalStoreId,
-         payment_method: payment_method || null,
-         payment_url: payment_url || null,
-         sku_id: sku_id || null,
-         is_in_trash: 0,
-       })
-       .returning('id')
-       .executeTakeFirstOrThrow();
+    const product = await db
+      .insertInto('MainHubUpgradeV001ForProducts')
+      .values({
+        name,
+        subtitle: subtitle || null,
+        description: description || null,
+        price: price ? parseFloat(price) : null,
+        image_url: imageUrl,
+        store_type: storeType,
+        user_id: storeType === 'user' ? req.user.userId : null,
+        store_id: finalStoreId,
+        payment_method: payment_method || null,
+        payment_url: payment_url || null,
+        sku_id: sku_id || null,
+        is_in_trash: 0,
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow();
 
-    console.log(`[PRODUCTS] Product created: ${product.id} (${storeType}) by user ${req.user.userId}`);
-    console.log(`[PRODUCTS] SKU: ${sku_id || 'none'}`);
+    console.log(`[PRODUCTS] Product created: ID=${product.id}, type=${storeType}, store_id=${finalStoreId}, sku=${sku_id || 'none'}`);
 
     res.status(201).json({
       message: 'Product created successfully',
