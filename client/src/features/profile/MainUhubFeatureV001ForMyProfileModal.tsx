@@ -175,14 +175,6 @@ const BroadcastView = ({ broadcast }) => (
     </div>
 );
 
-// BROADCAST CAROUSEL - CLICKABLE IMAGES
-const BroadcastCarouselSection = () => (
-  <div className="mb-6">
-    <h3 className="font-bold mb-3 text-sm">Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:</h3>
-    <BroadcastCarousel />
-  </div>
-);
-
 // QUADRANTS MODAL - PAGE 1 REDESIGNED
 const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore, user }) => {
   const [currentPage, setCurrentPage] = useState(1);
