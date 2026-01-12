@@ -152,25 +152,26 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
 
 
 const BroadcastView = ({ broadcast }) => (
-    <div className="flex gap-6">
-        <div className="w-1/3">
-            <h4 className="font-semibold">{broadcast.subtitle}</h4>
-            <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
-            <div className="flex justify-between items-center">
-                <Button variant="ghost" size="icon"><ChevronLeft /></Button>
-                <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
-                <Button variant="ghost" size="icon"><ChevronRight /></Button>
+    <div className="flex flex-col gap-4">
+        <div className="flex gap-6">
+            <div className="w-1/3">
+                <h4 className="font-semibold">{broadcast.subtitle}</h4>
+                <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
+                <div className="flex justify-between items-center">
+                    <Button variant="ghost" size="icon"><ChevronLeft /></Button>
+                    <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
+                    <Button variant="ghost" size="icon"><ChevronRight /></Button>
+                </div>
+            </div>
+            <div className="w-2/3">
+                <div className="flex items-center gap-2 mb-2">
+                    <Button variant="outline" size="icon"><Play /></Button>
+                    <p className="text-sm text-muted-foreground flex-grow">{broadcast.description}</p>
+                </div>
+                <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
             </div>
         </div>
-        <div className="w-2/3">
-            <div className="flex items-center gap-2 mb-2">
-                <Button variant="outline" size="icon"><Play /></Button>
-                <p className="text-sm text-muted-foreground flex-grow">{broadcast.description}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-                {broadcast.extraImages.slice(0,3).map((img, i) => <div key={i} className="aspect-square bg-muted rounded-md bg-cover bg-center" style={{backgroundImage: `url(${img})`}}></div>)}</div>
-            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
-        </div>
+        <BroadcastCarousel />
     </div>
 );
 
@@ -252,25 +253,23 @@ const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore, user }) => {
       >
         List
       </Button>
-      {user && (
-        <Button 
-          variant={myStoreView === 'add-product' ? 'default' : 'outline'} 
-          size="sm" 
-          className="h-6 text-xs"
-          onClick={() => setMyStoreView('add-product')}
-        >
-          + Add
-        </Button>
-      )}
+      <Button 
+        variant={myStoreView === 'add-product' ? 'default' : 'outline'} 
+        size="sm" 
+        className="h-6 text-xs"
+        onClick={() => setMyStoreView('add-product')}
+      >
+        + Add
+      </Button>
     </div>
   </div>
 
   <div className="flex-1 overflow-y-auto">
-    {!user ? (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        Log in to manage your store
+    {myStoreView === 'list' ? (
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground">Your products list would appear here</p>
       </div>
-    ) : myStoreView === 'list' ? (
+    ) : (
       <div className="space-y-2">
         <p className="text-xs text-muted-foreground">Your products list would appear here</p>
       </div>
