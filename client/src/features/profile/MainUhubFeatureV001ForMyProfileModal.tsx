@@ -234,27 +234,28 @@ const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore, user }) => {
             {/* BOTTOM LEFT: My Store - FULLY REDESIGNED */}
             {/* BOTTOM LEFT: My Store */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
-  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
-    <h3 className="font-bold">My Store</h3>
-    <div className="flex gap-1">
-      <Button 
-        variant={myStoreView === 'list' ? 'default' : 'outline'} 
-        size="sm" 
-        className="h-6 text-xs"
-        onClick={() => setMyStoreView('list')}
-      >
-        List
-      </Button>
-      <Button 
-        variant={myStoreView === 'add-product' ? 'default' : 'outline'} 
-        size="sm" 
-        className="h-6 text-xs"
-        onClick={() => setMyStoreView('add-product')}
-      >
-        + Add
-      </Button>
-    </div>
+  <h3 className="font-bold mb-3 sticky top-0 bg-background">My Store</h3>
+  <div className="flex-1 overflow-y-auto">
+    {!user ? (
+      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+        Log in to manage your store
+      </div>
+    ) : (
+      <div className="space-y-2">
+        {userStoreProducts.length > 0 ? (
+          userStoreProducts.map((p) => (
+            <div key={p.id} className="border rounded p-2 text-xs">
+              <p className="font-semibold">{p.name}</p>
+              {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground py-4 text-sm">No products yet</div>
+        )}
+      </div>
+    )}
   </div>
+</div>
 
   <div className="flex-1 overflow-y-auto">
     {myStoreView === 'list' ? (
