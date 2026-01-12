@@ -1,4 +1,3 @@
-// server/static-serve.ts
 import path from 'path';
 import fs from 'fs';
 import express from 'express';
@@ -36,8 +35,11 @@ export function setupStaticServing(app: Express) {
   // Serve static assets (if folder exists)
   app.use(express.static(publicDir));
 
+  // Serve uploads directory
+  app.use('/api/uploads', express.static(path.join(process.cwd(), 'data', 'uploads')));
+
   // SPA fallback: serve index.html for any unknown GET route except API routes
-  app.get('*', (req, res, next) => {
+  app.get('/{*splat}', (req, res, next) => {
     if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
 
     const indexPath = path.join(publicDir, 'index.html');
