@@ -213,23 +213,24 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
           )}
 
           {(isHighHighHighAdmin || isHighHighAdmin) && (
-            <div>
-              <label className="block font-semibold mb-2">Store Number (required)</label>
-              <select
-                value={storeId}
-                onChange={(e) => setStoreId(e.target.value)}
-                className="w-full border rounded px-3 py-2 bg-background"
-                required
-              >
-                <option value="">Select store #01-#30</option>
-                {Array.from({ length: 30 }, (_, i) => (
-                  <option key={i + 1} value={String(i + 1)}>
-                    Store #{String(i + 1).padStart(2, '0')}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+  <div>
+    <label className="block font-semibold mb-2">Store Number (required)</label>
+    <select
+      value={storeId}
+      onChange={(e) => setStoreId(e.target.value)}
+      className="w-full border rounded px-3 py-2 bg-background"
+      required
+    >
+      <option value="">Select a store...</option>
+      <option value="0">Show in Union Store</option>
+      {Array.from({ length: 30 }, (_, i) => (
+        <option key={i + 1} value={String(i + 1)}>
+          Store #{String(i + 1).padStart(2, '0')}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 
           <div>
             <label className="block font-semibold mb-2">Payment Method</label>
