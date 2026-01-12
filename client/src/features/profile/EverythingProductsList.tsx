@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ShoppingCart } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { ShoppingCart, Search, Eye } from 'lucide-react';
 
 interface Product {
   id: number;
@@ -8,10 +8,11 @@ interface Product {
   price?: number | null;
   image_url: string | null;
   store_type: string;
+  user_id?: number | null;
   store_id?: number | null;
-  username?: string | null;
+  sku_id?: string | null;
+  creator_username?: string;
   payment_url?: string | null;
-  url?: string | null;
 }
 
 interface EverythingProductsListProps {
@@ -20,137 +21,96 @@ interface EverythingProductsListProps {
   getCartUrl: (product: Product | null) => string;
 }
 
-export default function EverythingProductsList({
+const EverythingProductsList: React.FC<EverythingProductsListProps> = ({
   isLoading,
   onProductView,
   getCartUrl,
-}: EverythingProductsListProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'random' | 'name' | 'price'>('random');
+}) => {
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loadingEverything, setLoadingEverything] = useState(false);
 
   useEffect(() => {
-    const fetchEverythingProducts = async () => {
+    const fetchAllProducts = async () => {
+      setLoadingEverything(true);
       try {
-        const response = await fetch('/api/products/all/everything');
-        const data = await response.json();
-        setProducts(Array.isArray(data) ? data : []);
-        console.log('[EVERYTHING] Loaded products:', data);
+        // Fetch main store products (Union Store #0)
+        const mainRes = await fetch('/api/products/store/0');
+        const mainData = await mainRes.json();
+        const mainProducts = Array.isArray(mainData) ? mainData : [];
+
+        // Fetch all user products
+        const userRes = await fetch('/api/products/user/0');
+        const userData = await userRes.json();
+        const userProducts = Array.isArray(userData) ? userData : [];
+
+        // Fetch products from all stores #01-#30
+        const storeProducts: Product[] = [];
+        for (let storeNum = 1; storeNum <= 30; storeNum++) {
+          try {
+            const storeRes = await fetch(`/api/products/store/${storeNum}`);
+            const storeData = await storeRes.json();
+            if (Array.isArray(storeData)) {
+              storeProducts.push(...storeData);
+            }
+          } catch (error) {
+            console.error(`Error fetching products for store ${storeNum}:`, error);
+          }
+        }
+
+        // Combine all products
+        const combined = [...mainProducts, ...userProducts, ...storeProducts];
+
+        // Shuffle to randomize order
+        const shuffled = combined.sort(() => Math.random() - 0.5);
+
+        setAllProducts(shuffled);
       } catch (error) {
-        console.error('Error fetching everything products:', error);
-        setProducts([]);
+        console.error('Error fetching all products:', error);
+        setAllProducts([]);
+      } finally {
+        setLoadingEverything(false);
       }
     };
 
-    fetchEverythingProducts();
+    fetchAllProducts();
   }, []);
 
-  const filteredProducts = products
-    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    .slice() // Create copy for sorting
-    .sort((a, b) => {
-      if (sortBy === 'name') {
-        return a.name.localeCompare(b.name);
-      } else if (sortBy === 'price') {
-        return (a.price || 0) - (b.price || 0);
-      }
-      // 'random' - keep original shuffled order
-      return 0;
-    });
-
-  if (isLoading) {
-    return <div className="text-center text-muted-foreground py-4">Loading products...</div>;
+  if (isLoading || loadingEverything) {
+    return <div className="text-center text-muted-foreground py-4">Loading everything...</div>;
   }
 
-  if (products.length === 0) {
-    return <div className="text-center text-muted-foreground py-4">No products available yet</div>;
+  if (!allProducts || allProducts.length === 0) {
+    return <div className="text-center text-muted-foreground py-4 text-sm">No products available</div>;
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 border rounded-md bg-background text-foreground text-sm"
-          />
-        </div>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as any)}
-          className="px-3 py-2 border rounded-md bg-background text-foreground text-sm"
+    <div className="space-y-2">
+      {allProducts.map((product) => (
+        <div
+          key={product.id}
+          className="border rounded p-2 hover:bg-muted/50 transition cursor-pointer"
+          onClick={() => onProductView(product)}
         >
-          <option value="random">Sort: Random</option>
-          <option value="name">Sort: Name</option>
-          <option value="price">Sort: Price</option>
-        </select>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto">
-        {filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            className="border rounded-lg p-3 hover:bg-muted/50 transition flex gap-3 items-start"
-          >
-            {/* Product Image */}
-            {product.image_url && (
-              <div
-                className="w-20 h-20 flex-shrink-0 bg-cover bg-center rounded-md border cursor-pointer"
-                style={{ backgroundImage: `url('${product.image_url}')` }}
-                onClick={() => onProductView(product)}
-                title="View details"
-              />
-            )}
-
-            {/* Product Info */}
-            <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-sm truncate">{product.name}</h4>
-              <p className="text-xs text-muted-foreground">
-                By: {product.username || 'System'}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Type: {product.store_type === 'main' ? 'Union' : product.store_type === 'store' ? `Store #${product.store_id}` : 'User'}
-              </p>
-              {product.price && (
-                <p className="text-sm font-bold text-orange-400 mt-1">
-                  ${product.price.toFixed(2)}
-                </p>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 flex-shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => onProductView(product)}
-                title="View details"
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <a href={getCartUrl(product)} target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 bg-orange-400 hover:bg-orange-500 text-white"
-                  title="Add to cart"
-                >
-                  <ShoppingCart className="h-4 w-4" />
+          <p className="font-semibold text-sm truncate">{product.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {product.creator_username && `By: ${product.creator_username}`}
+            {product.store_type === 'store' && ` • Store #${String(product.store_id).padStart(2, '0')}`}
+            {product.store_type === 'main' && ' • Union Store #0'}
+          </p>
+          <div className="flex justify-between items-center mt-1">
+            {product.price && <p className="text-xs font-semibold text-orange-400">${product.price.toFixed(2)}</p>}
+            {product.payment_url && (
+              <a href={product.payment_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <ShoppingCart className="h-3 w-3" />
                 </Button>
               </a>
-            </div>
+            )}
           </div>
-        ))}
-      </div>
-
-      <div className="text-xs text-muted-foreground text-center">
-        Showing {filteredProducts.length} of {products.length} products from all sources
-      </div>
+        </div>
+      ))}
     </div>
   );
-}
+};
+
+export default EverythingProductsList;
