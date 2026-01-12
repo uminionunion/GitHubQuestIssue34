@@ -11,6 +11,7 @@ import MainUhubFeatureV001ForSettingsView from './MainUhubFeatureV001ForSettings
 import { CreateBroadcastView } from './CreateBroadcastView';
 import BroadcastCarousel from './BroadcastCarousel';
 import AdminProductsList from './AdminProductsList';
+import EverythingProductsList from './EverythingProductsList';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -324,13 +325,20 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   </div>
 </div>
 
-            {/* BOTTOM RIGHT: Empty for now */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
-              <h3 className="font-bold mb-3">Reserved</h3>
-              <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
-                Coming Soon
-              </div>
-            </div>
+            {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <h3 className="font-bold mb-3">Everything</h3>
+  <div className="flex-1 overflow-y-auto">
+    <EverythingProductsList
+      isLoading={isLoadingProducts}
+      onProductView={(product) => {
+        setSelectedProduct(product);
+        setProductDetailModalOpen(true);
+      }}
+      getCartUrl={getCartUrl}
+    />
+  </div>
+</div>
           </div>
         )}
 
