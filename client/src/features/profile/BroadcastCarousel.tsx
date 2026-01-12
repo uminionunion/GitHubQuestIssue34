@@ -17,7 +17,7 @@ const defaultBroadcasts: BroadcastItem[] = [
   {
     id: 1,
     title: "Visit our shop",
-    imageUrl: "https://page001.uminion.com/wp-content/uploads/2025/12/[YOUR-SHOP-IMAGE].jpg",
+    imageUrl: "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png",
     clickUrl: "https://page001.uminion.com/shop/"
   },
   {
@@ -29,26 +29,11 @@ const defaultBroadcasts: BroadcastItem[] = [
   {
     id: 3,
     title: "Ukraine Support",
-    imageUrl: "https://[UKRAINE-IMAGE-URL].jpg",
+    imageUrl: "https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png",
     clickUrl: "https://u24.gov.ua/"
   },
-  // Add more items (total of 30) following this pattern
-  // Items 4-30 can be added later
-
-//TEMPLATE ON HOW TO DO THIS:>>>
-  
-    // ADD ITEMS 4-30 HERE TEMPLATE
-  // Template for item 4:
-  // {
-  //   id: 4,
-  //   title: "Your Title",
-  //   imageUrl: "https://[IMAGE-URL].jpg",
-  //   clickUrl: "https://[CLICK-URL]/"
-  // },
-
-//TEMPLATE ON HOW TO DO THIS:<<<
-
-  
+  // Add items 4-30 with this format:
+  // { id: 4, title: "Your Title", imageUrl: "https://...", clickUrl: "https://..." },
 ];
 
 export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ items = defaultBroadcasts }) => {
@@ -83,7 +68,7 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ items = de
         <ChevronLeft className="h-4 w-4" />
       </Button>
 
-      {/* Image Container */}
+      {/* Images */}
       <div className="flex gap-4 flex-1 justify-center">
         {currentItems.map((item) => (
           <a
@@ -94,7 +79,7 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ items = de
             className="cursor-pointer hover:opacity-80 transition-opacity"
             title={item.title}
           >
-            <div className="h-32 w-32 rounded-md overflow-hidden bg-background">
+            <div className="h-32 w-32 rounded-md overflow-hidden bg-background border">
               <img
                 src={item.imageUrl}
                 alt={item.title}
@@ -117,11 +102,6 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ items = de
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
-
-      {/* Page Indicator */}
-      <div className="text-xs text-muted-foreground absolute bottom-2 right-4">
-        Page {currentPage + 1} of {totalPages}
-      </div>
     </div>
   );
 };
