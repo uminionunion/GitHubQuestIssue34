@@ -787,36 +787,32 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
         case 'settings':
             return <MainUhubFeatureV001ForSettingsView />;
         case 'broadcasts':
-        default:
-            const currentBroadcast = broadcasts[broadcastView];
-            return (
-                <>
-                    {/* BROADCAST CAROUSEL SECTION */}
-                    <BroadcastCarouselSection />
-                    
-                    {/* EXISTING BROADCAST VIEW */}
-                    <div className="flex items-center justify-center mb-4">
-                        <Button variant="ghost" size="icon" onClick={() => {
-                          const currentIndex = broadcastKeys.indexOf(broadcastView);
-                          const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
-                          setBroadcastView(broadcastKeys[nextIndex]);
-                        }}>
-                            <ChevronLeft />
-                        </Button>
-                        <h3 className="text-center font-bold mx-4">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
-                        <Button variant="ghost" size="icon" onClick={() => {
-                          const currentIndex = broadcastKeys.indexOf(broadcastView);
-                          const nextIndex = (currentIndex + 1) % broadcastKeys.length;
-                          setBroadcastView(broadcastKeys[nextIndex]);
-                        }}>
-                            <ChevronRight />
-                        </Button>
-                    </div>
-                    {broadcastView === 'MyBroadcasts' ? 
-                        (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
-                        : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
-                </>
-            );
+default:
+    const currentBroadcast = broadcasts[broadcastView];
+    return (
+        <>
+            <div className="flex items-center justify-center mb-4">
+                <Button variant="ghost" size="icon" onClick={() => {
+                  const currentIndex = broadcastKeys.indexOf(broadcastView);
+                  const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
+                  setBroadcastView(broadcastKeys[nextIndex]);
+                }}>
+                    <ChevronLeft />
+                </Button>
+                <h3 className="text-center font-bold mx-4">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
+                <Button variant="ghost" size="icon" onClick={() => {
+                  const currentIndex = broadcastKeys.indexOf(broadcastView);
+                  const nextIndex = (currentIndex + 1) % broadcastKeys.length;
+                  setBroadcastView(broadcastKeys[nextIndex]);
+                }}>
+                    <ChevronRight />
+                </Button>
+            </div>
+            {broadcastView === 'MyBroadcasts' ? 
+                (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
+                : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
+        </>
+    );
     }
   };
 
