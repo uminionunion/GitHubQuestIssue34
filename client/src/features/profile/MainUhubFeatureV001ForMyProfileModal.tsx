@@ -10,6 +10,7 @@ import MainUhubFeatureV001ForFriendsView from './MainUhubFeatureV001ForFriendsVi
 import MainUhubFeatureV001ForSettingsView from './MainUhubFeatureV001ForSettingsView';
 import { CreateBroadcastView } from './CreateBroadcastView';
 import BroadcastCarousel from './BroadcastCarousel';
+import AdminProductsList from './AdminProductsList';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -257,43 +258,71 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
               </div>
             </div>
 
-            {/* BOTTOM LEFT: My Store - WITH ADD BUTTON */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
-              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
-                <h3 className="font-bold">My Store</h3>
-                {canAddProducts && (
-                  <Button 
-                    size="sm" 
-                    onClick={onAddProductClick}
-                    className="bg-orange-400 hover:bg-orange-500 text-white"
-                  >
-                    <Plus className="h-4 w-4 mr-1" /> Add Product
-                  </Button>
-                )}
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                {!user ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                    Log in to manage your store
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {userStoreProducts.length > 0 ? (
-                      userStoreProducts.map((p) => (
-                        <div key={p.id} className="border rounded p-2 text-xs">
-                          <p className="font-semibold">{p.name}</p>
-                          {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center text-muted-foreground py-4 text-sm">
-                        {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+            {/* BOTTOM LEFT: My Store - WITH ADMIN LIST */}
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
+    <h3 className="font-bold">My Store</h3>
+    {canAddProducts && (
+      <Button 
+        size="sm" 
+        onClick={onAddProductClick}
+        className="bg-orange-400 hover:bg-orange-500 text-white"
+      >
+        <Plus className="h-4 w-4 mr-1" /> Add Product
+      </Button>
+    )}
+  </div>
+  <div className="flex-1 overflow-y-auto">
+    {!user ? (
+      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+        Log in to manage your store
+      </div>
+    ) : user.is_high_high_high_admin === 1 ? (
+      // Show admin list for HIGH-HIGH-HIGH admins
+      <AdminProductsList
+        products={userStoreProducts}
+        isLoading={isLoadingProducts}
+        onProductView={(product) => {
+          setSelectedProduct(product);
+          setProductDetailModalOpen(true);
+        }}
+        onProductDelete={async (productId: number) => {
+          try {
+            const response = await fetch(`/api/products/admin/${productId}`, {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+            });
+            if (response.ok) {
+              // Refresh product list
+              const adminRes = await fetch('/api/products/admin/all');
+              const adminData = await adminRes.json();
+              setUserStoreProducts(Array.isArray(adminData) ? adminData : []);
+            }
+          } catch (error) {
+            console.error('Error deleting product:', error);
+            alert('Failed to delete product');
+          }
+        }}
+      />
+    ) : (
+      // Show simple list for regular users
+      <div className="space-y-2">
+        {userStoreProducts.length > 0 ? (
+          userStoreProducts.map((p) => (
+            <div key={p.id} className="border rounded p-2 text-xs">
+              <p className="font-semibold">{p.name}</p>
+              {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
             </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground py-4 text-sm">
+            {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</div>
 
             {/* BOTTOM RIGHT: Empty for now */}
             <div className="border rounded-lg p-4 flex flex-col h-full">
@@ -495,48 +524,57 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   }, [user, isOpen]);
 
   // Fetch database products for all stores
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      setIsLoadingProducts(true);
-      try {
-        // Fetch main store products (store #0)
-        const mainRes = await fetch('/api/products/store/0');
-        const mainData = await mainRes.json();
-        setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
+useEffect(() => {
+  const fetchAllProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+      // Fetch main store products (store #0)
+      const mainRes = await fetch('/api/products/store/0');
+      const mainData = await mainRes.json();
+      setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
 
-        // Fetch current user's products if logged in
-        if (user) {
+      // Fetch current user's products if logged in
+      if (user) {
+        if (user.is_high_high_high_admin === 1) {
+          // HIGH-HIGH-HIGH admin: fetch ALL products
+          const adminRes = await fetch('/api/products/admin/all');
+          const adminData = await adminRes.json();
+          setUserStoreProducts(Array.isArray(adminData) ? adminData : []);
+          console.log('[PRODUCTS] Fetched admin products:', adminData);
+        } else {
+          // Regular user: fetch their own products
           const userRes = await fetch(`/api/products/user/${user.id}`);
           const userData = await userRes.json();
           setUserStoreProducts(Array.isArray(userData) ? userData : []);
         }
-
-        // Fetch products for each store #01-#30
-        const storeProductsMap: { [key: number]: Product[] } = {};
-        for (let storeNum = 1; storeNum <= 30; storeNum++) {
-          try {
-            const storeRes = await fetch(`/api/products/store/${storeNum}`);
-            const storeData = await storeRes.json();
-            storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
-          } catch (error) {
-            console.error(`Error fetching products for store ${storeNum}:`, error);
-            storeProductsMap[storeNum] = [];
-          }
-        }
-        setStoreProducts(storeProductsMap);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        setMainStoreProducts([]);
-        setUserStoreProducts([]);
-      } finally {
-        setIsLoadingProducts(false);
       }
-    };
 
-    if (isOpen) {
-      fetchAllProducts();
+      // Fetch products for each store #01-#30
+      const storeProductsMap: { [key: number]: Product[] } = {};
+      for (let storeNum = 1; storeNum <= 30; storeNum++) {
+        try {
+          const storeRes = await fetch(`/api/products/store/${storeNum}`);
+          const storeData = await storeRes.json();
+          storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
+        } catch (error) {
+          console.error(`Error fetching products for store ${storeNum}:`, error);
+          storeProductsMap[storeNum] = [];
+        }
+      }
+      setStoreProducts(storeProductsMap);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      setMainStoreProducts([]);
+      setUserStoreProducts([]);
+    } finally {
+      setIsLoadingProducts(false);
     }
-  }, [user, isOpen]);
+  };
+
+  if (isOpen) {
+    fetchAllProducts();
+  }
+}, [user, isOpen]);
 
   const handleMagnify = (product: Product) => {
     setSelectedProduct(product);
