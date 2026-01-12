@@ -68,8 +68,9 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
       return;
     }
 
-    if (isHighHighAdmin && !storeId) {
-      setError('Store selection is required for HIGH-HIGH admins');
+    // Check if store selection is required for admins
+    if ((isHighHighHighAdmin || isHighHighAdmin) && !storeId) {
+      setError('Store selection is required');
       return;
     }
 
@@ -94,7 +95,8 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
         formData.append('sku_id', wooSku);
       }
 
-      if (isHighHighAdmin && storeId) {
+      // Both HIGH-HIGH-HIGH and HIGH-HIGH admins can select stores
+      if ((isHighHighHighAdmin || isHighHighAdmin) && storeId) {
         formData.append('store_id', storeId);
       }
 
@@ -207,6 +209,25 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                 onChange={(e) => setWooSku(e.target.value)}
                 placeholder="SKU code (optional)"
               />
+            </div>
+          )}
+
+          {(isHighHighHighAdmin || isHighHighAdmin) && (
+            <div>
+              <label className="block font-semibold mb-2">Store Number (required)</label>
+              <select
+                value={storeId}
+                onChange={(e) => setStoreId(e.target.value)}
+                className="w-full border rounded px-3 py-2 bg-background"
+                required
+              >
+                <option value="">Select store #01-#30</option>
+                {Array.from({ length: 30 }, (_, i) => (
+                  <option key={i + 1} value={String(i + 1)}>
+                    Store #{String(i + 1).padStart(2, '0')}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 
@@ -324,25 +345,6 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
               onChange={handleImageChange}
             />
           </div>
-
-          {isHighHighAdmin && (
-            <div>
-              <label className="block font-semibold mb-2">Store Number (required)</label>
-              <select
-                value={storeId}
-                onChange={(e) => setStoreId(e.target.value)}
-                className="w-full border rounded px-3 py-2 bg-background"
-                required
-              >
-                <option value="">Select store #01-#30</option>
-                {Array.from({ length: 30 }, (_, i) => (
-                  <option key={i + 1} value={String(i + 1)}>
-                    Store #{String(i + 1).padStart(2, '0')}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <div className="flex gap-3 pt-4">
             <Button
