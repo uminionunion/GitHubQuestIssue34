@@ -233,94 +233,29 @@ const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore, user }) => {
 
             {/* BOTTOM LEFT: My Store - FULLY REDESIGNED */}
             {/* BOTTOM LEFT: My Store */}
-<div className="border rounded-lg p-4 flex flex-col h-full">
-  <h3 className="font-bold mb-3 sticky top-0 bg-background">My Store</h3>
-  <div className="flex-1 overflow-y-auto">
-    {!user ? (
-      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-        Log in to manage your store
-      </div>
-    ) : (
-      <div className="space-y-2">
-        {userStoreProducts.length > 0 ? (
-          userStoreProducts.map((p) => (
-            <div key={p.id} className="border rounded p-2 text-xs">
-              <p className="font-semibold">{p.name}</p>
-              {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
+            <div className="border rounded-lg p-4 flex flex-col h-full">
+              <h3 className="font-bold mb-3 sticky top-0 bg-background">My Store</h3>
+              <div className="flex-1 overflow-y-auto">
+                {!user ? (
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                    Log in to manage your store
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {userStoreProducts.length > 0 ? (
+                      userStoreProducts.map((p) => (
+                        <div key={p.id} className="border rounded p-2 text-xs">
+                          <p className="font-semibold">{p.name}</p>
+                          {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground py-4 text-sm">No products yet</div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          ))
-        ) : (
-          <div className="text-center text-muted-foreground py-4 text-sm">No products yet</div>
-        )}
-      </div>
-    )}
-  </div>
-</div>
-
-  <div className="flex-1 overflow-y-auto">
-    {myStoreView === 'list' ? (
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">Your products list would appear here</p>
-      </div>
-    ) : (
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">Your products list would appear here</p>
-      </div>
-    ) : (
-      <div className="space-y-4">
-        {/* Add Product Form - Role-Based */}
-        {user.is_high_high_high_admin === 1 ? (
-          <div>
-            <h4 className="font-semibold mb-3 text-sm">Add to Main Store (WooCommerce)</h4>
-            <p className="text-xs text-green-400 mb-3">✓ You are logged in as HIGH-HIGH-HIGH Admin</p>
-            <div className="space-y-3 text-sm">
-              <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
-              <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
-              <input type="text" placeholder="WooCommerce SKU (optional)" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
-              <input type="file" accept="image/*" className="w-full text-xs" />
-              <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">
-                Add to Main Store
-              </Button>
-            </div>
-          </div>
-        ) : user.is_high_high_admin === 1 ? (
-          <div>
-            <h4 className="font-semibold mb-3 text-sm">Add to Store #01-#30</h4>
-            <p className="text-xs text-green-400 mb-3">✓ You are logged in as HIGH-HIGH Admin</p>
-            <div className="space-y-3 text-sm">
-              <select className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm">
-                <option value="">Select Store #01-#30</option>
-                {Array.from({ length: 30 }, (_, i) => (
-                  <option key={i + 1} value={i + 1}>Store #{String(i + 1).padStart(2, '0')}</option>
-                ))}
-              </select>
-              <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
-              <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
-              <input type="file" accept="image/*" className="w-full text-xs" />
-              <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">
-                Add Product
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <h4 className="font-semibold mb-3 text-sm">Add to Your Personal Store</h4>
-            <p className="text-xs text-blue-400 mb-3">✓ You are logged in as Regular User</p>
-            <div className="space-y-3 text-sm">
-              <input type="text" placeholder="Product Name" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
-              <input type="number" placeholder="Price" className="w-full border rounded px-2 py-1 bg-background text-foreground text-sm" />
-              <textarea placeholder="Description" className="w-full border rounded px-2 py-1 bg-background text-foreground text-xs resize-none" rows={3} />
-              <input type="file" accept="image/*" className="w-full text-xs" />
-              <Button className="w-full bg-orange-400 hover:bg-orange-500 text-sm h-8">
-                Add Product
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-</div>
 
             {/* BOTTOM RIGHT: Empty for now */}
             <div className="border rounded-lg p-4 flex flex-col h-full">
