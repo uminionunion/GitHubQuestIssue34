@@ -150,12 +150,6 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
     );
 };
 
-<div className="mb-6">
-  <h3 className="font-bold mb-3 text-sm">
-    Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:
-  </h3>
-  <BroadcastCarousel />
-</div>
 
 const BroadcastView = ({ broadcast }) => (
     <div className="flex gap-6">
@@ -178,6 +172,14 @@ const BroadcastView = ({ broadcast }) => (
             <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
         </div>
     </div>
+);
+
+// BROADCAST CAROUSEL - CLICKABLE IMAGES
+const BroadcastCarouselSection = () => (
+  <div className="mb-6">
+    <h3 className="font-bold mb-3 text-sm">Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:</h3>
+    <BroadcastCarousel />
+  </div>
 );
 
 // QUADRANTS MODAL - PAGE 1 REDESIGNED
@@ -797,6 +799,10 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             const currentBroadcast = broadcasts[broadcastView];
             return (
                 <>
+                    {/* BROADCAST CAROUSEL SECTION */}
+                    <BroadcastCarouselSection />
+                    
+                    {/* EXISTING BROADCAST VIEW */}
                     <div className="flex items-center justify-center mb-4">
                         <Button variant="ghost" size="icon" onClick={() => {
                           const currentIndex = broadcastKeys.indexOf(broadcastView);
