@@ -46,8 +46,8 @@ router.post('/', authenticate, async (req, res) => {
     }
 
     // Determine store type and store_id based on user role
-    let storeType = 'user';
-    let finalStoreId = null;
+    let storeType: 'main' | 'user' | 'store' = 'user';
+    let finalStoreId: number | null = null;
 
     if (user.is_high_high_high_admin === 1) {
       // HIGH-HIGH-HIGH admin: can add to main store
