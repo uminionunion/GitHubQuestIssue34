@@ -491,4 +491,106 @@ router.delete('/looking-for/:itemId', authenticate, async (req, res) => {
   }
 });
 
+// GET - All products (for HIGH-HIGH-HIGH admin viewing)
+router.get('/admin/all', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    // Only HIGH-HIGH-HIGH admins can see all products
+    const user = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', req.user.userId)
+      .executeTakeFirst();
+
+    if (!user || user.is_high_high_high_admin !== 1) {
+      res.status(403).json({ message: 'Only HIGH-HIGH-HIGH admins can view all products' });
+      return;
+    }
+
+    // Get ALL products from ALL sources, with creator info
+    const products = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .leftJoin(
+        'users',
+        'MainHubUpgradeV001ForProducts.user_id',
+        'users.id'
+      )
+      .select([
+        'MainHubUpgradeV001ForProducts.id',
+        'MainHubUpgradeV001ForProducts.name',
+        'MainHubUpgradeV001ForProducts.subtitle',
+        'MainHubUpgradeV001ForProducts.description',
+        'MainHubUpgradeV001ForProducts.price',
+        'MainHubUpgradeV001ForProducts.image_url',
+        'MainHubUpgradeV001ForProducts.store_type',
+        'MainHubUpgradeV001ForProducts.user_id',
+        'MainHubUpgradeV001ForProducts.store_id',
+        'MainHubUpgradeV001ForProducts.payment_method',
+        'MainHubUpgradeV001ForProducts.payment_url',
+        'MainHubUpgradeV001ForProducts.sku_id',
+        'MainHubUpgradeV001ForProducts.created_at',
+        'users.username as creator_username',
+      ])
+      .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
+      .orderBy('MainHubUpgradeV001ForProducts.created_at', 'desc')
+      .execute();
+
+    res.json(products);
+  } catch (error) {
+    console.error('[PRODUCTS] Error fetching admin products:', error);
+    res.status(500).json({ message: 'Failed to fetch products' });
+  }
+});
+
+// DELETE - Delete product as HIGH-HIGH-HIGH admin
+router.delete('/admin/:productId', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { productId } = req.params;
+
+  try {
+    // Check if user is HIGH-HIGH-HIGH admin
+    const user = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', req.user.userId)
+      .executeTakeFirst();
+
+    if (!user || user.is_high_high_high_admin !== 1) {
+      res.status(403).json({ message: 'Only HIGH-HIGH-HIGH admins can delete products' });
+      return;
+    }
+
+    const product = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('id', '=', parseInt(productId))
+      .executeTakeFirst();
+
+    if (!product) {
+      res.status(404).json({ message: 'Product not found' });
+      return;
+    }
+
+    // Move to trash
+    await db
+      .updateTable('MainHubUpgradeV001ForProducts')
+      .set({ is_in_trash: 1 })
+      .where('id', '=', parseInt(productId))
+      .execute();
+
+    res.json({ message: 'Product deleted' });
+  } catch (error) {
+    console.error('[PRODUCTS] Error deleting product:', error);
+    res.status(500).json({ message: 'Failed to delete product' });
+  }
+});
+
 export default router;
