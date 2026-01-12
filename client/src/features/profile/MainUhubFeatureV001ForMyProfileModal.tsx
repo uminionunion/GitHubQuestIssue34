@@ -601,7 +601,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     'SisterUnion016UnionDrive', 'SisterUnion017UnionArchiveAndEducation', 'SisterUnion018UnionTech',
     'SisterUnion019UnionPolitic', 'SisterUnion020UnionSAM', 'SisterUnion021UnionUkraineAndTheCrystalPalace',
     'SisterUnion022FestyLove', 'SisterUnion023UnionLegal', 'SisterUnion024UnionMarket',
-    'SisterUnion025', 'SisterUnion026', 'SisterUnion027', 'SisterUnion028', 'SisterUnion029', 'SisterUnion030',
+    'SisterUnion025UnionArena', 'SisterUnion026UnionTradeEnergyAndCommunityWIFI', 'SisterUnion027Secret027', 'SisterUnion028Sports', 'SisterUnion029WheelsVehiclesAndeMods', 'SisterUnion030HousingAndHealthcare',
   ];
   const MainUhubFeatureV001ForModalColors = Array.from({ length: 30 }, (_, i) => `hsl(${i * 12}, 70%, 50%)`);
 
