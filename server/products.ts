@@ -23,7 +23,7 @@ router.post('/', authenticate, async (req, res) => {
     return;
   }
 
-  const { name, subtitle, description, price, payment_method, payment_url, store_id, sku_id, url } = req.body;
+  const { name, subtitle, description, price, payment_method, payment_url, store_id, sku_id } = req.body;
 
   // Validate required fields
   if (!name || price === undefined) {
@@ -88,28 +88,27 @@ router.post('/', authenticate, async (req, res) => {
     }
 
     // Create the product
-    const product = await db
-      .insertInto('MainHubUpgradeV001ForProducts')
-      .values({
-        name,
-        subtitle: subtitle || null,
-        description: description || null,
-        price: price ? parseFloat(price) : null,
-        image_url: imageUrl,
-        store_type: storeType,
-        user_id: storeType === 'user' ? req.user.userId : null,
-        store_id: finalStoreId,
-        payment_method: payment_method || null,
-        payment_url: payment_url || null,
-        sku_id: sku_id || null,
-        url: url || null,
-        is_in_trash: 0,
-      })
-      .returning('id')
-      .executeTakeFirstOrThrow();
+     const product = await db
+       .insertInto('MainHubUpgradeV001ForProducts')
+       .values({
+         name,
+         subtitle: subtitle || null,
+         description: description || null,
+         price: price ? parseFloat(price) : null,
+         image_url: imageUrl,
+         store_type: storeType,
+         user_id: storeType === 'user' ? req.user.userId : null,
+         store_id: finalStoreId,
+         payment_method: payment_method || null,
+         payment_url: payment_url || null,
+         sku_id: sku_id || null,
+         is_in_trash: 0,
+       })
+       .returning('id')
+       .executeTakeFirstOrThrow();
 
     console.log(`[PRODUCTS] Product created: ${product.id} (${storeType}) by user ${req.user.userId}`);
-    console.log(`[PRODUCTS] SKU: ${sku_id || 'none'}, URL: ${url || 'none'}`);
+    console.log(`[PRODUCTS] SKU: ${sku_id || 'none'}`);
 
     res.status(201).json({
       message: 'Product created successfully',
