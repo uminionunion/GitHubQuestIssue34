@@ -2,8 +2,19 @@ import { Router } from 'express';
 import { db } from './db.js';
 import { authenticate } from './auth-middleware.js';
 import path from 'path';
+import { promises as fs } from 'fs';
 
 const router = Router();
+
+// Ensure upload directory exists
+const ensureUploadDir = async () => {
+  const uploadDir = path.join(process.cwd(), 'data', 'uploads');
+  try {
+    await fs.mkdir(uploadDir, { recursive: true });
+  } catch (error) {
+    console.error('[PRODUCTS] Error creating upload directory:', error);
+  }
+};
 
 // POST - Create a new product
 router.post('/', authenticate, async (req, res) => {
@@ -36,6 +47,7 @@ router.post('/', authenticate, async (req, res) => {
     // Handle file upload
     let imageUrl: string | null = null;
     if ((req as any).files && (req as any).files.image) {
+      await ensureUploadDir();
       const uploadedFile = (req as any).files.image;
       const uploadDir = path.join(process.cwd(), 'data', 'uploads');
       const filename = `${Date.now()}-${uploadedFile.name}`;
@@ -45,23 +57,33 @@ router.post('/', authenticate, async (req, res) => {
       imageUrl = `/api/uploads/${filename}`;
     }
 
-    // Determine store type and store_id based on user role
+    // Determine store type based on user role
     let storeType: 'main' | 'user' | 'store' = 'user';
     let finalStoreId: number | null = null;
 
     if (user.is_high_high_high_admin === 1) {
       // HIGH-HIGH-HIGH admin: can add to main store
       storeType = 'main';
-      finalStoreId = store_id ? parseInt(store_id) : 0;
+      finalStoreId = 0;
       console.log(`[PRODUCTS] HIGH-HIGH-HIGH admin ${user.username} adding to main store`);
     } else if (user.is_high_high_admin === 1) {
-      // HIGH-HIGH admin: can add to specific stores
+      // HIGH-HIGH admin: can add to specific stores #01-#30
+      if (!store_id) {
+        res.status(400).json({ message: 'HIGH-HIGH admin must specify store_id (1-30)' });
+        return;
+      }
+      const parsedStoreId = parseInt(store_id);
+      if (isNaN(parsedStoreId) || parsedStoreId < 1 || parsedStoreId > 30) {
+        res.status(400).json({ message: 'store_id must be between 1 and 30' });
+        return;
+      }
       storeType = 'store';
-      finalStoreId = store_id ? parseInt(store_id) : null;
-      console.log(`[PRODUCTS] HIGH-HIGH admin ${user.username} adding to store ${finalStoreId}`);
+      finalStoreId = parsedStoreId;
+      console.log(`[PRODUCTS] HIGH-HIGH admin ${user.username} adding to store #${finalStoreId}`);
     } else {
       // Regular user: personal store
       storeType = 'user';
+      finalStoreId = null;
       console.log(`[PRODUCTS] User ${user.username} adding to personal store`);
     }
 
