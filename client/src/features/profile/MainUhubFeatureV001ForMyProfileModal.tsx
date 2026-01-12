@@ -178,7 +178,27 @@ const BroadcastView = ({ broadcast }) => (
 );
 
 // QUADRANTS MODAL - PAGE 1 REDESIGNED
-const QuadrantsModal = ({ isOpen, onClose, stores, onSelectStore, user }) => {
+interface QuadrantsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  stores: typeof ALL_STORES;
+  onSelectStore: (store: any) => void;
+  user: any;
+  mainStoreProducts: Product[];
+  userStoreProducts: Product[];
+  isLoadingProducts: boolean;
+}
+
+const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  stores, 
+  onSelectStore, 
+  user, 
+  mainStoreProducts = [], 
+  userStoreProducts = [], 
+  isLoadingProducts 
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add-product'>('list');
   const [refreshMyStoreProducts, setRefreshMyStoreProducts] = useState(false);
