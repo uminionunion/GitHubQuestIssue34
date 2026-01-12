@@ -32,8 +32,13 @@ const defaultBroadcasts: BroadcastItem[] = [
     imageUrl: "https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png",
     clickUrl: "https://u24.gov.ua/"
   },
-  // Add items 4-30 with this format:
-  // { id: 4, title: "Your Title", imageUrl: "https://...", clickUrl: "https://..." },
+  // TEMPLATE FOR ITEMS 4-30:
+  // {
+  //   id: 4,
+  //   title: "Your Title",
+  //   imageUrl: "https://your-image-url.jpg",
+  //   clickUrl: "https://your-click-url.com/"
+  // },
 ];
 
 export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ items = defaultBroadcasts }) => {
@@ -102,6 +107,11 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ items = de
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
+
+      {/* Page Indicator */}
+      <div className="text-xs text-muted-foreground absolute bottom-2 right-4">
+        Page {currentPage + 1} of {totalPages}
+      </div>
     </div>
   );
 };
