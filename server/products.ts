@@ -12,7 +12,7 @@ router.post('/', authenticate, async (req, res) => {
     return;
   }
 
-  const { name, subtitle, description, price, payment_method, payment_url, store_id, woo_sku } = req.body;
+  const { name, subtitle, description, price, payment_method, payment_url, store_id, sku_id, url } = req.body;
 
   // Validate required fields
   if (!name || price === undefined) {
@@ -45,28 +45,24 @@ router.post('/', authenticate, async (req, res) => {
       imageUrl = `/api/uploads/${filename}`;
     }
 
-    // Determine store assignment based on user role
-    let storeType: 'main' | 'user' = 'user';
-    let finalStoreId: number | null = null;
-    let finalWooSku: string | null = null;
+    // Determine store type and store_id based on user role
+    let storeType = 'user';
+    let finalStoreId = null;
 
     if (user.is_high_high_high_admin === 1) {
-      // HIGH-HIGH-HIGH ADMIN: Can add to main store (#0) or with SKU
+      // HIGH-HIGH-HIGH admin: can add to main store
       storeType = 'main';
-      finalStoreId = 0;
-      finalWooSku = woo_sku || null;
+      finalStoreId = store_id ? parseInt(store_id) : 0;
+      console.log(`[PRODUCTS] HIGH-HIGH-HIGH admin ${user.username} adding to main store`);
     } else if (user.is_high_high_admin === 1) {
-      // HIGH-HIGH ADMIN: Must specify store #01-#30
-      if (!store_id || parseInt(store_id) < 1 || parseInt(store_id) > 30) {
-        res.status(400).json({ message: 'HIGH-HIGH ADMIN must specify store 1-30' });
-        return;
-      }
-      storeType = 'user';
-      finalStoreId = parseInt(store_id);
+      // HIGH-HIGH admin: can add to specific stores
+      storeType = 'store';
+      finalStoreId = store_id ? parseInt(store_id) : null;
+      console.log(`[PRODUCTS] HIGH-HIGH admin ${user.username} adding to store ${finalStoreId}`);
     } else {
-      // Regular user: Personal store
+      // Regular user: personal store
       storeType = 'user';
-      finalStoreId = null;
+      console.log(`[PRODUCTS] User ${user.username} adding to personal store`);
     }
 
     // Create the product
@@ -79,17 +75,19 @@ router.post('/', authenticate, async (req, res) => {
         price: price ? parseFloat(price) : null,
         image_url: imageUrl,
         store_type: storeType,
-        user_id: user.is_high_high_high_admin === 1 ? null : req.user.userId,
+        user_id: storeType === 'user' ? req.user.userId : null,
         store_id: finalStoreId,
         payment_method: payment_method || null,
         payment_url: payment_url || null,
-        sku_id: finalWooSku,
+        sku_id: sku_id || null,
+        url: url || null,
         is_in_trash: 0,
       })
       .returning('id')
       .executeTakeFirstOrThrow();
 
-    console.log(`[PRODUCTS] Product created: ${product.id} by user ${req.user.userId}`);
+    console.log(`[PRODUCTS] Product created: ${product.id} (${storeType}) by user ${req.user.userId}`);
+    console.log(`[PRODUCTS] SKU: ${sku_id || 'none'}, URL: ${url || 'none'}`);
 
     res.status(201).json({
       message: 'Product created successfully',
