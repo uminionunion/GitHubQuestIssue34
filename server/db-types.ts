@@ -65,7 +65,7 @@ export interface MainHubUpgradeV001ForProducts {
   description: string | null;
   price: number | null;
   image_url: string | null;
-  store_type: "main" | "user";
+  store_type: 'main' | 'user' | 'store';
   user_id: number | null;
   store_id: number | null;
   payment_method: string | null;
