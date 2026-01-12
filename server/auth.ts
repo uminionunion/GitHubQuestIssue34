@@ -170,6 +170,7 @@ router.post('/login', async (req, res) => {
       sameSite: 'strict' 
     });
     
+    // IMPORTANT: Return admin fields so frontend knows user is admin
     res.status(200).json({ 
       id: user.id, 
       username: user.username,
@@ -207,8 +208,9 @@ router.post('/logout', (req, res) => {
 /**
  * GET /api/auth/me
  * Get current authenticated user info
+ * Returns admin status from database
  * 
- * Response: { id, username, ...adminRoles }
+ * Response: { id, username, is_high_high_high_admin, is_high_high_admin, is_high_admin }
  */
 router.get('/me', async (req, res) => {
   const token = req.cookies.token;
@@ -233,12 +235,18 @@ router.get('/me', async (req, res) => {
       return;
     }
 
+    // IMPORTANT: Return admin fields
     res.status(200).json({ 
       id: user.id, 
       username: user.username,
       is_high_high_high_admin: user.is_high_high_high_admin || 0,
       is_high_high_admin: user.is_high_high_admin || 0,
-      is_high_admin: user.is_high_admin || 0
+      is_high_admin: user.is_high_admin || 0,
+      is_special_user: user.is_special_user,
+      is_special_special_user: user.is_special_special_user,
+      is_special_special_special_user: user.is_special_special_special_user,
+      is_blocked: user.is_blocked,
+      is_banned_from_chatrooms: user.is_banned_from_chatrooms
     });
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });
