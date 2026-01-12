@@ -152,8 +152,8 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
 
 
 const BroadcastView = ({ broadcast }) => (
-    <div className="flex flex-col gap-4">
-        <div className="flex gap-6">
+    <div className="flex flex-col gap-4 h-full">
+        <div className="flex gap-6 flex-1">
             <div className="w-1/3">
                 <h4 className="font-semibold">{broadcast.subtitle}</h4>
                 <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
@@ -163,15 +163,17 @@ const BroadcastView = ({ broadcast }) => (
                     <Button variant="ghost" size="icon"><ChevronRight /></Button>
                 </div>
             </div>
-            <div className="w-2/3">
+            <div className="w-2/3 flex flex-col">
                 <div className="flex items-center gap-2 mb-2">
                     <Button variant="outline" size="icon"><Play /></Button>
                     <p className="text-sm text-muted-foreground flex-grow">{broadcast.description}</p>
                 </div>
-                <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
+                <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm mb-4">Visit Website</a>
+                <div className="flex-1 overflow-hidden">
+                    <BroadcastCarousel />
+                </div>
             </div>
         </div>
-        <BroadcastCarousel />
     </div>
 );
 
@@ -1008,11 +1010,15 @@ default:
         )}
         
         <QuadrantsModal 
-          isOpen={isQuadrantsModalOpen}
-          onClose={() => setIsQuadrantsModalOpen(false)}
-          stores={ALL_STORES}
-          onSelectStore={(store) => setCenterRightView(store)}
-        />
+  isOpen={isQuadrantsModalOpen}
+  onClose={() => setIsQuadrantsModalOpen(false)}
+  stores={ALL_STORES}
+  onSelectStore={(store) => setCenterRightView(store)}
+  user={user}
+  mainStoreProducts={mainStoreProducts}
+  userStoreProducts={userStoreProducts}
+  isLoadingProducts={isLoadingProducts}
+/>
 
         <HomeModal 
           isOpen={isHomeModalOpen}
