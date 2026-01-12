@@ -9,6 +9,7 @@ import MainUhubFeatureV001ForProductDetailModal from './MainUhubFeatureV001ForPr
 import MainUhubFeatureV001ForFriendsView from './MainUhubFeatureV001ForFriendsView';
 import MainUhubFeatureV001ForSettingsView from './MainUhubFeatureV001ForSettingsView';
 import { CreateBroadcastView } from './CreateBroadcastView';
+import BroadcastCarousel from './BroadcastCarousel';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -148,6 +149,13 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
         </div>
     );
 };
+
+<div className="mb-6">
+  <h3 className="font-bold mb-3 text-sm">
+    Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:
+  </h3>
+  <BroadcastCarousel />
+</div>
 
 const BroadcastView = ({ broadcast }) => (
     <div className="flex gap-6">
