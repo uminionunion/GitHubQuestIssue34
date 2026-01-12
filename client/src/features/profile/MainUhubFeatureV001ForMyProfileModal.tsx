@@ -187,6 +187,7 @@ interface QuadrantsModalProps {
   mainStoreProducts: Product[];
   userStoreProducts: Product[];
   isLoadingProducts: boolean;
+  onAddProductClick: () => void;
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -197,11 +198,11 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   user, 
   mainStoreProducts = [], 
   userStoreProducts = [], 
-  isLoadingProducts 
+  isLoadingProducts,
+  onAddProductClick
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [myStoreView, setMyStoreView] = useState<'list' | 'add-product'>('list');
-  const [refreshMyStoreProducts, setRefreshMyStoreProducts] = useState(false);
+  const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
   
   const storePages = [
     [],
@@ -215,6 +216,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     [stores[29], stores[30], null, null],
     [null, null, null, null],
   ];
+
+  // Check if user is HIGH-HIGH-HIGH or HIGH-HIGH admin
+  const canAddProducts = user && (user.is_high_high_high_admin === 1 || user.is_high_high_admin === 1);
 
   if (!isOpen) return null;
 
@@ -253,10 +257,20 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
               </div>
             </div>
 
-            {/* BOTTOM LEFT: My Store - FULLY REDESIGNED */}
-            {/* BOTTOM LEFT: My Store */}
+            {/* BOTTOM LEFT: My Store - WITH ADD BUTTON */}
             <div className="border rounded-lg p-4 flex flex-col h-full">
-              <h3 className="font-bold mb-3 sticky top-0 bg-background">My Store</h3>
+              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
+                <h3 className="font-bold">My Store</h3>
+                {canAddProducts && (
+                  <Button 
+                    size="sm" 
+                    onClick={onAddProductClick}
+                    className="bg-orange-400 hover:bg-orange-500 text-white"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add Product
+                  </Button>
+                )}
+              </div>
               <div className="flex-1 overflow-y-auto">
                 {!user ? (
                   <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
@@ -272,7 +286,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                         </div>
                       ))
                     ) : (
-                      <div className="text-center text-muted-foreground py-4 text-sm">No products yet</div>
+                      <div className="text-center text-muted-foreground py-4 text-sm">
+                        {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
+                      </div>
                     )}
                   </div>
                 )}
@@ -669,7 +685,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
                                     }
                                     setAddProductModalOpen(true)
                                 }}>
-                                    <Eye className="h-4 w-4" />
+                                    <Plus className="h-4 w-4" />
                                 </Button>
                                 <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
                             </div>
@@ -1038,6 +1054,10 @@ default:
           mainStoreProducts={mainStoreProducts}
           userStoreProducts={userStoreProducts}
           isLoadingProducts={isLoadingProducts}
+          onAddProductClick={() => {
+            setIsQuadrantsModalOpen(false);
+            setAddProductModalOpen(true);
+          }}
         />
 
         <HomeModal 
