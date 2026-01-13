@@ -190,6 +190,8 @@ interface QuadrantsModalProps {
   userStoreProducts: Product[];
   isLoadingProducts: boolean;
   onAddProductClick: () => void;
+  getCartUrl: (product: Product | null) => string;
+  storeProducts: { [key: number]: Product[] };
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -201,7 +203,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   mainStoreProducts = [], 
   userStoreProducts = [], 
   isLoadingProducts,
-  onAddProductClick
+  onAddProductClick,
+  getCartUrl,
+  storeProducts = {}
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -1104,6 +1108,8 @@ default:
             setIsQuadrantsModalOpen(false);
             setAddProductModalOpen(true);
           }}
+          getCartUrl={getCartUrl}
+          storeProducts={storeProducts}
         />
 
         <HomeModal 
