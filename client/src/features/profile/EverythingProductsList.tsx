@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import React, { useState } from 'react';
 import { Button } from '../../components/ui/button';
+import { Search, ShoppingCart, Plus, Minus } from 'lucide-react';
 
 interface Product {
   id: number;
@@ -8,104 +8,90 @@ interface Product {
   price?: number | null;
   image_url: string | null;
   store_type: string;
-  user_id?: number | null;
-  store_id?: number | null;
-  sku_id?: string | null;
-  creator_username?: string;
-  payment_url?: string | null;
+  user_id?: number;
+  store_id?: number;
+  sku_id?: string;
 }
 
 interface EverythingProductsListProps {
+  products: Product[];
   isLoading: boolean;
   onProductView: (product: Product) => void;
-  getCartUrl: (product: Product | null) => string;
+  onAddToCart?: (product: Product) => void;
 }
 
-const EverythingProductsList: React.FC<EverythingProductsListProps> = ({
+const EverythingProductsList: React.FC<EverythingProductsListProps> = ({ 
+  products = [], 
   isLoading,
   onProductView,
-  getCartUrl,
+  onAddToCart
 }) => {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [loadingEverything, setLoadingEverything] = useState(false);
+  const [inCart, setInCart] = useState<{ [key: number]: boolean }>({});
 
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      setLoadingEverything(true);
-      try {
-        // Fetch main store products (Union Store #0)
-        const mainRes = await fetch('/api/products/store/0');
-        const mainData = await mainRes.json();
-        const mainProducts = Array.isArray(mainData) ? mainData : [];
+  const handleCartClick = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    if (onAddToCart) {
+      onAddToCart(product);
+    }
+    setInCart(prev => ({ ...prev, [product.id]: !prev[product.id] }));
+  };
 
-        // Fetch all user products
-        const userRes = await fetch('/api/products/user/0');
-        const userData = await userRes.json();
-        const userProducts = Array.isArray(userData) ? userData : [];
-
-        // Fetch products from all stores #01-#30
-        const storeProducts: Product[] = [];
-        for (let storeNum = 1; storeNum <= 30; storeNum++) {
-          try {
-            const storeRes = await fetch(`/api/products/store/${storeNum}`);
-            const storeData = await storeRes.json();
-            if (Array.isArray(storeData)) {
-              storeProducts.push(...storeData);
-            }
-          } catch (error) {
-            console.error(`Error fetching products for store ${storeNum}:`, error);
-          }
-        }
-
-        // Combine all products
-        const combined = [...mainProducts, ...userProducts, ...storeProducts];
-
-        // Shuffle to randomize order
-        const shuffled = combined.sort(() => Math.random() - 0.5);
-
-        setAllProducts(shuffled);
-      } catch (error) {
-        console.error('Error fetching all products:', error);
-        setAllProducts([]);
-      } finally {
-        setLoadingEverything(false);
-      }
-    };
-
-    fetchAllProducts();
-  }, []);
-
-  if (isLoading || loadingEverything) {
-    return <div className="text-center text-muted-foreground py-4">Loading everything...</div>;
+  if (isLoading) {
+    return <div className="text-center text-muted-foreground py-4">Loading products...</div>;
   }
 
-  if (!allProducts || allProducts.length === 0) {
-    return <div className="text-center text-muted-foreground py-4 text-sm">No products available</div>;
+  if (!products || products.length === 0) {
+    return <div className="text-center text-muted-foreground py-4">No products available</div>;
   }
+
+  // Shuffle products randomly
+  const shuffledProducts = [...products].sort(() => Math.random() - 0.5);
 
   return (
-    <div className="space-y-2">
-      {allProducts.map((product) => (
-        <div
+    <div className="grid grid-cols-2 gap-2">
+      {shuffledProducts.map((product) => (
+        <div 
           key={product.id}
-          className="border rounded p-2 hover:bg-muted/50 transition cursor-pointer"
+          className="border rounded-md p-2 cursor-pointer hover:border-orange-400 transition relative h-32 group"
           onClick={() => onProductView(product)}
         >
-          <p className="font-semibold text-sm truncate">{product.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {product.creator_username && `By: ${product.creator_username}`}
-            {product.store_type === 'store' && ` • Store #${String(product.store_id).padStart(2, '0')}`}
-            {product.store_type === 'main' && ' • Union Store #0'}
-          </p>
-          <div className="flex justify-between items-center mt-1">
-            {product.price && <p className="text-xs font-semibold text-orange-400">${product.price.toFixed(2)}</p>}
-            {product.payment_url && (
-              <a href={product.payment_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <ShoppingCart className="h-3 w-3" />
+          {/* Product Image */}
+          <div 
+            className="h-full bg-cover bg-center rounded mb-2"
+            style={{ 
+              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)'
+            }}
+          />
+          
+          {/* Product Info Overlay */}
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition flex flex-col justify-between p-2 rounded">
+            <div className="opacity-0 group-hover:opacity-100 transition text-white text-xs">
+              <p className="font-semibold truncate">{product.name}</p>
+              {product.price && <p className="text-orange-400">${product.price.toFixed(2)}</p>}
+            </div>
+            <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-6 w-6 text-white hover:text-orange-400"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProductView(product);
+                }}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+              {onAddToCart && (
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="h-6 w-6 text-white hover:text-orange-400"
+                  onClick={(e) => handleCartClick(e, product)}
+                >
+                  {inCart[product.id] ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 </Button>
-              </a>
-            )}
+              )}
+            </div>
           </div>
         </div>
       ))}
