@@ -314,43 +314,75 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   </div>
 </div>
 
-           {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
+           {/* BOTTOM RIGHT: Everything - All Products No Duplicates */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3">Everything</h3>
   <div className="flex-1 overflow-y-auto">
     <EverythingProductsList
-      products={allProducts}
+      products={everythingProducts}
       isLoading={isLoadingProducts}
-      onProductView={onProductView}
-      onAddToCart={(product) => handleAddToCart(product)}
+      onProductView={(product) => {
+        setSelectedProduct(product);
+        setProductDetailModalOpen(true);
+      }}
+      onAddToCart={handleAddToCart}
     />
   </div>
 </div>
           </div>
         )}
 
-        {/* PAGES 2-10 REMAIN THE SAME */}
-        {currentPage > 1 && currentPage <= 9 && (
-          <div className="grid grid-cols-2 gap-4 h-[70vh]">
-            {storePages[currentPage - 1].map((store) => (
-              <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col">
-                <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
-                <div 
-                  className={`flex-1 ${store ? 'bg-muted rounded-md bg-cover bg-center cursor-pointer' : 'bg-muted rounded-md flex items-center justify-center text-muted-foreground'}`}
-                  onClick={() => {
-                    if (store) {
-                      onSelectStore(store);
-                      onClose();
-                    }
-                  }}
-                  style={store ? {backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png')`} : {}}
-                  title={store ? `Click to view ${store.name}` : 'Coming soon'}
-                >
-                  {!store && 'Coming Soon'}
+        {/* PAGES 2-10 - SHOW STORE PRODUCTS */}
+{currentPage > 1 && currentPage <= 9 && (
+  <div className="grid grid-cols-2 gap-4 h-[70vh]">
+    {storePages[currentPage - 1].map((store) => {
+      const storeProds = store ? storeProducts[store.number] || [] : [];
+      return (
+        <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
+          <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
+          {store ? (
+            <div 
+              className="flex-1 rounded-md flex flex-col cursor-pointer hover:border-orange-400 transition overflow-y-auto space-y-2"
+            >
+              {storeProds.length > 0 ? (
+                storeProds.map((product) => (
+                  <div 
+                    key={product.id}
+                    className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setProductDetailModalOpen(true);
+                    }}
+                  >
+                    {product.image_url && (
+                      <img 
+                        src={product.image_url} 
+                        alt={product.name}
+                        className="w-8 h-8 rounded object-cover flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">{product.name}</p>
+                      {product.price && <p className="text-orange-400">${product.price.toFixed(2)}</p>}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                  No products available
                 </div>
-              </div>
-            ))}</div>
-        )}
+              )}
+            </div>
+          ) : (
+            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+              Coming Soon
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+)}
 
         {currentPage === 10 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
@@ -461,6 +493,8 @@ const HomeModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
+        
+
         <div className="border rounded-lg p-4 mt-4 h-32 overflow-auto">
           <h3 className="font-bold mb-3">My Inventory</h3>
           <div className="text-center text-muted-foreground">
@@ -471,6 +505,7 @@ const HomeModal = ({ isOpen, onClose }) => {
     </div>
   );
 };
+
 
 const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
   const { user } = useAuth();
@@ -498,6 +533,8 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isDraggingRight, setIsDraggingRight] = useState(false);
   const [isQuadrantsModalOpen, setIsQuadrantsModalOpen] = useState(false);
   const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
+  
+  const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -530,18 +567,9 @@ useEffect(() => {
 
       // Fetch current user's products if logged in
       if (user) {
-        if (user.is_high_high_high_admin === 1) {
-          // HIGH-HIGH-HIGH admin: fetch ALL products
-          const adminRes = await fetch('/api/products/admin/all');
-          const adminData = await adminRes.json();
-          setUserStoreProducts(Array.isArray(adminData) ? adminData : []);
-          console.log('[PRODUCTS] Fetched admin products:', adminData);
-        } else {
-          // Regular user: fetch their own products
-          const userRes = await fetch(`/api/products/user/${user.id}`);
-          const userData = await userRes.json();
-          setUserStoreProducts(Array.isArray(userData) ? userData : []);
-        }
+        const userRes = await fetch(`/api/products/user/${user.id}`);
+        const userData = await userRes.json();
+        setUserStoreProducts(Array.isArray(userData) ? userData : []);
       }
 
       // Fetch products for each store #01-#30
@@ -551,6 +579,7 @@ useEffect(() => {
           const storeRes = await fetch(`/api/products/store/${storeNum}`);
           const storeData = await storeRes.json();
           storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
+          console.log(`[PRODUCTS] Store ${storeNum} has ${storeProductsMap[storeNum].length} products`);
         } catch (error) {
           console.error(`Error fetching products for store ${storeNum}:`, error);
           storeProductsMap[storeNum] = [];
@@ -571,6 +600,27 @@ useEffect(() => {
   }
 }, [user, isOpen]);
 
+
+  // Fetch everything products separately (all products, no duplicates)
+useEffect(() => {
+  const fetchEverythingProducts = async () => {
+    try {
+      const res = await fetch('/api/products/everything/all');
+      const data = await res.json();
+      setEverythingProducts(Array.isArray(data) ? data : []);
+      console.log(`[PRODUCTS] Fetched ${data.length} products for Everything store`);
+    } catch (error) {
+      console.error('Error fetching everything products:', error);
+      setEverythingProducts([]);
+    }
+  };
+
+  if (isOpen) {
+    fetchEverythingProducts();
+  }
+}, [isOpen]);
+
+  
   const handleMagnify = (product: Product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
@@ -746,42 +796,76 @@ useEffect(() => {
             )}
 
             {!isUnionSAM20 && !isUnionPolitic19 && (
-                <div id="MainUhubFeatureV001ForStoreColumn" className="border rounded-md p-2 flex flex-col h-full">
-                    <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-semibold text-center flex-1">Store {String(centerRightView.number).padStart(2, '0')}</h4>
-                        <a href={getCartUrl(storeProducts[centerRightView.number]?.[0] || null)} target="_blank" rel="noopener noreferrer">
-                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
-                                <ShoppingCart className="h-4 w-4" />
-                            </Button>
-                        </a>
-                    </div>
-                    <div className="flex-1 overflow-y-auto space-y-2 mb-4">
-                        {isLoadingProducts ? (
-                            <div className="text-center text-muted-foreground py-4">Loading products...</div>
-                        ) : (storeProducts[centerRightView.number] && storeProducts[centerRightView.number].length > 0) ? (
-                            storeProducts[centerRightView.number].map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
-                        ) : (
-                            <div className="text-center text-muted-foreground py-4">No products available</div>
-                        )}
-                    </div>
-                    <div className="border-t pt-2 mt-auto">
-                        <div className="grid grid-cols-2 gap-1">
-                            {ALL_STORES.slice(1, 31).map((store) => (
-                                <Button
-                                    key={store.id}
-                                    variant={store.id === centerRightView.id ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setCenterRightView(store)}
-                                    className="text-xs h-8"
-                                    title={store.name}
-                                >
-                                    #{String(store.number).padStart(2, '0')}
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+  <div id="MainUhubFeatureV001ForStoreColumn" className="border rounded-md p-2 flex flex-col h-full">
+    <div className="flex justify-between items-center mb-2">
+      <h4 className="font-semibold text-center flex-1">Store {String(centerRightView.number).padStart(2, '0')}</h4>
+      <a href={getCartUrl(storeProducts[centerRightView.number]?.[0] || null)} target="_blank" rel="noopener noreferrer">
+        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
+          <ShoppingCart className="h-4 w-4" />
+        </Button>
+      </a>
+    </div>
+    <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+      {isLoadingProducts ? (
+        <div className="text-center text-muted-foreground py-4">Loading products...</div>
+      ) : (storeProducts[centerRightView.number] && storeProducts[centerRightView.number].length > 0) ? (
+        storeProducts[centerRightView.number].map((p, i) => (
+          <div 
+            key={p.id || i}
+            className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+            onClick={() => {
+              setSelectedProduct(p);
+              setProductDetailModalOpen(true);
+            }}
+          >
+            {p.image_url && (
+              <img 
+                src={p.image_url} 
+                alt={p.name}
+                className="w-8 h-8 rounded object-cover flex-shrink-0"
+              />
             )}
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{p.name}</p>
+              {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedProduct(p);
+                setProductDetailModalOpen(true);
+              }}
+              title="View details"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        ))
+      ) : (
+        <div className="text-center text-muted-foreground py-4">No products available</div>
+      )}
+    </div>
+    <div className="border-t pt-2 mt-auto">
+      <div className="grid grid-cols-2 gap-1">
+        {ALL_STORES.slice(1, 31).map((store) => (
+          <Button
+            key={store.id}
+            variant={store.id === centerRightView.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => setCenterRightView(store)}
+            className="text-xs h-8"
+            title={store.name}
+          >
+            #{String(store.number).padStart(2, '0')}
+          </Button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
         </>
     );
   };
