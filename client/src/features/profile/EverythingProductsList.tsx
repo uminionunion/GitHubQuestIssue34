@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/ui/button';
-import { Search, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { Search, Plus, Minus } from 'lucide-react';
 
 interface Product {
   id: number;
@@ -48,50 +48,53 @@ const EverythingProductsList: React.FC<EverythingProductsListProps> = ({
   const shuffledProducts = [...products].sort(() => Math.random() - 0.5);
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 gap-3">
       {shuffledProducts.map((product) => (
         <div 
           key={product.id}
-          className="border rounded-md p-2 cursor-pointer hover:border-orange-400 transition relative h-32 group"
-          onClick={() => onProductView(product)}
+          className="border rounded-md p-2 cursor-pointer hover:border-orange-400 transition flex flex-col h-full"
         >
-          {/* Product Image */}
+          {/* Product Details - ALWAYS VISIBLE */}
+          <div className="mb-2 flex-shrink-0">
+            <p className="font-semibold text-xs truncate">{product.name}</p>
+            {product.price && <p className="text-orange-400 text-xs">${product.price.toFixed(2)}</p>}
+          </div>
+
+          {/* Product Image - Click to view details */}
           <div 
-            className="h-full bg-cover bg-center rounded mb-2"
+            className="flex-1 bg-cover bg-center rounded mb-2 cursor-pointer hover:opacity-90 transition"
             style={{ 
               backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)'
             }}
+            onClick={() => onProductView(product)}
+            title="Click to view product details"
           />
-          
-          {/* Product Info Overlay */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition flex flex-col justify-between p-2 rounded">
-            <div className="opacity-0 group-hover:opacity-100 transition text-white text-xs">
-              <p className="font-semibold truncate">{product.name}</p>
-              {product.price && <p className="text-orange-400">${product.price.toFixed(2)}</p>}
-            </div>
-            <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
+
+          {/* Action Buttons - ALWAYS VISIBLE */}
+          <div className="flex gap-1 flex-shrink-0">
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-6 w-6 text-white hover:text-orange-400 flex-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onProductView(product);
+              }}
+              title="View product details"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+            {onAddToCart && (
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="h-6 w-6 text-white hover:text-orange-400"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onProductView(product);
-                }}
+                className="h-6 w-6 text-white hover:text-orange-400 flex-1"
+                onClick={(e) => handleCartClick(e, product)}
+                title={inCart[product.id] ? "Remove from cart" : "Add to cart"}
               >
-                <Search className="h-4 w-4" />
+                {inCart[product.id] ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
               </Button>
-              {onAddToCart && (
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-6 w-6 text-white hover:text-orange-400"
-                  onClick={(e) => handleCartClick(e, product)}
-                >
-                  {inCart[product.id] ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       ))}
