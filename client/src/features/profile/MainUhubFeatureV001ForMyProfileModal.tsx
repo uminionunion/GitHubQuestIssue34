@@ -349,29 +349,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     )}
   </div>
 </div>            
-
-//i have an error. trying to find the error. is this whats causing the error? part000003 of X       
-//           {/* BOTTOM RIGHT: Everything - All Products No Duplicates */}
-//<div className="border rounded-lg p-4 flex flex-col h-full">
-//  <h3 className="font-bold mb-3">Everything</h3>
-//  <div className="flex-1 overflow-y-auto">
-//    <EverythingProductsList
-//      products={everythingProducts}
-//      isLoading={isLoadingProducts}
-//      onProductView={(product) => {
-//        setSelectedProduct(product);
-//        setProductDetailModalOpen(true);
-//      }}
-//      onAddToCart={handleAddToCart}
-//    />
-//  </div>
-// </div>
-//          </div>
-//        )}
-
         
  {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
-
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3">Everything</h3>
   <div className="flex-1 overflow-y-auto">
