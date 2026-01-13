@@ -569,8 +569,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isDraggingRight, setIsDraggingRight] = useState(false);
   const [isQuadrantsModalOpen, setIsQuadrantsModalOpen] = useState(false);
   const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
-  
-  const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
+
+  //i have an error. trying to find the error. is this whats causing the error? part000002 of X
+  // const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
 
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -636,25 +637,25 @@ useEffect(() => {
   }
 }, [user, isOpen]);
 
-
+//i have an error. trying to find the error. is this whats causing the error? part000001 of X
   // Fetch everything products separately (all products, no duplicates)
-useEffect(() => {
-  const fetchEverythingProducts = async () => {
-    try {
-      const res = await fetch('/api/products/everything/all');
-      const data = await res.json();
-      setEverythingProducts(Array.isArray(data) ? data : []);
-      console.log(`[PRODUCTS] Fetched ${data.length} products for Everything store`);
-    } catch (error) {
-      console.error('Error fetching everything products:', error);
-      setEverythingProducts([]);
-    }
-  };
-
-  if (isOpen) {
-    fetchEverythingProducts();
-  }
-}, [isOpen]);
+// useEffect(() => {
+ // const fetchEverythingProducts = async () => {
+  //  try {
+  //    const res = await fetch('/api/products/everything/all');
+  //    const data = await res.json();
+  //    setEverythingProducts(Array.isArray(data) ? data : []);
+  //    console.log(`[PRODUCTS] Fetched ${data.length} products for Everything store`);
+  //  } catch (error) {
+ //     console.error('Error fetching everything products:', error);
+ //     setEverythingProducts([]);
+//    }
+//  };
+//
+//  if (isOpen) {
+//    fetchEverythingProducts();
+//  }
+// }, [isOpen]);
 
   
   const handleMagnify = (product: Product) => {
