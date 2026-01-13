@@ -7,222 +7,165 @@ import {
   DialogDescription,
 } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
-import { ShoppingCart, MessageSquare } from 'lucide-react';
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import { ShoppingCart, Mail } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-
-interface Product {
-  id: number;
-  name: string;
-  subtitle?: string;
-  description?: string;
-  image_url: string;
-  price: number;
-  payment_method: string;
-  payment_url?: string;
-  woo_commerce_sku?: string;
-  store_type: string;
-  user_id?: number;
-}
 
 interface MainUhubFeatureV001ForProductDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  product: Product | null;
+  product: any;
 }
 
-const PaymentMethodDisplay = ({ method, url }: { method: string; url?: string }) => {
-  const methods: Record<string, { icon: string; text: string; color: string }> = {
-    own_website: {
-      icon: '🌐',
-      text: 'Available on seller\'s website',
-      color: 'bg-blue-50'
-    },
-    venmo: {
-      icon: '💳',
-      text: 'Venmo/CashApp available',
-      color: 'bg-cyan-50'
-    },
-    cash: {
-      icon: '💵',
-      text: 'Cash payment accepted',
-      color: 'bg-green-50'
-    },
-    card_coming_soon: {
-      icon: '🔒',
-      text: 'Card payments coming soon',
-      color: 'bg-purple-50'
-    },
-    other: {
-      icon: '❓',
-      text: 'Contact seller for payment options',
-      color: 'bg-gray-50'
-    }
-  };
-
-  const info = methods[method] || methods.other;
-
-  return (
-    <div className={`border rounded-lg p-4 mt-4 ${info.color}`}>
-      <h4 className="font-bold mb-3">Payment Method</h4>
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-2xl">{info.icon}</span>
-        <span className="text-sm font-medium">{info.text}</span>
-      </div>
-      {url && method === 'own_website' && (
-        <p className="text-xs text-gray-600 mb-3">
-          Link: <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-            {url}
-          </a>
-        </p>
-      )}
-      {url && (method === 'venmo' || method === 'cash' || method === 'other') && (
-        <p className="text-xs text-gray-600 mb-3">
-          Contact: <span className="font-mono">{url}</span>
-        </p>
-      )}
-    </div>
-  );
-};
-
-const MainUhubFeatureV001ForProductDetailModal: React.FC<MainUhubFeatureV001ForProductDetailModalProps> = ({
-  isOpen,
-  onClose,
-  product
-}) => {
+const MainUhubFeatureV001ForProductDetailModal: React.FC<MainUhubFeatureV001ForProductDetailModalProps> = ({ isOpen, onClose, product }) => {
   const { user } = useAuth();
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   if (!product) return null;
 
-  const handleWooCommerceAddToCart = (product: Product) => {
-    if (product.woo_commerce_sku) {
-      window.open(
-        `https://page001.uminion.com/cart/?add-to-cart=${product.woo_commerce_sku}`,
-        '_blank'
-      );
-    } else {
-      window.open('https://page001.uminion.com/cart/', '_blank');
+  // Get payment method display text
+  const getPaymentMethodDisplay = () => {
+    switch (product.payment_method) {
+      case 'cash':
+        return 'Cash';
+      case 'venmo_cashapp':
+        return 'Venmo / CashApp / Other Payment App';
+      case 'through_site':
+        return 'Through Website';
+      case 'through_union':
+        return 'Through the Union';
+      default:
+        return 'Not specified';
     }
   };
 
-  const handleAddToInternalCart = async () => {
+  const handleSendMessage = async () => {
     if (!user) {
-      alert('You must be logged in to add to cart');
+      alert('You must be logged in to contact the seller');
       return;
     }
 
-    if (product.store_type !== 'user') {
-      alert('Only user products can be added to internal cart');
+    if (!messageText.trim()) {
+      alert('Please enter a message');
       return;
     }
 
-    setIsAddingToCart(true);
+    setIsSendingMessage(true);
     try {
-      const response = await fetch('/api/products/cart/add', {
+      const response = await fetch('/api/chat/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          recipient_id: product.user_id,
+          message: messageText,
           product_id: product.id,
-          quantity: 1
-        })
+        }),
       });
 
       if (response.ok) {
-        alert('Added to your "Where to Buy" cart');
+        setMessageText('');
+        alert('Message sent to seller');
       } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to add to cart');
+        alert('Failed to send message');
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      alert('An error occurred');
+      console.error('Error sending message:', error);
+      alert('Error sending message');
     } finally {
-      setIsAddingToCart(false);
+      setIsSendingMessage(false);
     }
   };
 
-  const handleSendMessage = () => {
-    alert('Direct messaging feature coming soon!');
+  const handleAddToCart = () => {
+    if (product.payment_url) {
+      window.open(product.payment_url, '_blank');
+    } else {
+      alert('No purchase URL available. Please contact the seller.');
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[80vh] flex p-0">
-        {/* Left Side - Image */}
-        <div className="w-1/2 bg-black flex items-center justify-center overflow-hidden p-4">
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="max-h-full max-w-full object-contain"
-          />
+      <DialogContent className="max-w-4xl h-[85vh] flex p-0 overflow-hidden">
+        {/* Left side - Image */}
+        <div className="w-2/5 bg-black flex items-center justify-center overflow-hidden">
+          {product.image_url ? (
+            <img src={product.image_url} alt={product.name} className="max-h-full max-w-full object-contain" />
+          ) : (
+            <div className="flex items-center justify-center text-muted-foreground">
+              No image available
+            </div>
+          )}
         </div>
 
-        {/* Right Side - Details */}
-        <div className="w-1/2 p-8 flex flex-col overflow-y-auto">
-          <DialogHeader className="mb-4">
+        {/* Right side - Product Details */}
+        <div className="w-3/5 p-8 flex flex-col overflow-y-auto">
+          <DialogHeader className="mb-6">
             <DialogTitle className="text-3xl font-bold">{product.name}</DialogTitle>
-            {product.subtitle && (
-              <DialogDescription className="text-lg text-muted-foreground mt-2">
-                {product.subtitle}
-              </DialogDescription>
-            )}
+            {product.subtitle && <DialogDescription className="text-lg text-muted-foreground mt-2">{product.subtitle}</DialogDescription>}
           </DialogHeader>
 
           {/* Description */}
-          <div className="flex-grow my-6">
-            <p className="text-sm leading-relaxed">
-              {product.description || 'No description available.'}
-            </p>
+          <div className="mb-6">
+            <p className="text-sm">{product.description || "No description available."}</p>
           </div>
 
-          {/* Price and Cart Buttons */}
-          <div className="mt-auto">
-            <div className="flex items-center justify-between mb-6 pb-6 border-b">
-              <span className="text-3xl font-bold text-orange-500">
-                ${product.price?.toFixed(2) || '0.00'}
-              </span>
-            </div>
+          {/* Price */}
+          <div className="mb-6">
+            <p className="text-3xl font-bold text-orange-400">${product.price ? product.price.toFixed(2) : '0.00'}</p>
+          </div>
 
-            {/* Payment Method Display */}
-            <PaymentMethodDisplay
-              method={product.payment_method || 'own_website'}
-              url={product.payment_url}
-            />
+          {/* Payment Method Section */}
+          <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+            <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+              <Mail className="h-4 w-4 text-orange-400" />
+              Payment Method
+            </h3>
+            <p className="text-sm text-gray-200">{getPaymentMethodDisplay()}</p>
+            {product.payment_url && (
+              <p className="text-xs text-gray-400 mt-2">Website: {product.payment_url}</p>
+            )}
+          </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3 mt-6">
-              {product.store_type === 'main' ? (
-                <Button
-                  size="lg"
-                  className="w-full bg-orange-500 hover:bg-orange-600"
-                  onClick={() => handleWooCommerceAddToCart(product)}
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Add to WooCommerce Cart
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    size="lg"
-                    className="w-full"
-                    onClick={handleAddToInternalCart}
-                    disabled={isAddingToCart}
-                  >
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    {isAddingToCart ? 'Adding...' : 'Add to "Where to Buy" Cart'}
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleSendMessage}
-                  >
-                    <MessageSquare className="mr-2 h-5 w-5" />
-                    Message Seller
-                  </Button>
-                </>
-              )}
+          {/* Contact Seller Section */}
+          {user ? (
+            <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <Mail className="h-4 w-4 text-orange-400" />
+                Contact Seller
+              </h3>
+              <Textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Send a message to the seller..."
+                className="mb-2 bg-gray-900 border-gray-600 text-white"
+                rows={3}
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={isSendingMessage || !messageText.trim()}
+                className="w-full bg-orange-400 hover:bg-orange-500 text-white"
+              >
+                {isSendingMessage ? 'Sending...' : 'Send Message'}
+              </Button>
             </div>
+          ) : (
+            <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+              <p className="text-xs text-gray-300">Log in to contact the seller</p>
+            </div>
+          )}
+
+          {/* Add to Cart Button */}
+          <div className="mt-auto pt-4 border-t border-gray-700">
+            <Button 
+              onClick={handleAddToCart}
+              className="w-full bg-orange-400 hover:bg-orange-500 text-white h-12 text-lg"
+            >
+              <ShoppingCart className="mr-2 h-5 w-5" />
+              Add to Cart
+            </Button>
           </div>
         </div>
       </DialogContent>
