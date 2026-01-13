@@ -192,6 +192,9 @@ interface QuadrantsModalProps {
   onAddProductClick: () => void;
   getCartUrl: (product: Product | null) => string;
   storeProducts: { [key: number]: Product[] };
+  onProductView: (product: Product) => void;
+  onProductDelete: (productId: number) => void;
+  allProducts?: Product[];
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -205,7 +208,10 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   isLoadingProducts,
   onAddProductClick,
   getCartUrl,
-  storeProducts = {}
+  storeProducts = {},
+  onProductView,
+  onProductDelete,
+  allProducts = []
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -283,34 +289,13 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         Log in to manage your store
       </div>
     ) : user.is_high_high_high_admin === 1 ? (
-      // Show admin list for HIGH-HIGH-HIGH admins
       <AdminProductsList
         products={userStoreProducts}
         isLoading={isLoadingProducts}
-        onProductView={(product) => {
-          setSelectedProduct(product);
-          setProductDetailModalOpen(true);
-        }}
-        onProductDelete={async (productId: number) => {
-          try {
-            const response = await fetch(`/api/products/admin/${productId}`, {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
-            });
-            if (response.ok) {
-              // Refresh product list
-              const adminRes = await fetch('/api/products/admin/all');
-              const adminData = await adminRes.json();
-              setUserStoreProducts(Array.isArray(adminData) ? adminData : []);
-            }
-          } catch (error) {
-            console.error('Error deleting product:', error);
-            alert('Failed to delete product');
-          }
-        }}
+        onProductView={onProductView}
+        onProductDelete={onProductDelete}
       />
     ) : (
-      // Show simple list for regular users
       <div className="space-y-2">
         {userStoreProducts.length > 0 ? (
           userStoreProducts.map((p) => (
@@ -321,7 +306,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           ))
         ) : (
           <div className="text-center text-muted-foreground py-4 text-sm">
-            {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
+            No products yet
           </div>
         )}
       </div>
@@ -329,17 +314,15 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   </div>
 </div>
 
-            {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
+           {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3">Everything</h3>
   <div className="flex-1 overflow-y-auto">
     <EverythingProductsList
+      products={allProducts}
       isLoading={isLoadingProducts}
-      onProductView={(product) => {
-        setSelectedProduct(product);
-        setProductDetailModalOpen(true);
-      }}
-      getCartUrl={getCartUrl}
+      onProductView={onProductView}
+      onAddToCart={(product) => handleAddToCart(product)}
     />
   </div>
 </div>
@@ -1096,21 +1079,51 @@ default:
         )}
         
         <QuadrantsModal 
-          isOpen={isQuadrantsModalOpen}
-          onClose={() => setIsQuadrantsModalOpen(false)}
-          stores={ALL_STORES}
-          onSelectStore={(store) => setCenterRightView(store)}
-          user={user}
-          mainStoreProducts={mainStoreProducts}
-          userStoreProducts={userStoreProducts}
-          isLoadingProducts={isLoadingProducts}
-          onAddProductClick={() => {
-            setIsQuadrantsModalOpen(false);
-            setAddProductModalOpen(true);
-          }}
-          getCartUrl={getCartUrl}
-          storeProducts={storeProducts}
-        />
+  isOpen={isQuadrantsModalOpen}
+  onClose={() => setIsQuadrantsModalOpen(false)}
+  stores={ALL_STORES}
+  onSelectStore={(store) => setCenterRightView(store)}
+  user={user}
+  mainStoreProducts={mainStoreProducts}
+  userStoreProducts={userStoreProducts}
+  isLoadingProducts={isLoadingProducts}
+  onAddProductClick={() => {
+    setIsQuadrantsModalOpen(false);
+    setAddProductModalOpen(true);
+  }}
+  getCartUrl={getCartUrl}
+  storeProducts={storeProducts}
+  onProductView={(product) => {
+    setSelectedProduct(product);
+    setProductDetailModalOpen(true);
+  }}
+  onProductDelete={async (productId: number) => {
+    try {
+      const response = await fetch(`/api/products/${productId}/trash`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (response.ok) {
+        // Refresh product list
+        if (user) {
+          if (user.is_high_high_high_admin === 1) {
+            const adminRes = await fetch('/api/products/admin/all');
+            const adminData = await adminRes.json();
+            setUserStoreProducts(Array.isArray(adminData) ? adminData : []);
+          } else {
+            const userRes = await fetch(`/api/products/user/${user.id}`);
+            const userData = await userRes.json();
+            setUserStoreProducts(Array.isArray(userData) ? userData : []);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product');
+    }
+  }}
+  allProducts={[...mainStoreProducts, ...userStoreProducts, ...Object.values(storeProducts).flat()]}
+/>
 
         <HomeModal 
           isOpen={isHomeModalOpen}
