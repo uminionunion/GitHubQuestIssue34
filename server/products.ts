@@ -172,6 +172,36 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
+// GET - Get all products for "Everything" (all sources, no duplicates)
+router.get('/everything/all', async (req, res) => {
+  try {
+    // Fetch all products from all sources
+    const allProducts = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('is_in_trash', '=', 0)
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    // Deduplicate by product ID (in case there are duplicates)
+    const seen = new Set<number>();
+    const uniqueProducts = allProducts.filter(product => {
+      if (seen.has(product.id)) {
+        return false;
+      }
+      seen.add(product.id);
+      return true;
+    });
+
+    console.log(`[PRODUCTS] Fetched ${uniqueProducts.length} unique products for Everything store (deduped from ${allProducts.length})`);
+    res.json(uniqueProducts);
+  } catch (error) {
+    console.error('[PRODUCTS] Error fetching everything products:', error);
+    res.status(500).json({ message: 'Failed to fetch products' });
+  }
+});
+
+
 // POST - Move product to trash (soft delete)
 router.post('/:productId/trash', authenticate, async (req, res) => {
   if (!req.user) {
