@@ -248,18 +248,54 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         {currentPage === 1 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
             {/* TOP LEFT: Union Store */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
-              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
-                <h3 className="font-bold">Union Store</h3>
-                <Button variant="ghost" size="icon" className="h-6 w-6 p-0" onClick={() => {/* refresh */}}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex-1 overflow-y-auto space-y-2">
-                {/* Fetch and display main store products */}
-                {/* Same as before - shows all products from store #0 */}
-              </div>
-            </div>
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
+    <h3 className="font-bold">Union Store</h3>
+  </div>
+  <div className="flex-1 overflow-y-auto space-y-2">
+    {isLoadingProducts ? (
+      <div className="text-center text-muted-foreground py-4">Loading products...</div>
+    ) : mainStoreProducts.length > 0 ? (
+      mainStoreProducts.map((p) => (
+        <div 
+          key={p.id}
+          className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+          onClick={() => {
+            setSelectedProduct(p);
+            setProductDetailModalOpen(true);
+          }}
+        >
+          {p.image_url && (
+            <img 
+              src={p.image_url} 
+              alt={p.name}
+              className="w-8 h-8 rounded object-cover flex-shrink-0"
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold truncate">{p.name}</p>
+            {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedProduct(p);
+              setProductDetailModalOpen(true);
+            }}
+            title="View details"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        </div>
+      ))
+    ) : (
+      <div className="text-center text-muted-foreground py-4">No products available</div>
+    )}
+  </div>
+</div>
 
             {/* TOP RIGHT: Friends Stores */}
             <div className="border rounded-lg p-4 flex flex-col h-full">
@@ -737,57 +773,125 @@ useEffect(() => {
 
     return (
         <>
-            {isUnionSAM20 && (
-                <>
-                    <div id="MainUhubFeatureV001ForUnionStore" className="border rounded-md p-2">
-                        <div className="flex justify-between items-center mb-2">
-                            <h4 className="font-semibold text-center flex-1">Union Store</h4>
-                            <a href={getCartUrl(mainProducts[0] || null)} target="_blank" rel="noopener noreferrer">
-                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
-                                    <ShoppingCart className="h-4 w-4" />
-                                </Button>
-                            </a>
-                        </div>
-                        <div className="space-y-2">
-                            {isLoadingProducts ? (
-                                <div className="text-center text-muted-foreground py-4">Loading products...</div>
-                            ) : mainProducts.length > 0 ? (
-                                mainProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
-                            ) : (
-                                <div className="text-center text-muted-foreground py-4">No products available</div>
-                            )}
-                        </div>
-                    </div>
-                    <div id="MainUhubFeatureV001ForUsersStores" className="border rounded-md p-2">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center flex-1">
-                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white mr-2" onClick={() => {
-                                    if (!user) {
-                                        alert('You must be logged in to add a product.');
-                                        return;
-                                    }
-                                    setAddProductModalOpen(true)
-                                }}>
-                                    <Plus className="h-4 w-4" />
-                                </Button>
-                                <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
-                            </div>
-                            <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
-                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-black">
-                                    <ShoppingCart className="h-4 w-4" />
-                                </Button>
-                            </a>
-                        </div>
-                        <div className="space-y-2">
-                            {userProducts.length > 0 ? (
-                                userProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
-                            ) : (
-                                <div className="text-center text-muted-foreground py-4">No products yet</div>
-                            )}
-                        </div>
-                    </div>
-                </>
-            )}
+           {isUnionSAM20 && (
+  <>
+    <div id="MainUhubFeatureV001ForUnionStore" className="border rounded-md p-2">
+      <div className="flex justify-between items-center mb-2">
+        <h4 className="font-semibold text-center flex-1">Union Store</h4>
+        <a href={getCartUrl(mainStoreProducts[0] || null)} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
+        </a>
+      </div>
+      <div className="space-y-2">
+        {isLoadingProducts ? (
+          <div className="text-center text-muted-foreground py-4">Loading products...</div>
+        ) : mainStoreProducts.length > 0 ? (
+          mainStoreProducts.map((p, i) => (
+            <div 
+              key={p.id || i}
+              className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+              onClick={() => {
+                setSelectedProduct(p);
+                setProductDetailModalOpen(true);
+              }}
+            >
+              {p.image_url && (
+                <img 
+                  src={p.image_url} 
+                  alt={p.name}
+                  className="w-8 h-8 rounded object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold truncate">{p.name}</p>
+                {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedProduct(p);
+                  setProductDetailModalOpen(true);
+                }}
+                title="View details"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground py-4">No products available</div>
+        )}
+      </div>
+    </div>
+    <div id="MainUhubFeatureV001ForUsersStores" className="border rounded-md p-2">
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center flex-1">
+          <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white mr-2" onClick={() => {
+            if (!user) {
+              alert('You must be logged in to add a product.');
+              return;
+            }
+            setAddProductModalOpen(true)
+          }}>
+            <Plus className="h-4 w-4" />
+          </Button>
+          <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
+        </div>
+        <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-black">
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
+        </a>
+      </div>
+      <div className="space-y-2">
+        {userStoreProducts.length > 0 ? (
+          userStoreProducts.map((p, i) => (
+            <div 
+              key={p.id || i}
+              className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+              onClick={() => {
+                setSelectedProduct(p);
+                setProductDetailModalOpen(true);
+              }}
+            >
+              {p.image_url && (
+                <img 
+                  src={p.image_url} 
+                  alt={p.name}
+                  className="w-8 h-8 rounded object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold truncate">{p.name}</p>
+                {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedProduct(p);
+                  setProductDetailModalOpen(true);
+                }}
+                title="View details"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground py-4">No products yet</div>
+        )}
+      </div>
+    </div>
+  </>
+)}
 
             {isUnionPolitic19 && (
                 <div className="border rounded-md p-4 flex items-center justify-center text-muted-foreground h-48">
