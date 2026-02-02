@@ -27,19 +27,19 @@ const MainUhubFeatureV001ForProductDetailModal: React.FC<MainUhubFeatureV001ForP
 
   // Get payment method display text
   const getPaymentMethodDisplay = () => {
-    switch (product.payment_method) {
-      case 'cash':
-        return 'Cash';
-      case 'venmo_cashapp':
-        return 'Venmo / CashApp / Other Payment App';
-      case 'through_site':
-        return 'Through Website';
-      case 'through_union':
-        return 'Through the Union';
-      default:
-        return 'Not specified';
-    }
-  };
+  switch (product.payment_method) {
+    case 'cash':
+      return 'Cash';
+    case 'venmo_cashapp':
+      return 'Venmo / CashApp / Other Payment App';
+    case 'through_site':
+      return 'Purchase through user\'s website:';
+    case 'through_union':
+      return 'Through the Union';
+    default:
+      return 'Not specified';
+  }
+};
 
   const handleSendMessage = async () => {
     if (!user) {
@@ -117,25 +117,22 @@ const MainUhubFeatureV001ForProductDetailModal: React.FC<MainUhubFeatureV001ForP
             <p className="text-3xl font-bold text-orange-400">${product.price ? product.price.toFixed(2) : '0.00'}</p>
           </div>
 
-         {/* Payment Method Section */}
+       {/* Payment Method Section */}
 <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
   <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
     <Mail className="h-4 w-4 text-orange-400" />
     Payment Method
   </h3>
   <p className="text-sm text-gray-200">{getPaymentMethodDisplay()}</p>
-  {product.payment_url && product.payment_method === 'through_site' && (
+  {product.payment_method === 'through_site' && product.payment_url && (
     <a 
-      href={product.payment_url} 
-      target="_blank" 
+      href={product.payment_url}
+      target="_blank"
       rel="noopener noreferrer"
-      className="text-xs text-orange-400 hover:text-orange-300 mt-2 inline-block underline cursor-pointer"
+      className="text-orange-400 hover:underline text-xs mt-2 inline-block"
     >
-      Visit Website: {product.payment_url}
+      {product.payment_url}
     </a>
-  )}
-  {product.payment_url && product.payment_method !== 'through_site' && (
-    <p className="text-xs text-gray-400 mt-2">Website: {product.payment_url}</p>
   )}
 </div>
 
