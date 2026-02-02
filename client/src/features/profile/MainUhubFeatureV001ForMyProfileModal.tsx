@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
-import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain, Home, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain, Home, ChevronDown, ChevronUp, Trash2, Pencil } from 'lucide-react';
 import MainUhubFeatureV001ForChatModal from '../uminion/MainUhubFeatureV001ForChatModal';
 import { useAuth } from '../../hooks/useAuth';
 import MainUhubFeatureV001ForAddProductModal from './MainUhubFeatureV001ForAddProductModal';
@@ -195,9 +195,9 @@ interface QuadrantsModalProps {
   onProductView: (product: Product) => void;
   onProductDelete: (productId: number) => void;
   allProducts?: Product[];
-  allProductsForAdmin: Product[];
   setSelectedProduct: (product: Product | null) => void;
   setProductDetailModalOpen: (open: boolean) => void;
+  onProductEdit?: (product: Product) => void;
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -215,7 +215,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   onProductView,
   onProductDelete,
   allProducts = [],
-  allProductsForAdmin = []
+  onProductEdit = () => {}
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -308,7 +308,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
               </div>
             </div>
 
-      {/* BOTTOM LEFT: My Store - WITH ADMIN LIST */}
+      {/* BOTTOM LEFT: My Store - WITH EDIT BUTTON & GREEN SCROLLBAR */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
     <h3 className="font-bold">My Store</h3>
@@ -322,36 +322,144 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
       </Button>
     )}
   </div>
-  <div className="flex-1 overflow-y-auto">
+  <div 
+    className="flex-1 overflow-y-auto space-y-2 my-store-scrollable"
+    style={{
+      maxHeight: 'calc(100% - 40px)',
+      scrollbarWidth: 'thin',
+      scrollbarColor: '#22c55e transparent'
+    }}
+  >
+    <style>{`
+      .my-store-scrollable::-webkit-scrollbar {
+        width: 8px;
+      }
+      .my-store-scrollable::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .my-store-scrollable::-webkit-scrollbar-thumb {
+        background-color: #22c55e;
+        border-radius: 4px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+      .my-store-scrollable::-webkit-scrollbar-thumb:hover {
+        background-color: #16a34a;
+        background-clip: content-box;
+      }
+    `}</style>
     {!user ? (
       <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
         Log in to manage your store
       </div>
-    ) : user.is_high_high_high_admin === 1 ? (
-      <AdminProductsList
-        products={allProductsForAdmin}
-        isLoading={isLoadingProducts}
-        onProductView={onProductView}
-        onProductDelete={onProductDelete}
-      />
     ) : (
-      <div className="space-y-2">
+      <>
         {userStoreProducts.length > 0 ? (
-          userStoreProducts.map((p) => (
-            <div key={p.id} className="border rounded p-2 text-xs">
-              <p className="font-semibold">{p.name}</p>
-              {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
-            </div>
-          ))
+          userStoreProducts.map((p) => {
+            // Check if user can edit: owner or HIGH-HIGH-HIGH admin
+            const canEdit = user.id === p.user_id || user.is_high_high_high_admin === 1;
+            
+            return (
+              <div 
+                key={p.id}
+                className="border rounded-lg p-3 flex items-center gap-2 hover:border-orange-400 transition"
+              >
+                {/* Product Image */}
+                <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
+                  {p.image_url ? (
+                    <img 
+                      src={p.image_url} 
+                      alt={p.name} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
+                      No img
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Info */}
+                <div className="flex-grow min-w-0">
+                  <p className="font-semibold text-sm truncate">{p.name}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-1 flex-shrink-0">
+                  {/* Eye Button - View Details */}
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-blue-400 hover:text-blue-300"
+                    onClick={() => {
+                      onProductView(p);
+                    }}
+                    title="View product details"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+
+                  {/* Edit Button - Only if owner or admin */}
+                  {canEdit && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-green-400 hover:text-green-300"
+                      onClick={() => {
+                        onProductEdit(p);
+                      }}
+                      title="Edit product"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+
+                  {/* Trash Button - Only if owner or admin */}
+                  {canEdit && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-red-400 hover:text-red-300"
+                      onClick={async () => {
+                        if (confirm('Delete this product?')) {
+                          try {
+                            const response = await fetch(`/api/products/${p.id}/trash`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                            });
+                            if (response.ok) {
+                              const userRes = await fetch(`/api/products/user/${user.id}`);
+                              const userData = await userRes.json();
+                              // You'll need to pass a callback to refresh products here
+                              window.location.reload();
+                            }
+                          } catch (error) {
+                            console.error('Error deleting product:', error);
+                            alert('Failed to delete product');
+                          }
+                        }
+                      }}
+                      title="Delete product"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })
         ) : (
           <div className="text-center text-muted-foreground py-4 text-sm">
-            No products yet
+            {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
           </div>
         )}
-      </div>
+      </>
     )}
   </div>
-</div>           
+</div>
         
 {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
@@ -1335,6 +1443,10 @@ default:
       console.error('Error deleting product:', error);
       alert('Failed to delete product');
     }
+  }}
+  onProductEdit={(product: Product) => {
+    setSelectedProduct(product);
+    setAddProductModalOpen(true);
   }}
   allProducts={[...mainStoreProducts, ...userStoreProducts, ...Object.values(storeProducts).flat()]}
 />
