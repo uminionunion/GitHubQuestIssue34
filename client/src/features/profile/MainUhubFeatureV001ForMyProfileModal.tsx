@@ -152,7 +152,6 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
     );
 };
 
-
 const BroadcastView = ({ broadcast }) => (
     <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
@@ -179,7 +178,6 @@ const BroadcastView = ({ broadcast }) => (
     </div>
 );
 
-// QUADRANTS MODAL - PAGE 1 REDESIGNED
 interface QuadrantsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -195,6 +193,8 @@ interface QuadrantsModalProps {
   everythingProducts?: Product[];
   setSelectedProduct?: (product: Product | null) => void;
   setProductDetailModalOpen?: (open: boolean) => void;
+  onProductView?: (product: Product) => void;
+  onProductDelete?: (productId: number) => void;
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -211,7 +211,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   storeProducts = {},
   everythingProducts = [],
   setSelectedProduct,
-  setProductDetailModalOpen
+  setProductDetailModalOpen,
+  onProductView,
+  onProductDelete
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -228,7 +230,6 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     [null, null, null, null],
   ];
 
-  // Check if user is HIGH-HIGH-HIGH or HIGH-HIGH admin
   const canAddProducts = user && (user.is_high_high_high_admin === 1 || user.is_high_high_admin === 1);
 
   if (!isOpen) return null;
@@ -243,11 +244,10 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </Button>
         </div>
 
-        {/* PAGE 1 - REDESIGNED LAYOUT */}
         {currentPage === 1 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
-            {/* TOP LEFT: Union Store - LIMITED TO 10 WITH SCROLL */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
+            {/* TOP LEFT: Union Store - LIMITED TO 10 WITH VERTICAL SCROLL */}
+            <div className="border rounded-lg p-4 flex flex-col h-full overflow-hidden">
               <div className="flex justify-between items-center mb-3 sticky top-0 bg-background z-10">
                 <h3 className="font-bold">Union Store</h3>
               </div>
@@ -260,8 +260,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                       key={p.id}
                       className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
                       onClick={() => {
-                        setSelectedProduct(p);
-                        setProductDetailModalOpen(true);
+                        setSelectedProduct?.(p);
+                        setProductDetailModalOpen?.(true);
                       }}
                     >
                       {p.image_url && (
@@ -281,8 +281,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                         className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedProduct(p);
-                          setProductDetailModalOpen(true);
+                          setSelectedProduct?.(p);
+                          setProductDetailModalOpen?.(true);
                         }}
                         title="View details"
                       >
@@ -302,16 +302,16 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
             </div>
 
             {/* TOP RIGHT: Friends Stores */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
-              <h3 className="font-bold mb-3 sticky top-0 bg-background">Friends' Stores</h3>
-              <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+            <div className="border rounded-lg p-4 flex flex-col h-full overflow-hidden">
+              <h3 className="font-bold mb-3 sticky top-0 bg-background z-10">Friends' Stores</h3>
+              <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground overflow-y-auto">
                 (Friends' products)
               </div>
             </div>
 
             {/* BOTTOM LEFT: My Store - WITH ADD BUTTON */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
-              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
+            <div className="border rounded-lg p-4 flex flex-col h-full overflow-hidden">
+              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background z-10">
                 <h3 className="font-bold">My Store</h3>
                 {canAddProducts && (
                   <Button 
@@ -323,13 +323,13 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                   </Button>
                 )}
               </div>
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto space-y-2">
                 {!user ? (
                   <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                     Log in to manage your store
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <>
                     {userStoreProducts.length > 0 ? (
                       userStoreProducts.map((p) => (
                         <div key={p.id} className="border rounded p-2 text-xs">
@@ -342,13 +342,13 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                         {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             </div>
 
-            {/* BOTTOM RIGHT: Everything - All Products Limited to 10 with Scroll */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
+            {/* BOTTOM RIGHT: Everything - LIMITED TO 10 WITH VERTICAL SCROLL AND IMAGES */}
+            <div className="border rounded-lg p-4 flex flex-col h-full overflow-hidden">
               <h3 className="font-bold mb-3 sticky top-0 bg-background z-10">Everything</h3>
               <div className="flex-1 overflow-y-auto space-y-2">
                 {isLoadingProducts ? (
@@ -359,8 +359,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                       key={product.id}
                       className="border rounded-md p-2 relative h-24 group cursor-pointer hover:border-orange-400 transition"
                       onClick={() => {
-                        setSelectedProduct(product);
-                        setProductDetailModalOpen(true);
+                        setSelectedProduct?.(product);
+                        setProductDetailModalOpen?.(true);
                       }}
                     >
                       {/* BACKGROUND IMAGE - CENTERED */}
@@ -388,8 +388,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                             className="h-6 w-6 text-white hover:text-orange-400 hover:bg-black/50"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSelectedProduct(product);
-                              setProductDetailModalOpen(true);
+                              setSelectedProduct?.(product);
+                              setProductDetailModalOpen?.(true);
                             }}
                             title="View product details"
                           >
@@ -412,11 +412,10 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </div>
         )}
 
-        {/* PAGES 2-10 REMAIN THE SAME */}
         {currentPage > 1 && currentPage <= 9 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
             {storePages[currentPage - 1].map((store) => (
-              <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col">
+              <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col overflow-hidden">
                 <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
                 <div 
                   className={`flex-1 ${store ? 'bg-muted rounded-md bg-cover bg-center cursor-pointer' : 'bg-muted rounded-md flex items-center justify-center text-muted-foreground'}`}
@@ -467,7 +466,6 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   );
 };
 
-// HOME MODAL
 const HomeModal = ({ isOpen, onClose }) => {
   const [myAccountExpanded, setMyAccountExpanded] = useState(false);
 
@@ -602,24 +600,20 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     }
   }, [user, isOpen]);
 
-  // Fetch database products for all stores
   useEffect(() => {
     const fetchAllProducts = async () => {
       setIsLoadingProducts(true);
       try {
-        // Fetch main store products (store #0)
         const mainRes = await fetch('/api/products/store/0');
         const mainData = await mainRes.json();
         setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
 
-        // Fetch current user's products if logged in
         if (user) {
           const userRes = await fetch(`/api/products/user/${user.id}`);
           const userData = await userRes.json();
           setUserStoreProducts(Array.isArray(userData) ? userData : []);
         }
 
-        // Fetch products for each store #01-#30
         const storeProductsMap: { [key: number]: Product[] } = {};
         for (let storeNum = 1; storeNum <= 30; storeNum++) {
           try {
@@ -646,7 +640,6 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     }
   }, [user, isOpen]);
 
-  // Fetch everything products separately (all products, no duplicates)
   useEffect(() => {
     const fetchEverythingProducts = async () => {
       try {
@@ -685,12 +678,10 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
       return 'https://page001.uminion.com/cart/';
     }
 
-    // If product has SKU, link directly to WooCommerce with SKU
     if (product.sku_id) {
       return `https://page001.uminion.com/cart/?add-to-cart=${encodeURIComponent(product.sku_id)}`;
     }
 
-    // Default to general cart
     return 'https://page001.uminion.com/cart/';
   };
 
@@ -963,7 +954,6 @@ default:
           <X className="h-6 w-6" />
           <span className="sr-only">Close</span>
         </Button>
-         {/* Top Section */}
          <div className="md:flex md:flex-row hidden md:p-4 md:border-b md:gap-2">
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="md:w-1/5 grid grid-cols-4 md:grid-cols-2 grid-rows-1 md:grid-rows-2 gap-2 md:pr-4">
              <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
@@ -980,7 +970,6 @@ default:
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
 
-            {/* 8-Button Grid - SMALLER BUTTONS */}
             <div className="md:w-1/4 flex justify-center items-center md:pl-4">
               <div className="grid grid-cols-2 gap-1 w-fit">
                 <Button
@@ -1023,7 +1012,6 @@ default:
               </div>
             </div>
 
-           {/* Avatar */}
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
              <div onClick={handleProfileImageClick} className="cursor-pointer">
                <Avatar className="h-24 w-24 md:h-32 md:w-32">
@@ -1039,7 +1027,6 @@ default:
            </div>
          </div>
 
-         {/* Mobile Top Row */}
          <div className="md:hidden flex flex-col p-2 border-b gap-2">
            <div className="flex gap-2 items-center">
              <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
@@ -1071,7 +1058,6 @@ default:
            </div>
          </div>
 
-         {/* Center Section */}
          <div className="flex-grow flex overflow-hidden">
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : `${leftWidthDesktop}%` }}>
              <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
@@ -1098,7 +1084,6 @@ default:
            </div>
          </div>
 
-          {/* Bottom Section */}
           <div className="flex border-t md:h-auto h-12">
             <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-2 border-r flex items-center">
               <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
@@ -1158,7 +1143,6 @@ default:
     isOpen={isAddProductModalOpen} 
     onClose={() => setAddProductModalOpen(false)}
     onProductAdded={() => {
-      // Refresh user products
       if (user) {
         fetch(`/api/products/user/${user.id}`)
           .then(res => res.json())
