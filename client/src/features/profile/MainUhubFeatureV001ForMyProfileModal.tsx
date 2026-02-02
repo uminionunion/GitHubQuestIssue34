@@ -152,6 +152,7 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
     );
 };
 
+
 const BroadcastView = ({ broadcast }) => (
     <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
@@ -178,6 +179,7 @@ const BroadcastView = ({ broadcast }) => (
     </div>
 );
 
+// QUADRANTS MODAL - PAGE 1 REDESIGNED
 interface QuadrantsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -190,11 +192,9 @@ interface QuadrantsModalProps {
   onAddProductClick: () => void;
   getCartUrl: (product: Product | null) => string;
   storeProducts: { [key: number]: Product[] };
-  everythingProducts?: Product[];
-  setSelectedProduct?: (product: Product | null) => void;
-  setProductDetailModalOpen?: (open: boolean) => void;
-  onProductView?: (product: Product) => void;
-  onProductDelete?: (productId: number) => void;
+  onProductView: (product: Product) => void;
+  onProductDelete: (productId: number) => void;
+  allProducts?: Product[];
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -209,13 +209,12 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   onAddProductClick,
   getCartUrl,
   storeProducts = {},
-  everythingProducts = [],
-  setSelectedProduct,
-  setProductDetailModalOpen,
   onProductView,
-  onProductDelete
+  onProductDelete,
+  allProducts = []
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
   
   const storePages = [
     [],
@@ -230,6 +229,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     [null, null, null, null],
   ];
 
+  // Check if user is HIGH-HIGH-HIGH or HIGH-HIGH admin
   const canAddProducts = user && (user.is_high_high_high_admin === 1 || user.is_high_high_admin === 1);
 
   if (!isOpen) return null;
@@ -244,195 +244,178 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </Button>
         </div>
 
+        {/* PAGE 1 - REDESIGNED LAYOUT */}
         {currentPage === 1 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
-            {/* TOP LEFT: Union Store - LIMITED TO 10 WITH VERTICAL SCROLL */}
-            <div className="border rounded-lg p-4 flex flex-col h-full overflow-hidden">
-              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background z-10">
-                <h3 className="font-bold">Union Store</h3>
-              </div>
-              <div className="flex-1 overflow-y-auto space-y-2">
-                {isLoadingProducts ? (
-                  <div className="text-center text-muted-foreground py-4">Loading products...</div>
-                ) : mainStoreProducts.length > 0 ? (
-                  mainStoreProducts.slice(0, 10).map((p) => (
-                    <div 
-                      key={p.id}
-                      className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
-                      onClick={() => {
-                        setSelectedProduct?.(p);
-                        setProductDetailModalOpen?.(true);
-                      }}
-                    >
-                      {p.image_url && (
-                        <img 
-                          src={p.image_url} 
-                          alt={p.name}
-                          className="w-8 h-8 rounded object-cover flex-shrink-0"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate">{p.name}</p>
-                        {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedProduct?.(p);
-                          setProductDetailModalOpen?.(true);
-                        }}
-                        title="View details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center text-muted-foreground py-4">No products available</div>
-                )}
-              </div>
-              {mainStoreProducts.length > 10 && (
-                <div className="text-xs text-center text-muted-foreground mt-2 pt-2 border-t">
-                  Showing 10 of {mainStoreProducts.length} products (scroll to see all)
-                </div>
-              )}
-            </div>
+            {/* TOP LEFT: Union Store */}
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
+    <h3 className="font-bold">Union Store</h3>
+  </div>
+  <div className="flex-1 overflow-y-auto space-y-2 union-store-scrollable" style={{ maxHeight: 'calc(100% - 40px)' }}>
+    {isLoadingProducts ? (
+      <div className="text-center text-muted-foreground py-4">Loading products...</div>
+    ) : mainStoreProducts.length > 0 ? (
+      mainStoreProducts.map((p) => (
+        <div 
+          key={p.id}
+          className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+          onClick={() => {
+            setSelectedProduct(p);
+            setProductDetailModalOpen(true);
+          }}
+        >
+          {p.image_url && (
+            <img 
+              src={p.image_url} 
+              alt={p.name}
+              className="w-8 h-8 rounded object-cover flex-shrink-0"
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold truncate">{p.name}</p>
+            {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedProduct(p);
+              setProductDetailModalOpen(true);
+            }}
+            title="View details"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        </div>
+      ))
+    ) : (
+      <div className="text-center text-muted-foreground py-4">No products available</div>
+    )}
+  </div>
+</div>
 
             {/* TOP RIGHT: Friends Stores */}
-            <div className="border rounded-lg p-4 flex flex-col h-full overflow-hidden">
-              <h3 className="font-bold mb-3 sticky top-0 bg-background z-10">Friends' Stores</h3>
-              <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground overflow-y-auto">
+            <div className="border rounded-lg p-4 flex flex-col h-full">
+              <h3 className="font-bold mb-3 sticky top-0 bg-background">Friends' Stores</h3>
+              <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
                 (Friends' products)
               </div>
             </div>
 
-            {/* BOTTOM LEFT: My Store - WITH ADD BUTTON */}
-            <div className="border rounded-lg p-4 flex flex-col h-full overflow-hidden">
-              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background z-10">
-                <h3 className="font-bold">My Store</h3>
-                {canAddProducts && (
-                  <Button 
-                    size="sm" 
-                    onClick={onAddProductClick}
-                    className="bg-orange-400 hover:bg-orange-500 text-white"
-                  >
-                    <Plus className="h-4 w-4 mr-1" /> Add Product
-                  </Button>
-                )}
-              </div>
-              <div className="flex-1 overflow-y-auto space-y-2">
-                {!user ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                    Log in to manage your store
-                  </div>
-                ) : (
-                  <>
-                    {userStoreProducts.length > 0 ? (
-                      userStoreProducts.map((p) => (
-                        <div key={p.id} className="border rounded p-2 text-xs">
-                          <p className="font-semibold">{p.name}</p>
-                          {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center text-muted-foreground py-4 text-sm">
-                        {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
+            {/* BOTTOM LEFT: My Store - WITH ADMIN LIST */}
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
+    <h3 className="font-bold">My Store</h3>
+    {canAddProducts && (
+      <Button 
+        size="sm" 
+        onClick={onAddProductClick}
+        className="bg-orange-400 hover:bg-orange-500 text-white"
+      >
+        <Plus className="h-4 w-4 mr-1" /> Add Product
+      </Button>
+    )}
+  </div>
+  <div className="flex-1 overflow-y-auto">
+    {!user ? (
+      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+        Log in to manage your store
+      </div>
+    ) : user.is_high_high_high_admin === 1 ? (
+      <AdminProductsList
+        products={userStoreProducts}
+        isLoading={isLoadingProducts}
+        onProductView={onProductView}
+        onProductDelete={onProductDelete}
+      />
+    ) : (
+      <div className="space-y-2">
+        {userStoreProducts.length > 0 ? (
+          userStoreProducts.map((p) => (
+            <div key={p.id} className="border rounded p-2 text-xs">
+              <p className="font-semibold">{p.name}</p>
+              {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
             </div>
-
-            {/* BOTTOM RIGHT: Everything - LIMITED TO 10 WITH VERTICAL SCROLL AND IMAGES */}
-            <div className="border rounded-lg p-4 flex flex-col h-full overflow-hidden">
-              <h3 className="font-bold mb-3 sticky top-0 bg-background z-10">Everything</h3>
-              <div className="flex-1 overflow-y-auto space-y-2">
-                {isLoadingProducts ? (
-                  <div className="text-center text-muted-foreground py-4">Loading products...</div>
-                ) : everythingProducts.length > 0 ? (
-                  everythingProducts.slice(0, 10).map((product) => (
-                    <div
-                      key={product.id}
-                      className="border rounded-md p-2 relative h-24 group cursor-pointer hover:border-orange-400 transition"
-                      onClick={() => {
-                        setSelectedProduct?.(product);
-                        setProductDetailModalOpen?.(true);
-                      }}
-                    >
-                      {/* BACKGROUND IMAGE - CENTERED */}
-                      <div 
-                        className="absolute inset-0 rounded-md bg-cover bg-center"
-                        style={{ 
-                          backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-                          backgroundPosition: 'center'
-                        }}
-                      />
-                      
-                      {/* OVERLAY FOR READABILITY */}
-                      <div className="absolute inset-0 bg-black/40 rounded-md" />
-                      
-                      {/* TEXT ON TOP - NAME & PRICE */}
-                      <div className="absolute inset-0 flex flex-col justify-between p-2 rounded-md z-10">
-                        <div>
-                          <p className="font-semibold text-xs text-white truncate">{product.name}</p>
-                          {product.price && <p className="text-orange-400 text-xs font-bold">${product.price.toFixed(2)}</p>}
-                        </div>
-                        <div className="flex gap-1 justify-end">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6 text-white hover:text-orange-400 hover:bg-black/50"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedProduct?.(product);
-                              setProductDetailModalOpen?.(true);
-                            }}
-                            title="View product details"
-                          >
-                            <Search className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center text-muted-foreground py-4">No products available</div>
-                )}
-              </div>
-              {everythingProducts.length > 10 && (
-                <div className="text-xs text-center text-muted-foreground mt-2 pt-2 border-t">
-                  Showing 10 of {everythingProducts.length} products (scroll to see all)
-                </div>
-              )}
-            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground py-4 text-sm">
+            No products yet
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</div>            
+        
+ {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <h3 className="font-bold mb-3">Everything</h3>
+  <div className="flex-1 overflow-y-auto">
+    <EverythingProductsList
+products={allProducts}
+isLoading={isLoadingProducts}
+onProductView={onProductView}
+      onAddToCart={(product) => handleAddToCart(product)}
+    />
+  </div>
+</div>
           </div>
         )}
 
-        {currentPage > 1 && currentPage <= 9 && (
-          <div className="grid grid-cols-2 gap-4 h-[70vh]">
-            {storePages[currentPage - 1].map((store) => (
-              <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col overflow-hidden">
-                <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
-                <div 
-                  className={`flex-1 ${store ? 'bg-muted rounded-md bg-cover bg-center cursor-pointer' : 'bg-muted rounded-md flex items-center justify-center text-muted-foreground'}`}
-                  onClick={() => {
-                    if (store) {
-                      onSelectStore(store);
-                      onClose();
-                    }
-                  }}
-                  style={store ? {backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png')`} : {}}
-                  title={store ? `Click to view ${store.name}` : 'Coming soon'}
-                >
-                  {!store && 'Coming Soon'}
+        {/* PAGES 2-10 - SHOW STORE PRODUCTS */}
+{currentPage > 1 && currentPage <= 9 && (
+  <div className="grid grid-cols-2 gap-4 h-[70vh]">
+    {storePages[currentPage - 1].map((store) => {
+      const storeProds = store ? storeProducts[store.number] || [] : [];
+      return (
+        <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
+          <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
+          {store ? (
+            <div 
+              className="flex-1 rounded-md flex flex-col cursor-pointer hover:border-orange-400 transition overflow-y-auto space-y-2"
+            >
+              {storeProds.length > 0 ? (
+                storeProds.map((product) => (
+                  <div 
+                    key={product.id}
+                    className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setProductDetailModalOpen(true);
+                    }}
+                  >
+                    {product.image_url && (
+                      <img 
+                        src={product.image_url} 
+                        alt={product.name}
+                        className="w-8 h-8 rounded object-cover flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">{product.name}</p>
+                      {product.price && <p className="text-orange-400">${product.price.toFixed(2)}</p>}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                  No products available
                 </div>
-              </div>
-            ))}</div>
-        )}
+              )}
+            </div>
+          ) : (
+            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
+              Coming Soon
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+)}
 
         {currentPage === 10 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
@@ -466,6 +449,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   );
 };
 
+// HOME MODAL
 const HomeModal = ({ isOpen, onClose }) => {
   const [myAccountExpanded, setMyAccountExpanded] = useState(false);
 
@@ -542,6 +526,8 @@ const HomeModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
+        
+
         <div className="border rounded-lg p-4 mt-4 h-32 overflow-auto">
           <h3 className="font-bold mb-3">My Inventory</h3>
           <div className="text-center text-muted-foreground">
@@ -553,6 +539,7 @@ const HomeModal = ({ isOpen, onClose }) => {
   );
 };
 
+
 const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
   const { user } = useAuth();
   const MainUhubFeatureV001ForUHomeHubButtons = Array.from({ length: 30 }, (_, i) => i + 1);
@@ -560,7 +547,6 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [storeProducts, setStoreProducts] = useState<{ [key: number]: Product[] }>({});
   const [mainStoreProducts, setMainStoreProducts] = useState<Product[]>([]);
   const [userStoreProducts, setUserStoreProducts] = useState<Product[]>([]);
-  const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [centerRightView, setCenterRightView] = useState(ALL_STORES[20]);
   const [isAddProductModalOpen, setAddProductModalOpen] = useState(false);
@@ -581,6 +567,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isQuadrantsModalOpen, setIsQuadrantsModalOpen] = useState(false);
   const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
 
+  //i have an error. trying to find the error. is this whats causing the error? part000002 of X
+  // const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
+
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
       'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
@@ -600,64 +589,72 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     }
   }, [user, isOpen]);
 
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      setIsLoadingProducts(true);
-      try {
-        const mainRes = await fetch('/api/products/store/0');
-        const mainData = await mainRes.json();
-        setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
+  // Fetch database products for all stores
+useEffect(() => {
+  const fetchAllProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+      // Fetch main store products (store #0)
+      const mainRes = await fetch('/api/products/store/0');
+      const mainData = await mainRes.json();
+      setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
 
-        if (user) {
-          const userRes = await fetch(`/api/products/user/${user.id}`);
-          const userData = await userRes.json();
-          setUserStoreProducts(Array.isArray(userData) ? userData : []);
-        }
-
-        const storeProductsMap: { [key: number]: Product[] } = {};
-        for (let storeNum = 1; storeNum <= 30; storeNum++) {
-          try {
-            const storeRes = await fetch(`/api/products/store/${storeNum}`);
-            const storeData = await storeRes.json();
-            storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
-          } catch (error) {
-            console.error(`Error fetching products for store ${storeNum}:`, error);
-            storeProductsMap[storeNum] = [];
-          }
-        }
-        setStoreProducts(storeProductsMap);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        setMainStoreProducts([]);
-        setUserStoreProducts([]);
-      } finally {
-        setIsLoadingProducts(false);
+      // Fetch current user's products if logged in
+      if (user) {
+        const userRes = await fetch(`/api/products/user/${user.id}`);
+        const userData = await userRes.json();
+        setUserStoreProducts(Array.isArray(userData) ? userData : []);
       }
-    };
 
-    if (isOpen) {
-      fetchAllProducts();
-    }
-  }, [user, isOpen]);
-
-  useEffect(() => {
-    const fetchEverythingProducts = async () => {
-      try {
-        const res = await fetch('/api/products/everything/all');
-        const data = await res.json();
-        setEverythingProducts(Array.isArray(data) ? data : []);
-        console.log(`[PRODUCTS] Fetched ${data.length} products for Everything store`);
-      } catch (error) {
-        console.error('Error fetching everything products:', error);
-        setEverythingProducts([]);
+      // Fetch products for each store #01-#30
+      const storeProductsMap: { [key: number]: Product[] } = {};
+      for (let storeNum = 1; storeNum <= 30; storeNum++) {
+        try {
+          const storeRes = await fetch(`/api/products/store/${storeNum}`);
+          const storeData = await storeRes.json();
+          storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
+          console.log(`[PRODUCTS] Store ${storeNum} has ${storeProductsMap[storeNum].length} products`);
+        } catch (error) {
+          console.error(`Error fetching products for store ${storeNum}:`, error);
+          storeProductsMap[storeNum] = [];
+        }
       }
-    };
-
-    if (isOpen) {
-      fetchEverythingProducts();
+      setStoreProducts(storeProductsMap);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      setMainStoreProducts([]);
+      setUserStoreProducts([]);
+    } finally {
+      setIsLoadingProducts(false);
     }
-  }, [isOpen]);
+  };
 
+  if (isOpen) {
+    fetchAllProducts();
+  }
+}, [user, isOpen]);
+
+//i have an error. trying to find the error. is this whats causing the error? part000001 of X
+  // Fetch everything products separately (all products, no duplicates)
+// useEffect(() => {
+ // const fetchEverythingProducts = async () => {
+  //  try {
+  //    const res = await fetch('/api/products/everything/all');
+  //    const data = await res.json();
+  //    setEverythingProducts(Array.isArray(data) ? data : []);
+  //    console.log(`[PRODUCTS] Fetched ${data.length} products for Everything store`);
+  //  } catch (error) {
+ //     console.error('Error fetching everything products:', error);
+ //     setEverythingProducts([]);
+//    }
+//  };
+//
+//  if (isOpen) {
+//    fetchEverythingProducts();
+//  }
+// }, [isOpen]);
+
+  
   const handleMagnify = (product: Product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
@@ -678,10 +675,12 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
       return 'https://page001.uminion.com/cart/';
     }
 
+    // If product has SKU, link directly to WooCommerce with SKU
     if (product.sku_id) {
       return `https://page001.uminion.com/cart/?add-to-cart=${encodeURIComponent(product.sku_id)}`;
     }
 
+    // Default to general cart
     return 'https://page001.uminion.com/cart/';
   };
 
@@ -772,57 +771,125 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
     return (
         <>
-            {isUnionSAM20 && (
-                <>
-                    <div id="MainUhubFeatureV001ForUnionStore" className="border rounded-md p-2">
-                        <div className="flex justify-between items-center mb-2">
-                            <h4 className="font-semibold text-center flex-1">Union Store</h4>
-                            <a href={getCartUrl(mainProducts[0] || null)} target="_blank" rel="noopener noreferrer">
-                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
-                                    <ShoppingCart className="h-4 w-4" />
-                                </Button>
-                            </a>
-                        </div>
-                        <div className="space-y-2">
-                            {isLoadingProducts ? (
-                                <div className="text-center text-muted-foreground py-4">Loading products...</div>
-                            ) : mainProducts.length > 0 ? (
-                                mainProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
-                            ) : (
-                                <div className="text-center text-muted-foreground py-4">No products available</div>
-                            )}
-                        </div>
-                    </div>
-                    <div id="MainUhubFeatureV001ForUsersStores" className="border rounded-md p-2">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center flex-1">
-                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white mr-2" onClick={() => {
-                                    if (!user) {
-                                        alert('You must be logged in to add a product.');
-                                        return;
-                                    }
-                                    setAddProductModalOpen(true)
-                                }}>
-                                    <Plus className="h-4 w-4" />
-                                </Button>
-                                <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
-                            </div>
-                            <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
-                                <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-black">
-                                    <ShoppingCart className="h-4 w-4" />
-                                </Button>
-                            </a>
-                        </div>
-                        <div className="space-y-2">
-                            {userProducts.length > 0 ? (
-                                userProducts.map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
-                            ) : (
-                                <div className="text-center text-muted-foreground py-4">No products yet</div>
-                            )}
-                        </div>
-                    </div>
-                </>
-            )}
+           {isUnionSAM20 && (
+  <>
+    <div id="MainUhubFeatureV001ForUnionStore" className="border rounded-md p-2">
+      <div className="flex justify-between items-center mb-2">
+        <h4 className="font-semibold text-center flex-1">Union Store</h4>
+        <a href={getCartUrl(mainStoreProducts[0] || null)} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
+        </a>
+      </div>
+      <div className="space-y-2">
+        {isLoadingProducts ? (
+          <div className="text-center text-muted-foreground py-4">Loading products...</div>
+        ) : mainStoreProducts.length > 0 ? (
+          mainStoreProducts.map((p, i) => (
+            <div 
+              key={p.id || i}
+              className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+              onClick={() => {
+                setSelectedProduct(p);
+                setProductDetailModalOpen(true);
+              }}
+            >
+              {p.image_url && (
+                <img 
+                  src={p.image_url} 
+                  alt={p.name}
+                  className="w-8 h-8 rounded object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold truncate">{p.name}</p>
+                {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedProduct(p);
+                  setProductDetailModalOpen(true);
+                }}
+                title="View details"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground py-4">No products available</div>
+        )}
+      </div>
+    </div>
+    <div id="MainUhubFeatureV001ForUsersStores" className="border rounded-md p-2">
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center flex-1">
+          <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white mr-2" onClick={() => {
+            if (!user) {
+              alert('You must be logged in to add a product.');
+              return;
+            }
+            setAddProductModalOpen(true)
+          }}>
+            <Plus className="h-4 w-4" />
+          </Button>
+          <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
+        </div>
+        <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-black">
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
+        </a>
+      </div>
+      <div className="space-y-2">
+        {userStoreProducts.length > 0 ? (
+          userStoreProducts.map((p, i) => (
+            <div 
+              key={p.id || i}
+              className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+              onClick={() => {
+                setSelectedProduct(p);
+                setProductDetailModalOpen(true);
+              }}
+            >
+              {p.image_url && (
+                <img 
+                  src={p.image_url} 
+                  alt={p.name}
+                  className="w-8 h-8 rounded object-cover flex-shrink-0"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold truncate">{p.name}</p>
+                {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedProduct(p);
+                  setProductDetailModalOpen(true);
+                }}
+                title="View details"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground py-4">No products yet</div>
+        )}
+      </div>
+    </div>
+  </>
+)}
 
             {isUnionPolitic19 && (
                 <div className="border rounded-md p-4 flex items-center justify-center text-muted-foreground h-48">
@@ -831,42 +898,76 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
             )}
 
             {!isUnionSAM20 && !isUnionPolitic19 && (
-                <div id="MainUhubFeatureV001ForStoreColumn" className="border rounded-md p-2 flex flex-col h-full">
-                    <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-semibold text-center flex-1">Store {String(centerRightView.number).padStart(2, '0')}</h4>
-                        <a href={getCartUrl(storeProducts[centerRightView.number]?.[0] || null)} target="_blank" rel="noopener noreferrer">
-                            <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
-                                <ShoppingCart className="h-4 w-4" />
-                            </Button>
-                        </a>
-                    </div>
-                    <div className="flex-1 overflow-y-auto space-y-2 mb-4">
-                        {isLoadingProducts ? (
-                            <div className="text-center text-muted-foreground py-4">Loading products...</div>
-                        ) : (storeProducts[centerRightView.number] && storeProducts[centerRightView.number].length > 0) ? (
-                            storeProducts[centerRightView.number].map((p, i) => <ProductBox key={p.id || i} product={p} onMagnify={handleMagnify} onAddToCart={handleAddToCart} />)
-                        ) : (
-                            <div className="text-center text-muted-foreground py-4">No products available</div>
-                        )}
-                    </div>
-                    <div className="border-t pt-2 mt-auto">
-                        <div className="grid grid-cols-2 gap-1">
-                            {ALL_STORES.slice(1, 31).map((store) => (
-                                <Button
-                                    key={store.id}
-                                    variant={store.id === centerRightView.id ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setCenterRightView(store)}
-                                    className="text-xs h-8"
-                                    title={store.name}
-                                >
-                                    #{String(store.number).padStart(2, '0')}
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+  <div id="MainUhubFeatureV001ForStoreColumn" className="border rounded-md p-2 flex flex-col h-full">
+    <div className="flex justify-between items-center mb-2">
+      <h4 className="font-semibold text-center flex-1">Store {String(centerRightView.number).padStart(2, '0')}</h4>
+      <a href={getCartUrl(storeProducts[centerRightView.number]?.[0] || null)} target="_blank" rel="noopener noreferrer">
+        <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white">
+          <ShoppingCart className="h-4 w-4" />
+        </Button>
+      </a>
+    </div>
+    <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+      {isLoadingProducts ? (
+        <div className="text-center text-muted-foreground py-4">Loading products...</div>
+      ) : (storeProducts[centerRightView.number] && storeProducts[centerRightView.number].length > 0) ? (
+        storeProducts[centerRightView.number].map((p, i) => (
+          <div 
+            key={p.id || i}
+            className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+            onClick={() => {
+              setSelectedProduct(p);
+              setProductDetailModalOpen(true);
+            }}
+          >
+            {p.image_url && (
+              <img 
+                src={p.image_url} 
+                alt={p.name}
+                className="w-8 h-8 rounded object-cover flex-shrink-0"
+              />
             )}
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{p.name}</p>
+              {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedProduct(p);
+                setProductDetailModalOpen(true);
+              }}
+              title="View details"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        ))
+      ) : (
+        <div className="text-center text-muted-foreground py-4">No products available</div>
+      )}
+    </div>
+    <div className="border-t pt-2 mt-auto">
+      <div className="grid grid-cols-2 gap-1">
+        {ALL_STORES.slice(1, 31).map((store) => (
+          <Button
+            key={store.id}
+            variant={store.id === centerRightView.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => setCenterRightView(store)}
+            className="text-xs h-8"
+            title={store.name}
+          >
+            #{String(store.number).padStart(2, '0')}
+          </Button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
         </>
     );
   };
@@ -954,6 +1055,7 @@ default:
           <X className="h-6 w-6" />
           <span className="sr-only">Close</span>
         </Button>
+         {/* Top Section */}
          <div className="md:flex md:flex-row hidden md:p-4 md:border-b md:gap-2">
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopLeftSection" className="md:w-1/5 grid grid-cols-4 md:grid-cols-2 grid-rows-1 md:grid-rows-2 gap-2 md:pr-4">
              <Button variant="outline" className="flex flex-col h-full items-center justify-center relative text-xs" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
@@ -970,6 +1072,7 @@ default:
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
 
+            {/* 8-Button Grid - SMALLER BUTTONS */}
             <div className="md:w-1/4 flex justify-center items-center md:pl-4">
               <div className="grid grid-cols-2 gap-1 w-fit">
                 <Button
@@ -1012,6 +1115,7 @@ default:
               </div>
             </div>
 
+           {/* Avatar */}
            <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
              <div onClick={handleProfileImageClick} className="cursor-pointer">
                <Avatar className="h-24 w-24 md:h-32 md:w-32">
@@ -1027,6 +1131,7 @@ default:
            </div>
          </div>
 
+         {/* Mobile Top Row */}
          <div className="md:hidden flex flex-col p-2 border-b gap-2">
            <div className="flex gap-2 items-center">
              <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
@@ -1058,6 +1163,7 @@ default:
            </div>
          </div>
 
+         {/* Center Section */}
          <div className="flex-grow flex overflow-hidden">
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : `${leftWidthDesktop}%` }}>
              <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
@@ -1084,6 +1190,7 @@ default:
            </div>
          </div>
 
+          {/* Bottom Section */}
           <div className="flex border-t md:h-auto h-12">
             <div id="MainUhubFeatureV001ForMyProfileSettingsBottomLeftSection" className="w-[20%] p-1 md:p-2 border-r flex items-center">
               <Button variant="ghost" size="icon" className="h-6 w-6 md:h-6 md:w-6 p-1" onClick={() => handleSocialNavLeft('left')}><ChevronLeft className="h-3 w-3 md:h-2.5 md:w-2.5" /></Button>
@@ -1143,6 +1250,7 @@ default:
     isOpen={isAddProductModalOpen} 
     onClose={() => setAddProductModalOpen(false)}
     onProductAdded={() => {
+      // Refresh user products
       if (user) {
         fetch(`/api/products/user/${user.id}`)
           .then(res => res.json())
@@ -1157,24 +1265,51 @@ default:
         )}
         
         <QuadrantsModal 
-          isOpen={isQuadrantsModalOpen}
-          onClose={() => setIsQuadrantsModalOpen(false)}
-          stores={ALL_STORES}
-          onSelectStore={(store) => setCenterRightView(store)}
-          user={user}
-          mainStoreProducts={mainStoreProducts}
-          userStoreProducts={userStoreProducts}
-          isLoadingProducts={isLoadingProducts}
-          onAddProductClick={() => {
-            setIsQuadrantsModalOpen(false);
-            setAddProductModalOpen(true);
-          }}
-          getCartUrl={getCartUrl}
-          storeProducts={storeProducts}
-          everythingProducts={everythingProducts}
-          setSelectedProduct={setSelectedProduct}
-          setProductDetailModalOpen={setProductDetailModalOpen}
-        />
+  isOpen={isQuadrantsModalOpen}
+  onClose={() => setIsQuadrantsModalOpen(false)}
+  stores={ALL_STORES}
+  onSelectStore={(store) => setCenterRightView(store)}
+  user={user}
+  mainStoreProducts={mainStoreProducts}
+  userStoreProducts={userStoreProducts}
+  isLoadingProducts={isLoadingProducts}
+  onAddProductClick={() => {
+    setIsQuadrantsModalOpen(false);
+    setAddProductModalOpen(true);
+  }}
+  getCartUrl={getCartUrl}
+  storeProducts={storeProducts}
+  onProductView={(product) => {
+    setSelectedProduct(product);
+    setProductDetailModalOpen(true);
+  }}
+  onProductDelete={async (productId: number) => {
+    try {
+      const response = await fetch(`/api/products/${productId}/trash`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (response.ok) {
+        // Refresh product list
+        if (user) {
+          if (user.is_high_high_high_admin === 1) {
+            const adminRes = await fetch('/api/products/admin/all');
+            const adminData = await adminRes.json();
+            setUserStoreProducts(Array.isArray(adminData) ? adminData : []);
+          } else {
+            const userRes = await fetch(`/api/products/user/${user.id}`);
+            const userData = await userRes.json();
+            setUserStoreProducts(Array.isArray(userData) ? userData : []);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product');
+    }
+  }}
+  allProducts={[...mainStoreProducts, ...userStoreProducts, ...Object.values(storeProducts).flat()]}
+/>
 
         <HomeModal 
           isOpen={isHomeModalOpen}
