@@ -247,19 +247,20 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         {/* PAGE 1 - REDESIGNED LAYOUT */}
         {currentPage === 1 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
-            {/* TOP LEFT: Union Store */}
+            
+            {/* TOP LEFT: Union Store - WITH HEIGHT CONSTRAINT FOR 10 ITEMS */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
-  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
+  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background z-10">
     <h3 className="font-bold">Union Store</h3>
   </div>
-  <div className="flex-1 overflow-y-auto space-y-2 union-store-scrollable" style={{ maxHeight: 'calc(100% - 40px)' }}>
+  <div className="union-store-scrollable" style={{ maxHeight: '380px', overflow: 'hidden', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
     {isLoadingProducts ? (
       <div className="text-center text-muted-foreground py-4">Loading products...</div>
     ) : mainStoreProducts.length > 0 ? (
       mainStoreProducts.map((p) => (
         <div 
           key={p.id}
-          className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+          className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer flex-shrink-0"
           onClick={() => {
             setSelectedProduct(p);
             setProductDetailModalOpen(true);
