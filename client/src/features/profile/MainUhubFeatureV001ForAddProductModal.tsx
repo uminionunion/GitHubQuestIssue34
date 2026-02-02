@@ -9,22 +9,67 @@ interface MainUhubFeatureV001ForAddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onProductAdded?: () => void;
+  editingProduct?: Product | null;
 }
 
-const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddProductModalProps> = ({ isOpen, onClose, onProductAdded }) => {
+interface Product {
+  id: number;
+  name: string;
+  subtitle?: string | null;
+  description?: string | null;
+  price?: number | null;
+  image_url?: string | null;
+  payment_method?: string | null;
+  payment_url?: string | null;
+  sku_id?: string | null;
+  store_id?: number | null;
+}
+
+const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddProductModalProps> = ({ isOpen, onClose, onProductAdded, editingProduct = null }) => {
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [image, setImage] = useState<File | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [qrCodeImage, setQrCodeImage] = useState<File | null>(null);
+  const [existingQrImageUrl, setExistingQrImageUrl] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [wooSku, setWooSku] = useState('');
   const [storeId, setStoreId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [isEditMode] = useState(!!editingProduct);
+
+  // Pre-fill form when editing
+  React.useEffect(() => {
+    if (editingProduct) {
+      setTitle(editingProduct.name || '');
+      setSubtitle(editingProduct.subtitle || '');
+      setDescription(editingProduct.description || '');
+      setPrice((editingProduct.price || '').toString());
+      setExistingImageUrl(editingProduct.image_url || '');
+      setPaymentMethod(editingProduct.payment_method || '');
+      setExistingQrImageUrl(''); // QR code is typically not stored, just payment_url
+      setWebsiteUrl(editingProduct.payment_url || '');
+      setWooSku(editingProduct.sku_id || '');
+      setStoreId((editingProduct.store_id || '').toString());
+    } else {
+      // Reset form for new product
+      setTitle('');
+      setSubtitle('');
+      setDescription('');
+      setPrice('');
+      setExistingImageUrl('');
+      setPaymentMethod('');
+      setExistingQrImageUrl('');
+      setWebsiteUrl('');
+      setWooSku('');
+      setStoreId('');
+    }
+  }, [editingProduct, isOpen]);
 
   if (!isOpen || !user) return null;
 
@@ -45,109 +90,95 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
+  setError('');
 
-    if (!title || price === '') {
-      setError('Title and price are required');
+  if (!title || price === '') {
+    setError('Title and price are required');
+    return;
+  }
+
+  if (!paymentMethod) {
+    setError('Payment method is required');
+    return;
+  }
+
+  if (paymentMethod === 'venmo_cashapp' && !qrCodeImage && !existingQrImageUrl) {
+    setError('QR code image is required for Venmo/CashApp option');
+    return;
+  }
+
+  if (paymentMethod === 'through_site' && !websiteUrl) {
+    setError('Website URL is required for "Through Site" option');
+    return;
+  }
+
+  if ((isHighHighHighAdmin || isHighHighAdmin) && !storeId) {
+    setError('Store selection is required');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const formData = new FormData();
+    formData.append('name', title);
+    formData.append('subtitle', subtitle);
+    formData.append('description', description);
+    formData.append('price', price);
+    formData.append('payment_method', paymentMethod);
+    formData.append('payment_url', websiteUrl);
+    formData.append('sku_id', wooSku);
+
+    if ((isHighHighHighAdmin || isHighHighAdmin) && storeId) {
+      formData.append('store_id', storeId);
+    }
+
+    if (image) {
+      formData.append('image', image);
+    }
+
+    if (qrCodeImage) {
+      formData.append('qr_code_image', qrCodeImage);
+    }
+
+    // If editing, send PATCH request; if creating, send POST
+    const url = isEditMode ? `/api/products/${editingProduct.id}` : '/api/products';
+    const method = isEditMode ? 'PATCH' : 'POST';
+
+    const response = await fetch(url, {
+      method: method,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      setError(data.message || `Failed to ${isEditMode ? 'update' : 'create'} product`);
       return;
     }
 
-    if (!paymentMethod) {
-      setError('Payment method is required');
-      return;
+    if (onProductAdded) {
+      onProductAdded();
     }
 
-    if (paymentMethod === 'venmo_cashapp' && !qrCodeImage) {
-      setError('QR code image is required for Venmo/CashApp option');
-      return;
-    }
-
-    if (paymentMethod === 'through_site' && !websiteUrl) {
-      setError('Website URL is required for "Through Site" option');
-      return;
-    }
-
-    // Check if store selection is required for admins
-    if ((isHighHighHighAdmin || isHighHighAdmin) && !storeId) {
-      setError('Store selection is required');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('name', title);
-      formData.append('subtitle', subtitle);
-      formData.append('description', description);
-      formData.append('price', price);
-      formData.append('payment_method', paymentMethod);
-
-      // Add payment data based on method
-      if (paymentMethod === 'venmo_cashapp' && qrCodeImage) {
-        formData.append('qr_code_image', qrCodeImage);
-      } else if (paymentMethod === 'through_site' && websiteUrl) {
-        formData.append('payment_url', websiteUrl);
-      }
-
-      if (isHighHighHighAdmin && wooSku) {
-        formData.append('sku_id', wooSku);
-      }
-
-      // Both HIGH-HIGH-HIGH and HIGH-HIGH admins can select stores
-      if ((isHighHighHighAdmin || isHighHighAdmin) && storeId) {
-        formData.append('store_id', storeId);
-      }
-
-      if (image) {
-        formData.append('image', image);
-      }
-
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create product');
-      }
-
-      // Reset form
-      setTitle('');
-      setSubtitle('');
-      setDescription('');
-      setPrice('');
-      setPaymentMethod('');
-      setQrCodeImage(null);
-      setWebsiteUrl('');
-      setWooSku('');
-      setStoreId('');
-      setImage(null);
-
-      if (onProductAdded) {
-        onProductAdded();
-      }
-
-      onClose();
-    } catch (err) {
-      console.error('Error creating product:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create product');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    onClose();
+  } catch (error) {
+    console.error('Error submitting product:', error);
+    setError('An error occurred. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
       <div className="bg-background border rounded-lg p-6 max-w-2xl w-[90%] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Add a New Product to Your Store</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
+  <h2 className="text-2xl font-bold">{isEditMode ? 'Edit Product' : 'Add Product'}</h2>
+  <Button variant="ghost" size="icon" onClick={onClose}>
+    <X className="h-6 w-6" />
+  </Button>
+</div>
 
         {error && (
           <div className="bg-red-500/20 border border-red-500 text-red-200 p-3 rounded mb-4 text-sm">
@@ -348,13 +379,9 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button
-              type="submit"
-              disabled={isSubmitting || !title || price === '' || !paymentMethod}
-              className="bg-orange-400 hover:bg-orange-500 flex-1"
-            >
-              {isSubmitting ? 'Adding Product...' : 'Add Product'}
-            </Button>
+            <Button type="submit" className="w-full bg-orange-400 hover:bg-orange-500 text-white" disabled={isSubmitting}>
+  {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Product' : 'Add Product')}
+</Button>
             <Button
               type="button"
               variant="outline"
