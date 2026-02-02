@@ -52,14 +52,16 @@ const EverythingProductsList: React.FC<EverythingProductsListProps> = ({
       <div className="grid grid-cols-2 gap-3">
         {shuffledProducts.map((product) => (
           <div 
-            key={product.id}
-            className="border rounded-md p-2 cursor-pointer hover:border-orange-400 transition flex flex-col h-32 relative overflow-hidden"
-            style={{ 
-              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
+             key={product.id}
+             className="border rounded-md p-2 cursor-pointer hover:border-orange-400 transition flex flex-col h-32 relative overflow-hidden"
+             style={{ 
+               backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+               backgroundSize: 'cover',
+               backgroundPosition: 'center'
+             }}
+             onClick={() => onProductView(product)}
+             title="Click to view product details"
+           >
             {/* Overlay for better text visibility */}
             <div className="absolute inset-0 bg-black bg-opacity-40"></div>
 
