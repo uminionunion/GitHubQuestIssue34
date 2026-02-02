@@ -306,7 +306,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
               </div>
             </div>
 
-            {/* BOTTOM LEFT: My Store - WITH ADMIN LIST */}
+      {/* BOTTOM LEFT: My Store - WITH ADMIN LIST */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
     <h3 className="font-bold">My Store</h3>
@@ -327,7 +327,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
       </div>
     ) : user.is_high_high_high_admin === 1 ? (
       <AdminProductsList
-        products={userStoreProducts}
+        products={allProductsForAdmin}
         isLoading={isLoadingProducts}
         onProductView={onProductView}
         onProductDelete={onProductDelete}
@@ -349,7 +349,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
       </div>
     )}
   </div>
-</div>            
+</div>           
         
 {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
@@ -578,6 +578,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   //i have an error. trying to find the error. is this whats causing the error? part000002 of X
   // const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
 
+  
+  const [allProductsForAdmin, setAllProductsForAdmin] = useState<Product[]>([]);
+  
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
       'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
@@ -607,11 +610,24 @@ useEffect(() => {
       const mainData = await mainRes.json();
       setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
 
-      // Fetch current user's products if logged in
+     // Fetch current user's products if logged in
       if (user) {
         const userRes = await fetch(`/api/products/user/${user.id}`);
         const userData = await userRes.json();
         setUserStoreProducts(Array.isArray(userData) ? userData : []);
+
+        // If HIGH-HIGH-HIGH admin, fetch all products
+        if (user.is_high_high_high_admin === 1) {
+          try {
+            const adminRes = await fetch('/api/products/admin/all');
+            const adminData = await adminRes.json();
+            setAllProductsForAdmin(Array.isArray(adminData) ? adminData : []);
+            console.log(`[PRODUCTS] Fetched ${adminData.length} products for admin`);
+          } catch (error) {
+            console.error('Error fetching admin products:', error);
+            setAllProductsForAdmin([]);
+          }
+        }
       }
 
       // Fetch products for each store #01-#30
