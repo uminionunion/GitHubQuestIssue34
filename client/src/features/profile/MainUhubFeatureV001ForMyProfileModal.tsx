@@ -264,8 +264,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           key={p.id}
           className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer flex-shrink-0"
           onClick={() => {
-            setSelectedProduct(p);
-            setProductDetailModalOpen(true);
+            onProductView(p);
           }}
         >
           {p.image_url && (
@@ -285,12 +284,11 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
             className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedProduct(p);
-              setProductDetailModalOpen(true);
+              onProductView(p);
             }}
-            title="View details"
+            title="View product details"
           >
-            <Eye className="h-4 w-4" />
+            <Search className="h-4 w-4" />
           </Button>
         </div>
       ))
