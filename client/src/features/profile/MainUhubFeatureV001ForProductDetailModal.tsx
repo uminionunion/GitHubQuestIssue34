@@ -136,33 +136,35 @@ const MainUhubFeatureV001ForProductDetailModal: React.FC<MainUhubFeatureV001ForP
   )}
 </div>
 
-          {/* Contact Seller Section */}
-          {user ? (
-            <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                <Mail className="h-4 w-4 text-orange-400" />
-                Contact Seller
-              </h3>
-              <Textarea
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                placeholder="Send a message to the seller..."
-                className="mb-2 bg-gray-900 border-gray-600 text-white"
-                rows={3}
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={isSendingMessage || !messageText.trim()}
-                className="w-full bg-orange-400 hover:bg-orange-500 text-white"
-              >
-                {isSendingMessage ? 'Sending...' : 'Send Message'}
-              </Button>
-            </div>
-          ) : (
-            <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-              <p className="text-xs text-gray-300">Log in to contact the seller</p>
-            </div>
-          )}
+          {/* Contact Seller Section - Only show if NOT purchasing through website */}
+{product.payment_method !== 'through_site' && (
+  user ? (
+    <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+      <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+        <Mail className="h-4 w-4 text-orange-400" />
+        Contact Seller
+      </h3>
+      <Textarea
+        value={messageText}
+        onChange={(e) => setMessageText(e.target.value)}
+        placeholder="Send a message to the seller..."
+        className="mb-2 bg-gray-900 border-gray-600 text-white"
+        rows={3}
+      />
+      <Button
+        onClick={handleSendMessage}
+        disabled={isSendingMessage || !messageText.trim()}
+        className="w-full bg-orange-400 hover:bg-orange-500 text-white"
+      >
+        {isSendingMessage ? 'Sending...' : 'Send Message'}
+      </Button>
+    </div>
+  ) : (
+    <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+      <p className="text-xs text-gray-300">Log in to contact the seller</p>
+    </div>
+  )
+)}
 
           {/* Add to Cart Button */}
           <div className="mt-auto pt-4 border-t border-gray-700">
