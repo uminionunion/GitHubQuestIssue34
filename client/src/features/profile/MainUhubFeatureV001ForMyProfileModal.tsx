@@ -284,7 +284,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
   onClick={(e) => {
     e.stopPropagation();
-    handleMagnify(p);
+    onProductView(p);
   }}
   title="View details"
 >
