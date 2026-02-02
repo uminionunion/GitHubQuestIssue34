@@ -278,18 +278,18 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
             <p className="font-semibold truncate">{p.name}</p>
             {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              onProductView(p);
-            }}
-            title="View product details"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
+        <Button
+  variant="ghost"
+  size="icon"
+  className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleMagnify(p);
+  }}
+  title="View details"
+>
+  <Eye className="h-4 w-4" />
+</Button>
         </div>
       ))
     ) : (
