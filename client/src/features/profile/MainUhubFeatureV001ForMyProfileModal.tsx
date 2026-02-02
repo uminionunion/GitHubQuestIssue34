@@ -1305,6 +1305,7 @@ default:
   storeProducts={storeProducts}
   setSelectedProduct={setSelectedProduct}
   setProductDetailModalOpen={setProductDetailModalOpen}
+  allProductsForAdmin={allProductsForAdmin}
   onProductView={(product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
