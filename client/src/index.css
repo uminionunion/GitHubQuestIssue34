@@ -127,3 +127,29 @@
   scrollbar-color: #facc15 transparent;
   scrollbar-width: thin;
 }
+
+
+
+/* Everything Store Custom Scrollbar - StoreIntegration074 */
+.everything-store-scrollable::-webkit-scrollbar {
+  width: 12px;
+}
+
+.everything-store-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.everything-store-scrollable::-webkit-scrollbar-thumb {
+  background: #ff6b1a;
+  border-radius: 6px;
+}
+
+.everything-store-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #ff5500;
+}
+
+/* Firefox scrollbar for everything-store-scrollable */
+.everything-store-scrollable {
+  scrollbar-color: #ff6b1a transparent;
+  scrollbar-width: thin;
+}
