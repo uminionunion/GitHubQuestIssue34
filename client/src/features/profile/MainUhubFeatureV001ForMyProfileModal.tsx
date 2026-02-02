@@ -351,18 +351,25 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   </div>
 </div>            
         
- {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
+{/* BOTTOM RIGHT: Everything - All Products from All Sources */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3">Everything</h3>
-  <div className="flex-1 overflow-y-auto">
+  <div className="flex-1 overflow-hidden">
     <EverythingProductsList
-products={allProducts}
-isLoading={isLoadingProducts}
-onProductView={onProductView}
-      onAddToCart={(product) => handleAddToCart(product)}
+      products={allProducts}
+      isLoading={isLoadingProducts}
+      onProductView={onProductView}
+      onAddToCart={(product) => {
+        // Handle add to cart for everything products
+        console.log('Added to cart:', product);
+      }}
     />
   </div>
 </div>
+
+
+
+            
           </div>
         )}
 
