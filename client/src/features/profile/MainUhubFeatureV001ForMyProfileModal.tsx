@@ -195,6 +195,7 @@ interface QuadrantsModalProps {
   onProductView: (product: Product) => void;
   onProductDelete: (productId: number) => void;
   allProducts?: Product[];
+  allProductsForAdmin: Product[];
   setSelectedProduct: (product: Product | null) => void;
   setProductDetailModalOpen: (open: boolean) => void;
 }
@@ -213,7 +214,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   storeProducts = {},
   onProductView,
   onProductDelete,
-  allProducts = []
+  allProducts = [],
+  allProductsForAdmin = []
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
