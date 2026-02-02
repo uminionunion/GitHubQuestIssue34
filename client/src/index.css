@@ -99,3 +99,31 @@
     scrollbar-width: thin;
   }
 }
+
+
+
+
+
+/* Union Store Custom Scrollbar */
+.union-store-scrollable::-webkit-scrollbar {
+  width: 12px;
+}
+
+.union-store-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.union-store-scrollable::-webkit-scrollbar-thumb {
+  background: #facc15;
+  border-radius: 6px;
+}
+
+.union-store-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #eab308;
+}
+
+/* Firefox scrollbar */
+.union-store-scrollable {
+  scrollbar-color: #facc15 transparent;
+  scrollbar-width: thin;
+}
