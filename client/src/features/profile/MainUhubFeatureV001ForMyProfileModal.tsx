@@ -195,6 +195,8 @@ interface QuadrantsModalProps {
   onProductView: (product: Product) => void;
   onProductDelete: (productId: number) => void;
   allProducts?: Product[];
+  setSelectedProduct: (product: Product | null) => void;
+  setProductDetailModalOpen: (open: boolean) => void;
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
