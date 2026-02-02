@@ -1382,14 +1382,25 @@ default:
         {isAddProductModalOpen && (
   <MainUhubFeatureV001ForAddProductModal 
     isOpen={isAddProductModalOpen} 
-    onClose={() => setAddProductModalOpen(false)}
+    onClose={() => {
+      setAddProductModalOpen(false);
+      setSelectedProduct(null);
+    }}
+    editingProduct={selectedProduct}
     onProductAdded={() => {
       // Refresh user products
       if (user) {
-        fetch(`/api/products/user/${user.id}`)
-          .then(res => res.json())
-          .then(data => setUserStoreProducts(Array.isArray(data) ? data : []))
-          .catch(err => console.error('Error refreshing products:', err));
+        if (user.is_high_high_high_admin === 1) {
+          fetch('/api/products/admin/all')
+            .then(res => res.json())
+            .then(data => setUserStoreProducts(Array.isArray(data) ? data : []))
+            .catch(err => console.error('Error refreshing products:', err));
+        } else {
+          fetch(`/api/products/user/${user.id}`)
+            .then(res => res.json())
+            .then(data => setUserStoreProducts(Array.isArray(data) ? data : []))
+            .catch(err => console.error('Error refreshing products:', err));
+        }
       }
     }}
   />
