@@ -1289,6 +1289,8 @@ default:
   }}
   getCartUrl={getCartUrl}
   storeProducts={storeProducts}
+  setSelectedProduct={setSelectedProduct}
+  setProductDetailModalOpen={setProductDetailModalOpen}
   onProductView={(product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
@@ -1300,7 +1302,6 @@ default:
         headers: { 'Content-Type': 'application/json' },
       });
       if (response.ok) {
-        // Refresh product list
         if (user) {
           if (user.is_high_high_high_admin === 1) {
             const adminRes = await fetch('/api/products/admin/all');
