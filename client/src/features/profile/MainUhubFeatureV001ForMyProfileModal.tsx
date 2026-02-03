@@ -558,57 +558,74 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </div>
         )}
 
-        {/* PAGES 2-10 - SHOW STORE PRODUCTS */}
-{currentPage > 1 && currentPage <= 9 && (
-  <div className="grid grid-cols-2 gap-4 h-[70vh]">
-    {storePages[currentPage - 1].map((store) => {
-      const storeProds = store ? storeProducts[store.number] || [] : [];
-      return (
-        <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
-          <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
-          {store ? (
-            <div 
-              className="flex-1 rounded-md flex flex-col cursor-pointer hover:border-orange-400 transition overflow-y-auto space-y-2"
-            >
-              {storeProds.length > 0 ? (
-                storeProds.map((product) => (
-                  <div 
-                    key={product.id}
-                    className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setProductDetailModalOpen(true);
-                    }}
-                  >
-                    {product.image_url && (
-                      <img 
-                        src={product.image_url} 
-                        alt={product.name}
-                        className="w-8 h-8 rounded object-cover flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{product.name}</p>
-                      {product.price && <p className="text-orange-400">${product.price.toFixed(2)}</p>}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                  No products available
+       {/* PAGES 2-10 - Display products for each store */}
+        {currentPage > 1 && currentPage <= 9 && (
+          <div className="grid grid-cols-2 gap-4 h-[70vh]">
+            {storePages[currentPage - 1].map((store) => (
+              <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-bold">{store?.displayName || 'Coming Soon'}</h3>
+                  {store && store.number !== 0 && (
+                    <a href={getCartUrl(storeProducts[store.number]?.[0] || null)} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white h-6 w-6">
+                        <ShoppingCart className="h-3 w-3" />
+                      </Button>
+                    </a>
+                  )}
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
-              Coming Soon
-            </div>
-          )}
-        </div>
-      );
-    })}
-  </div>
-)}
+                
+                {store ? (
+                  <div className="flex-1 overflow-y-auto space-y-2">
+                    {isLoadingProducts ? (
+                      <div className="text-center text-muted-foreground py-4 text-xs">Loading...</div>
+                    ) : (storeProducts[store.number] && storeProducts[store.number].length > 0) ? (
+                      storeProducts[store.number].map((p) => (
+                        <div 
+                          key={p.id}
+                          className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+                          onClick={() => {
+                            setSelectedProduct(p);
+                            setProductDetailModalOpen(true);
+                          }}
+                        >
+                          {p.image_url && (
+                            <img 
+                              src={p.image_url} 
+                              alt={p.name}
+                              className="w-6 h-6 rounded object-cover flex-shrink-0"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold truncate text-xs">{p.name}</p>
+                            {p.price && <p className="text-orange-400 text-xs">${p.price.toFixed(2)}</p>}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-white hover:text-orange-400 flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProduct(p);
+                              setProductDetailModalOpen(true);
+                            }}
+                            title="View details"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted-foreground py-4 text-xs">No products</div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex-1 rounded-md flex items-center justify-center text-muted-foreground">
+                    Coming Soon
+                  </div>
+                )}
+              </div>
+            ))}</div>
+        )}
 
         {currentPage === 10 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
