@@ -233,8 +233,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     [null, null, null, null],
   ];
 
-  // Check if user is HIGH-HIGH-HIGH or HIGH-HIGH admin
-  const canAddProducts = user && (user.is_high_high_high_admin === 1 || user.is_high_high_admin === 1);
+  // Check if user is logged in (to be able see the 'add product' button; yes?' -12:18am on 2/3/26
+  const canAddProducts = !!user;
 
   if (!isOpen) return null;
 
