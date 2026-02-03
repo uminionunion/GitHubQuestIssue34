@@ -539,15 +539,58 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3">Everything</h3>
   <div className="flex-1 overflow-hidden">
-    <EverythingProductsList
-      products={everythingProducts}
-      isLoading={isLoadingProducts}
-      onProductView={onProductView}
-      onAddToCart={(product) => {
-        // Handle add to cart for everything products
-        console.log('Added to cart:', product);
-      }}
-    />
+    {allProducts && allProducts.length > 0 ? (
+      <div className="space-y-2 overflow-y-auto h-full">
+        {allProducts.map((product) => (
+          <div 
+            key={product.id}
+            className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
+          >
+            {/* Product Image */}
+            <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
+              {product.image_url ? (
+                <img 
+                  src={product.image_url} 
+                  alt={product.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
+                  No img
+                </div>
+              )}
+            </div>
+
+            {/* Product Info */}
+            <div className="flex-grow min-w-0">
+              <p className="font-semibold text-sm truncate">{product.name}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>${product.price ? product.price.toFixed(2) : '0.00'}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-1 flex-shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-blue-400 hover:text-blue-300"
+                onClick={() => {
+                  onProductView(product);
+                }}
+                title="View product details"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center text-muted-foreground py-4 text-sm">
+        No products available
+      </div>
+    )}
   </div>
 </div>
 
