@@ -145,6 +145,7 @@ router.get('/store/:storeId', async (req, res) => {
       .orderBy('created_at', 'desc')
       .execute();
 
+    console.log(`[PRODUCTS] Store ${storeId} fetch: found ${products.length} products`);
     res.json(products);
   } catch (error) {
     console.error('[PRODUCTS] Error fetching store products:', error);
