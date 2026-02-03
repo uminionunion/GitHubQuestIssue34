@@ -538,83 +538,68 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3">Everything</h3>
-  <div 
-    className="flex-1 overflow-y-auto"
-    style={{
-      maxHeight: 'calc(100% - 40px)',
-      scrollbarColor: '#f97316 #1f2937',
-      scrollbarWidth: 'thin'
-    }}
-  >
-    <style>{`
-      div[style*="maxHeight: calc(100% - 40px)"]::-webkit-scrollbar {
-        width: 12px;
-      }
-      div[style*="maxHeight: calc(100% - 40px)"]::-webkit-scrollbar-track {
-        background: #1f2937;
-        border-radius: 6px;
-      }
-      div[style*="maxHeight: calc(100% - 40px)"]::-webkit-scrollbar-thumb {
-        background: #f97316;
-        border-radius: 6px;
-      }
-      div[style*="maxHeight: calc(100% - 40px)"]::-webkit-scrollbar-thumb:hover {
-        background: #ea580c;
-      }
-    `}</style>
-    <div className="grid grid-cols-2 gap-2">
-      {isLoadingProducts ? (
-        <div className="col-span-2 text-center text-muted-foreground py-4">Loading products...</div>
-      ) : allProducts && allProducts.length > 0 ? (
-        // Shuffle and show random products (max 20 visible at once)
-        [...allProducts].sort(() => Math.random() - 0.5).slice(0, 20).map((product) => (
-          <div
+  <div className="flex-1 overflow-hidden">
+    {allProducts && allProducts.length > 0 ? (
+      <div className="space-y-2 overflow-y-auto h-full">
+        {allProducts.map((product) => (
+          <div 
             key={product.id}
-            className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
-            style={{
-              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-            onClick={() => onProductView(product)}
+            className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
           >
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
-
-            {/* Product Name */}
-            <div className="relative z-10 text-xs font-semibold text-white truncate">
-              {product.name}
+            {/* Product Image */}
+            <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
+              {product.image_url ? (
+                <img 
+                  src={product.image_url} 
+                  alt={product.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
+                  No img
+                </div>
+              )}
             </div>
 
-            {/* Eye Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onProductView(product);
-              }}
-              className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
-              title="View product details"
-            >
-              <Search className="h-3 w-3 text-white" />
-            </button>
-
-            {/* Price */}
-            {product.price && (
-              <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
-                ${product.price.toFixed(2)}
+            {/* Product Info */}
+            <div className="flex-grow min-w-0">
+              <p className="font-semibold text-sm truncate">{product.name}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>${product.price ? product.price.toFixed(2) : '0.00'}</span>
               </div>
-            )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-1 flex-shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-blue-400 hover:text-blue-300"
+                onClick={() => {
+                  onProductView(product);
+                }}
+                title="View product details"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        ))
-      ) : (
-        <div className="col-span-2 text-center text-muted-foreground py-4 text-sm">
-          No products available
-        </div>
-      )}
-    </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center text-muted-foreground py-4 text-sm">
+        No products available
+      </div>
+    )}
   </div>
 </div>
-)}
+
+
+
+            
+          </div>
+        )}
+
         
 
        {/* PAGES 2-10 REMAIN THE SAME */}
