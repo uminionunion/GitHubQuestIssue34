@@ -197,7 +197,7 @@ interface QuadrantsModalProps {
   allProducts?: Product[];
   setSelectedProduct: (product: Product | null) => void;
   setProductDetailModalOpen: (open: boolean) => void;
-  onProductEdit?: (product: Product) => void;
+  allProductsForAdmin?: Product[];
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -215,7 +215,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   onProductView,
   onProductDelete,
   allProducts = [],
-  onProductEdit = () => {}
+  allProductsForAdmin = []
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -308,7 +308,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
               </div>
             </div>
 
-      {/* BOTTOM LEFT: My Store - WITH EDIT BUTTON & GREEN SCROLLBAR */}
+      {/* BOTTOM LEFT: My Store - WITH ADD BUTTON AND SCROLLBAR */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <div className="flex justify-between items-center mb-3 sticky top-0 bg-background">
     <h3 className="font-bold">My Store</h3>
@@ -323,140 +323,60 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     )}
   </div>
   <div 
-    className="flex-1 overflow-y-auto space-y-2 my-store-scrollable"
+    className="flex-1 overflow-y-auto space-y-2"
     style={{
-      maxHeight: 'calc(100% - 40px)',
-      scrollbarWidth: 'thin',
-      scrollbarColor: '#22c55e transparent'
+      maxHeight: '480px',
+      scrollbarColor: '#22c55e #1f2937',
+      scrollbarWidth: 'thin'
     }}
   >
     <style>{`
-      .my-store-scrollable::-webkit-scrollbar {
+      div[style*="maxHeight: 480px"]::-webkit-scrollbar {
         width: 8px;
       }
-      .my-store-scrollable::-webkit-scrollbar-track {
-        background: transparent;
+      div[style*="maxHeight: 480px"]::-webkit-scrollbar-track {
+        background: #1f2937;
       }
-      .my-store-scrollable::-webkit-scrollbar-thumb {
-        background-color: #22c55e;
+      div[style*="maxHeight: 480px"]::-webkit-scrollbar-thumb {
+        background: #22c55e;
         border-radius: 4px;
-        border: 2px solid transparent;
-        background-clip: content-box;
       }
-      .my-store-scrollable::-webkit-scrollbar-thumb:hover {
-        background-color: #16a34a;
-        background-clip: content-box;
+      div[style*="maxHeight: 480px"]::-webkit-scrollbar-thumb:hover {
+        background: #16a34a;
       }
     `}</style>
     {!user ? (
       <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
         Log in to manage your store
       </div>
-    ) : (
-      <>
-        {userStoreProducts.length > 0 ? (
-          userStoreProducts.map((p) => {
-            // Check if user can edit: owner or HIGH-HIGH-HIGH admin
-            const canEdit = user.id === p.user_id || user.is_high_high_high_admin === 1;
-            
-            return (
-              <div 
-                key={p.id}
-                className="border rounded-lg p-3 flex items-center gap-2 hover:border-orange-400 transition"
-              >
-                {/* Product Image */}
-                <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
-                  {p.image_url ? (
-                    <img 
-                      src={p.image_url} 
-                      alt={p.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
-                      No img
-                    </div>
-                  )}
-                </div>
-
-                {/* Product Info */}
-                <div className="flex-grow min-w-0">
-                  <p className="font-semibold text-sm truncate">{p.name}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-1 flex-shrink-0">
-                  {/* Eye Button - View Details */}
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-blue-400 hover:text-blue-300"
-                    onClick={() => {
-                      onProductView(p);
-                    }}
-                    title="View product details"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-
-                  {/* Edit Button - Only if owner or admin */}
-                  {canEdit && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-green-400 hover:text-green-300"
-                      onClick={() => {
-                        onProductEdit(p);
-                      }}
-                      title="Edit product"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  )}
-
-                  {/* Trash Button - Only if owner or admin */}
-                  {canEdit && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-red-400 hover:text-red-300"
-                      onClick={async () => {
-                        if (confirm('Delete this product?')) {
-                          try {
-                            const response = await fetch(`/api/products/${p.id}/trash`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                            });
-                            if (response.ok) {
-                              const userRes = await fetch(`/api/products/user/${user.id}`);
-                              const userData = await userRes.json();
-                              // You'll need to pass a callback to refresh products here
-                              window.location.reload();
-                            }
-                          } catch (error) {
-                            console.error('Error deleting product:', error);
-                            alert('Failed to delete product');
-                          }
-                        }
-                      }}
-                      title="Delete product"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="text-center text-muted-foreground py-4 text-sm">
-            {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
+    ) : user.is_high_high_high_admin === 1 ? (
+      // HIGH-HIGH-HIGH admin: show all products
+      allProductsForAdmin.length > 0 ? (
+        allProductsForAdmin.map((p) => (
+          <div key={p.id} className="border rounded p-2 text-xs">
+            <p className="font-semibold">{p.name}</p>
+            {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
           </div>
-        )}
-      </>
+        ))
+      ) : (
+        <div className="text-center text-muted-foreground py-4 text-sm">
+          No products available
+        </div>
+      )
+    ) : (
+      // Regular user: show only their own products
+      userStoreProducts.length > 0 ? (
+        userStoreProducts.map((p) => (
+          <div key={p.id} className="border rounded p-2 text-xs">
+            <p className="font-semibold">{p.name}</p>
+            {p.price && <p className="text-muted-foreground">${p.price.toFixed(2)}</p>}
+          </div>
+        ))
+      ) : (
+        <div className="text-center text-muted-foreground py-4 text-sm">
+          {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
+        </div>
+      )
     )}
   </div>
 </div>
