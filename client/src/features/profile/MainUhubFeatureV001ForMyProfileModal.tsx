@@ -1523,6 +1523,7 @@ default:
   }}
   getCartUrl={getCartUrl}
   storeProducts={storeProducts}
+  allProducts={everythingProducts}
   setSelectedProduct={setSelectedProduct}
   setProductDetailModalOpen={setProductDetailModalOpen}
   allProductsForAdmin={allProductsForAdmin}
