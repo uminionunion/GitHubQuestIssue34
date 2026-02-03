@@ -252,7 +252,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         {currentPage === 1 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
             
-            {/* TOP LEFT: Union Store - WITH HEIGHT CONSTRAINT FOR 10 ITEMS */}
+           {/* TOP LEFT: Union Store */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <div className="flex justify-between items-center mb-3 sticky top-0 bg-background z-10">
     <h3 className="font-bold">Union Store</h3>
@@ -265,9 +265,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         <div 
           key={p.id}
           className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer flex-shrink-0"
-          onClick={() => {
-            onProductView(p);
-          }}
+          onClick={() => onProductView(p)}
         >
           {p.image_url && (
             <img 
@@ -280,18 +278,18 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
             <p className="font-semibold truncate">{p.name}</p>
             {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
           </div>
-        <Button
-  variant="ghost"
-  size="icon"
-  className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
-  onClick={(e) => {
-    e.stopPropagation();
-    onProductView(p);
-  }}
-  title="View details"
->
-  <Eye className="h-4 w-4" />
-</Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onProductView(p);
+            }}
+            title="View details"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
         </div>
       ))
     ) : (
@@ -558,21 +556,16 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </div>
         )}
 
-        {/* PAGES 2-10 - SHOW STORE PRODUCTS */}
+       {/* PAGES 2-10 - SHOW STORE PRODUCTS */}
 {currentPage > 1 && currentPage <= 9 && (
   <div className="grid grid-cols-2 gap-4 h-[70vh]">
     {storePages[currentPage - 1].map((store) => {
       const storeProds = store ? storeProducts[store.number] || [] : [];
-      if (store) {
-        console.log(`[QUADRANTS] Page ${currentPage}, Store #${store.number}: Found ${storeProds.length} products`, storeProds.length > 0 ? storeProds : 'EMPTY');
-      }
       return (
         <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
           <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
           {store ? (
-            <div 
-              className="flex-1 rounded-md flex flex-col cursor-pointer hover:border-orange-400 transition overflow-y-auto space-y-2"
-            >
+            <div className="flex-1 rounded-md flex flex-col cursor-pointer hover:border-orange-400 transition overflow-y-auto space-y-2">
               {storeProds.length > 0 ? (
                 storeProds.map((product) => (
                   <div 
@@ -795,24 +788,26 @@ useEffect(() => {
   const fetchAllProducts = async () => {
     setIsLoadingProducts(true);
     try {
-      // Fetch main store products (store #0)
+      // Fetch main store products (store #0) - UNION STORE
       const mainRes = await fetch('/api/products/store/0');
       const mainData = await mainRes.json();
       setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
+      console.log(`[PRODUCTS] Main store (store #0) has ${Array.isArray(mainData) ? mainData.length : 0} products`);
 
       // Fetch current user's products if logged in
       if (user) {
         const userRes = await fetch(`/api/products/user/${user.id}`);
         const userData = await userRes.json();
         setUserStoreProducts(Array.isArray(userData) ? userData : []);
+        console.log(`[PRODUCTS] User ${user.id} has ${Array.isArray(userData) ? userData.length : 0} products`);
 
-        // If HIGH-HIGH-HIGH admin, fetch all products
+        // If HIGH-HIGH-HIGH admin, fetch all products for admin view
         if (user.is_high_high_high_admin === 1) {
           try {
             const adminRes = await fetch('/api/products/admin/all');
             const adminData = await adminRes.json();
             setAllProductsForAdmin(Array.isArray(adminData) ? adminData : []);
-            console.log(`[PRODUCTS] Fetched ${adminData.length} products for admin`);
+            console.log(`[PRODUCTS] Admin fetched ${Array.isArray(adminData) ? adminData.length : 0} total products`);
           } catch (error) {
             console.error('Error fetching admin products:', error);
             setAllProductsForAdmin([]);
@@ -820,44 +815,36 @@ useEffect(() => {
         }
       }
 
-     // Fetch products for each store #01-#30
+      // Fetch products for each store #01-#30
       const storeProductsMap: { [key: number]: Product[] } = {};
       for (let storeNum = 1; storeNum <= 30; storeNum++) {
         try {
           const storeRes = await fetch(`/api/products/store/${storeNum}`);
-          if (!storeRes.ok) {
-            console.warn(`[PRODUCTS] Store ${storeNum} fetch returned status ${storeRes.status}`);
-            storeProductsMap[storeNum] = [];
-            continue;
-          }
           const storeData = await storeRes.json();
           storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
           if (storeProductsMap[storeNum].length > 0) {
-            console.log(`[PRODUCTS] Store ${storeNum} has ${storeProductsMap[storeNum].length} products:`, storeProductsMap[storeNum].map(p => ({ id: p.id, name: p.name })));
+            console.log(`[PRODUCTS] Store #${storeNum} has ${storeProductsMap[storeNum].length} products`);
           }
         } catch (error) {
-          console.error(`[PRODUCTS] Error fetching products for store ${storeNum}:`, error);
+          console.error(`[PRODUCTS] Error fetching store ${storeNum}:`, error);
           storeProductsMap[storeNum] = [];
         }
       }
-      console.log('[PRODUCTS] Final storeProductsMap:', storeProductsMap);
       setStoreProducts(storeProductsMap);
 
-      // FETCH EVERYTHING PRODUCTS - ALL USERS, ALL STORES
+      // Fetch Everything products (all products from all sources)
       try {
         const everythingRes = await fetch('/api/products/everything/all');
         const everythingData = await everythingRes.json();
         setEverythingProducts(Array.isArray(everythingData) ? everythingData : []);
-        console.log(`[PRODUCTS] Fetched ${everythingData.length} products for Everything store`);
+        console.log(`[PRODUCTS] Everything store has ${Array.isArray(everythingData) ? everythingData.length : 0} products`);
       } catch (error) {
         console.error('Error fetching everything products:', error);
         setEverythingProducts([]);
       }
 
     } catch (error) {
-      console.error('Error fetching products:', error);
-      setMainStoreProducts([]);
-      setUserStoreProducts([]);
+      console.error('[PRODUCTS] Error fetching products:', error);
     } finally {
       setIsLoadingProducts(false);
     }
