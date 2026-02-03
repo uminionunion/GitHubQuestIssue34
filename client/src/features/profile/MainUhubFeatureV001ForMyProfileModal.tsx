@@ -588,17 +588,16 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                               </div>
 
                               {/* Eye Button */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedProduct(product);
-                                  setProductDetailModalOpen(true);
-                                }}
-                                className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
-                                title="View product details"
-                              >
-                                <Eye className="h-3 w-3 text-white" />
-                              </button>
+<button
+  onClick={(e) => {
+    e.stopPropagation();
+    onProductView(product);
+  }}
+  className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+  title="View product details"
+>
+  <Eye className="h-3 w-3 text-white" />
+</button>
 
                               {/* Price */}
                               {product.price && (
