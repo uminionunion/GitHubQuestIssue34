@@ -141,12 +141,10 @@ router.get('/store/:storeId', async (req, res) => {
       .selectFrom('MainHubUpgradeV001ForProducts')
       .selectAll()
       .where('store_id', '=', parseInt(storeId))
-      .where('store_type', '=', 'store')
       .where('is_in_trash', '=', 0)
-      .orderBy('id', 'desc')
+      .orderBy('created_at', 'desc')
       .execute();
 
-    console.log(`[PRODUCTS] Store ${storeId} fetch: found ${products.length} products with store_type='store'`);
     res.json(products);
   } catch (error) {
     console.error('[PRODUCTS] Error fetching store products:', error);
