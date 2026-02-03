@@ -612,7 +612,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
       )}
     </div>
   </div>
-</div>
+)}
         
 
        {/* PAGES 2-10 REMAIN THE SAME */}
