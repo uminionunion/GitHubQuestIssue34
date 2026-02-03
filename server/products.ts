@@ -94,10 +94,10 @@ router.post('/', authenticate, async (req, res) => {
       finalStoreId = parsedStoreId;
       console.log(`[PRODUCTS] HIGH-HIGH admin ${user.username} adding to store #${finalStoreId}`);
     } else {
-      // Regular user: personal store
+      // Regular user: personal store - ALSO appears in Everything store
       storeType = 'user';
-      finalStoreId = null;
-      console.log(`[PRODUCTS] User ${user.username} adding to personal store`);
+      finalStoreId = 0;  // CHANGE: Set to 0 so it appears in Everything
+      console.log(`[PRODUCTS] User ${user.username} adding to personal store (store_id=0 for Everything)`);
     }
 
     // Create the product
