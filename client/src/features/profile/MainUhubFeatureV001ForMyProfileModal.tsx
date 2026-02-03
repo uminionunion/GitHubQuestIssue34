@@ -309,231 +309,229 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
             </div>
 
        {/* BOTTOM LEFT: My Store - WITH ADD BUTTON AND SCROLLBAR */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
-              <div className="flex justify-between items-center mb-3 sticky top-0 bg-background z-10">
-                <h3 className="font-bold">My Store</h3>
-                {canAddProducts && (
-                  <Button 
-                    size="sm" 
-                    onClick={onAddProductClick}
-                    className="bg-orange-400 hover:bg-orange-500 text-white"
-                  >
-                    <Plus className="h-4 w-4 mr-1" /> Add Product
-                  </Button>
-                )}
-              </div>
-              <div 
-                className="flex-1 overflow-y-auto space-y-2"
-                style={{
-                  maxHeight: '480px',
-                  scrollbarColor: '#22c55e #1f2937',
-                  scrollbarWidth: 'thin'
-                }}
-              >
-                <style>{`
-                  div[style*="maxHeight: 480px"]::-webkit-scrollbar {
-                    width: 8px;
-                  }
-                  div[style*="maxHeight: 480px"]::-webkit-scrollbar-track {
-                    background: #1f2937;
-                  }
-                  div[style*="maxHeight: 480px"]::-webkit-scrollbar-thumb {
-                    background: #22c55e;
-                    border-radius: 4px;
-                  }
-                  div[style*="maxHeight: 480px"]::-webkit-scrollbar-thumb:hover {
-                    background: #16a34a;
-                  }
-                `}</style>
-                {!user ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                    Log in to manage your store
-                  </div>
-                ) : (user.is_high_high_admin === 1 || user.is_high_high_high_admin === 1) ? (
-  // HIGH-HIGH admin or HIGH-HIGH-HIGH admin: show all products they added with full details
-  userStoreProducts.length > 0 ? (
-    userStoreProducts.map((p) => (
-      <div 
-        key={p.id}
-        className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <div className="flex justify-between items-center mb-3 sticky top-0 bg-background z-10">
+    <h3 className="font-bold">My Store</h3>
+    {canAddProducts && (
+      <Button 
+        size="sm" 
+        onClick={onAddProductClick}
+        className="bg-orange-400 hover:bg-orange-500 text-white"
       >
-        {/* Product Image */}
-        <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
-          {p.image_url ? (
-            <img 
-              src={p.image_url} 
-              alt={p.name} 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
-              No img
-            </div>
-          )}
-        </div>
-
-        {/* Product Info */}
-        <div className="flex-grow min-w-0">
-          <p className="font-semibold text-sm truncate">{p.name}</p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-1 flex-shrink-0">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 text-blue-400 hover:text-blue-300"
-            onClick={() => {
-              setSelectedProduct(p);
-              setProductDetailModalOpen(true);
-            }}
-            title="View product details"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 text-green-400 hover:text-green-300"
-            onClick={() => {
-              setSelectedProduct(p);
-              setAddProductModalOpen(true);
-            }}
-            title="Edit product"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 text-red-400 hover:text-red-300"
-            onClick={async () => {
-              if (confirm('Delete this product?')) {
-                try {
-                  const response = await fetch(`/api/products/${p.id}/trash`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                  });
-                  if (response.ok) {
-                    const newRes = await fetch(`/api/products/high-high-admin/${user.id}`);
-                    const newData = await newRes.json();
-                    setUserStoreProducts(Array.isArray(newData) ? newData : []);
-                  }
-                } catch (error) {
-                  console.error('Error deleting product:', error);
-                  alert('Failed to delete product');
-                }
-              }
-            }}
-            title="Delete product"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        <Plus className="h-4 w-4 mr-1" /> Add Product
+      </Button>
+    )}
+  </div>
+  <div 
+    className="flex-1 overflow-y-auto space-y-2"
+    style={{
+      maxHeight: '480px',
+      scrollbarColor: '#22c55e #1f2937',
+      scrollbarWidth: 'thin'
+    }}
+  >
+    <style>{`
+      div[style*="maxHeight: 480px"]::-webkit-scrollbar {
+        width: 8px;
+      }
+      div[style*="maxHeight: 480px"]::-webkit-scrollbar-track {
+        background: #1f2937;
+      }
+      div[style*="maxHeight: 480px"]::-webkit-scrollbar-thumb {
+        background: #22c55e;
+        border-radius: 4px;
+      }
+      div[style*="maxHeight: 480px"]::-webkit-scrollbar-thumb:hover {
+        background: #16a34a;
+      }
+    `}</style>
+    {!user ? (
+      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+        Log in to manage your store
       </div>
-    ))
-  ) : (
-    <div className="text-center text-muted-foreground py-4 text-sm">
-      No products available
-    </div>
-  )
-                ) : (
-                  // Regular user: show only their own products with full details
-                  userStoreProducts.length > 0 ? (
-                    userStoreProducts.map((p) => (
-                      <div 
-                        key={p.id}
-                        className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
-                      >
-                        {/* Product Image */}
-                        <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
-                          {p.image_url ? (
-                            <img 
-                              src={p.image_url} 
-                              alt={p.name} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
-                              No img
-                            </div>
-                          )}
-                        </div>
+    ) : user.is_high_high_admin === 1 || user.is_high_high_high_admin === 1 ? (
+      // HIGH-HIGH admin or HIGH-HIGH-HIGH admin: show all products they added
+      userStoreProducts.length > 0 ? (
+        userStoreProducts.map((p) => (
+          <div 
+            key={p.id}
+            className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
+          >
+            {/* Product Image */}
+            <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
+              {p.image_url ? (
+                <img 
+                  src={p.image_url} 
+                  alt={p.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
+                  No img
+                </div>
+              )}
+            </div>
 
-                        {/* Product Info */}
-                        <div className="flex-grow min-w-0">
-                          <p className="font-semibold text-sm truncate">{p.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-1 flex-shrink-0">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-blue-400 hover:text-blue-300"
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setProductDetailModalOpen(true);
-                            }}
-                            title="View product details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-green-400 hover:text-green-300"
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setAddProductModalOpen(true);
-                            }}
-                            title="Edit product"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-red-400 hover:text-red-300"
-                            onClick={async () => {
-                              if (confirm('Delete this product?')) {
-                                try {
-                                  const response = await fetch(`/api/products/${p.id}/trash`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                  });
-                                  if (response.ok) {
-                                    const userRes = await fetch(`/api/products/user/${user.id}`);
-                                    const userData = await userRes.json();
-                                    setUserStoreProducts(Array.isArray(userData) ? userData : []);
-                                  }
-                                } catch (error) {
-                                  console.error('Error deleting product:', error);
-                                  alert('Failed to delete product');
-                                }
-                              }
-                            }}
-                            title="Delete product"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center text-muted-foreground py-4 text-sm">
-                      {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
-                    </div>
-                  )
-                )}
+            {/* Product Info */}
+            <div className="flex-grow min-w-0">
+              <p className="font-semibold text-sm truncate">{p.name}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
               </div>
             </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-1 flex-shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-blue-400 hover:text-blue-300"
+                onClick={() => {
+                  onProductView(p);
+                }}
+                title="View product details"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-green-400 hover:text-green-300"
+                onClick={() => {
+                  setSelectedProduct(p);
+                  setAddProductModalOpen(true);
+                }}
+                title="Edit product"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-red-400 hover:text-red-300"
+                onClick={async () => {
+                  if (confirm('Delete this product?')) {
+                    try {
+                      const response = await fetch(`/api/products/${p.id}/trash`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                      });
+                      if (response.ok) {
+                        const newRes = await fetch(`/api/products/user/${user.id}`);
+                        const newData = await newRes.json();
+                        setUserStoreProducts(Array.isArray(newData) ? newData : []);
+                      }
+                    } catch (error) {
+                      console.error('Error deleting product:', error);
+                      alert('Failed to delete product');
+                    }
+                  }
+                }}
+                title="Delete product"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="text-center text-muted-foreground py-4 text-sm">
+          No products available
+        </div>
+      )
+    ) : (
+      // Regular user: show only their own products
+      userStoreProducts.length > 0 ? (
+        userStoreProducts.map((p) => (
+          <div 
+            key={p.id}
+            className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
+          >
+            {/* Product Image */}
+            <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
+              {p.image_url ? (
+                <img 
+                  src={p.image_url} 
+                  alt={p.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
+                  No img
+                </div>
+              )}
+            </div>
+
+            {/* Product Info */}
+            <div className="flex-grow min-w-0">
+              <p className="font-semibold text-sm truncate">{p.name}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-1 flex-shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-blue-400 hover:text-blue-300"
+                onClick={() => {
+                  onProductView(p);
+                }}
+                title="View product details"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-green-400 hover:text-green-300"
+                onClick={() => {
+                  setSelectedProduct(p);
+                  setAddProductModalOpen(true);
+                }}
+                title="Edit product"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-red-400 hover:text-red-300"
+                onClick={async () => {
+                  if (confirm('Delete this product?')) {
+                    try {
+                      const response = await fetch(`/api/products/${p.id}/trash`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                      });
+                      if (response.ok) {
+                        const userRes = await fetch(`/api/products/user/${user.id}`);
+                        const userData = await userRes.json();
+                        setUserStoreProducts(Array.isArray(userData) ? userData : []);
+                      }
+                    } catch (error) {
+                      console.error('Error deleting product:', error);
+                      alert('Failed to delete product');
+                    }
+                  }
+                }}
+                title="Delete product"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="text-center text-muted-foreground py-4 text-sm">
+          {canAddProducts ? "No products yet. Click 'Add Product' to get started!" : "No products yet"}
+        </div>
+      )
+    )}
+  </div>
+</div>
 
 
 
@@ -542,7 +540,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   <h3 className="font-bold mb-3">Everything</h3>
   <div className="flex-1 overflow-hidden">
     <EverythingProductsList
-      products={allProducts}
+      products={everythingProducts}
       isLoading={isLoadingProducts}
       onProductView={onProductView}
       onAddToCart={(product) => {
@@ -1540,10 +1538,10 @@ default:
       });
       if (response.ok) {
         if (user) {
-          if (user.is_high_high_high_admin === 1) {
-            const adminRes = await fetch('/api/products/admin/all');
-            const adminData = await adminRes.json();
-            setUserStoreProducts(Array.isArray(adminData) ? adminData : []);
+          if (user.is_high_high_admin === 1) {
+            const newRes = await fetch(`/api/products/user/${user.id}`);
+            const newData = await newRes.json();
+            setUserStoreProducts(Array.isArray(newData) ? newData : []);
           } else {
             const userRes = await fetch(`/api/products/user/${user.id}`);
             const userData = await userRes.json();
