@@ -563,6 +563,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   <div className="grid grid-cols-2 gap-4 h-[70vh]">
     {storePages[currentPage - 1].map((store) => {
       const storeProds = store ? storeProducts[store.number] || [] : [];
+      if (store) {
+        console.log(`[QUADRANTS] Page ${currentPage}, Store #${store.number}: Found ${storeProds.length} products`, storeProds.length > 0 ? storeProds : 'EMPTY');
+      }
       return (
         <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
           <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
@@ -817,19 +820,27 @@ useEffect(() => {
         }
       }
 
-      // Fetch products for each store #01-#30
+     // Fetch products for each store #01-#30
       const storeProductsMap: { [key: number]: Product[] } = {};
       for (let storeNum = 1; storeNum <= 30; storeNum++) {
         try {
           const storeRes = await fetch(`/api/products/store/${storeNum}`);
+          if (!storeRes.ok) {
+            console.warn(`[PRODUCTS] Store ${storeNum} fetch returned status ${storeRes.status}`);
+            storeProductsMap[storeNum] = [];
+            continue;
+          }
           const storeData = await storeRes.json();
           storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
-          console.log(`[PRODUCTS] Store ${storeNum} has ${storeProductsMap[storeNum].length} products`);
+          if (storeProductsMap[storeNum].length > 0) {
+            console.log(`[PRODUCTS] Store ${storeNum} has ${storeProductsMap[storeNum].length} products:`, storeProductsMap[storeNum].map(p => ({ id: p.id, name: p.name })));
+          }
         } catch (error) {
-          console.error(`Error fetching products for store ${storeNum}:`, error);
+          console.error(`[PRODUCTS] Error fetching products for store ${storeNum}:`, error);
           storeProductsMap[storeNum] = [];
         }
       }
+      console.log('[PRODUCTS] Final storeProductsMap:', storeProductsMap);
       setStoreProducts(storeProductsMap);
 
       // FETCH EVERYTHING PRODUCTS - ALL USERS, ALL STORES
