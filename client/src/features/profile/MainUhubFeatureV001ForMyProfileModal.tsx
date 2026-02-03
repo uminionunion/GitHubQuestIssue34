@@ -1488,21 +1488,40 @@ default:
     }}
     editingProduct={selectedProduct}
     onProductAdded={() => {
+    // Refresh all products including store products
+    if (user) {
       // Refresh user products
-      if (user) {
-        if (user.is_high_high_high_admin === 1) {
-          fetch('/api/products/admin/all')
-            .then(res => res.json())
-            .then(data => setUserStoreProducts(Array.isArray(data) ? data : []))
-            .catch(err => console.error('Error refreshing products:', err));
-        } else {
-          fetch(`/api/products/user/${user.id}`)
-            .then(res => res.json())
-            .then(data => setUserStoreProducts(Array.isArray(data) ? data : []))
-            .catch(err => console.error('Error refreshing products:', err));
-        }
+      if (user.is_high_high_high_admin === 1) {
+        fetch('/api/products/admin/all')
+          .then(res => res.json())
+          .then(data => setUserStoreProducts(Array.isArray(data) ? data : []))
+          .catch(err => console.error('Error refreshing products:', err));
+      } else {
+        fetch(`/api/products/user/${user.id}`)
+          .then(res => res.json())
+          .then(data => setUserStoreProducts(Array.isArray(data) ? data : []))
+          .catch(err => console.error('Error refreshing products:', err));
       }
-    }}
+
+      // IMPORTANT: Also refresh store products #01-#30
+      const storeProductsMap: { [key: number]: Product[] } = {};
+      for (let storeNum = 1; storeNum <= 30; storeNum++) {
+        fetch(`/api/products/store/${storeNum}`)
+          .then(res => res.json())
+          .then(data => {
+            storeProductsMap[storeNum] = Array.isArray(data) ? data : [];
+            setStoreProducts(storeProductsMap);
+          })
+          .catch(err => console.error(`Error fetching store ${storeNum} products:`, err));
+      }
+
+      // Refresh everything products
+      fetch('/api/products/everything/all')
+        .then(res => res.json())
+        .then(data => setEverythingProducts(Array.isArray(data) ? data : []))
+        .catch(err => console.error('Error refreshing everything products:', err));
+    }
+  }}
   />
 )}
         {isProductDetailModalOpen && (
