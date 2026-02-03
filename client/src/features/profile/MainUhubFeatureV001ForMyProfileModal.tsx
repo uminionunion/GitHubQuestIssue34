@@ -540,7 +540,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   <h3 className="font-bold mb-3">Everything</h3>
   <div className="flex-1 overflow-hidden">
     <EverythingProductsList
-      products={allProducts}
+      products={everythingProducts}
       isLoading={isLoadingProducts}
       onProductView={onProductView}
       onAddToCart={(product) => {
