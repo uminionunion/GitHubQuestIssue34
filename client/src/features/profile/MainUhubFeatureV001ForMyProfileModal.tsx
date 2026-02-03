@@ -534,83 +534,62 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 </div>
 
 
-
 {/* BOTTOM RIGHT: Everything - All Products from All Sources */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3">Everything</h3>
-  <div 
-    className="flex-1 overflow-y-auto everything-store-scrollable"
-    style={{
-      maxHeight: 'calc(100% - 40px)',
-      scrollbarColor: '#f97316 #1f2937',
-      scrollbarWidth: 'thin'
-    }}
-  >
-    <style>{`
-      .everything-store-scrollable::-webkit-scrollbar {
-        width: 12px;
-      }
-      .everything-store-scrollable::-webkit-scrollbar-track {
-        background: #1f2937;
-        border-radius: 6px;
-      }
-      .everything-store-scrollable::-webkit-scrollbar-thumb {
-        background: #f97316;
-        border-radius: 6px;
-      }
-      .everything-store-scrollable::-webkit-scrollbar-thumb:hover {
-        background: #ea580c;
-      }
-    `}</style>
-    <div className="grid grid-cols-2 gap-3">
-      {isLoadingProducts ? (
-        <div className="col-span-2 text-center text-muted-foreground py-4">Loading products...</div>
-      ) : allProducts && allProducts.length > 0 ? (
-        // Shuffle and show random products (max 20 visible at once)
-        [...allProducts].sort(() => Math.random() - 0.5).slice(0, 20).map((product) => (
-          <div
+  <div className="flex-1 overflow-hidden">
+    {allProducts && allProducts.length > 0 ? (
+      <div className="space-y-2 overflow-y-auto h-full">
+        {allProducts.map((product) => (
+          <div 
             key={product.id}
-            className="border rounded-md p-2 relative h-32 group hover:border-orange-400 transition cursor-pointer overflow-hidden flex flex-col"
-            style={{
-              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-            onClick={() => onProductView(product)}
+            className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
           >
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
-
-            {/* Product Details - TOP */}
-            <div className="relative z-10 mb-auto flex-shrink-0">
-              <p className="font-semibold text-xs truncate text-white">{product.name}</p>
-              {product.price && <p className="text-orange-400 text-xs font-semibold">${product.price.toFixed(2)}</p>}
+            {/* Product Image */}
+            <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
+              {product.image_url ? (
+                <img 
+                  src={product.image_url} 
+                  alt={product.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
+                  No img
+                </div>
+              )}
             </div>
 
-            {/* Spacer */}
-            <div className="flex-1"></div>
+            {/* Product Info */}
+            <div className="flex-grow min-w-0">
+              <p className="font-semibold text-sm truncate">{product.name}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>${product.price ? product.price.toFixed(2) : '0.00'}</span>
+              </div>
+            </div>
 
-            {/* Eye Button - BOTTOM */}
-            <div className="relative z-10 flex flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
+            {/* Action Buttons */}
+            <div className="flex gap-1 flex-shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-blue-400 hover:text-blue-300"
+                onClick={() => {
                   onProductView(product);
                 }}
-                className="w-full h-6 bg-black bg-opacity-60 hover:bg-opacity-80 rounded transition flex items-center justify-center"
                 title="View product details"
               >
-                <Search className="h-4 w-4 text-white" />
-              </button>
+                <Eye className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-        ))
-      ) : (
-        <div className="col-span-2 text-center text-muted-foreground py-4 text-sm">
-          No products available
-        </div>
-      )}
-    </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center text-muted-foreground py-4 text-sm">
+        No products available
+      </div>
+    )}
   </div>
 </div>
 
