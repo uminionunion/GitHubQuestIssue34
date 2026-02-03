@@ -539,7 +539,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3">Everything</h3>
   <div 
-    className="flex-1 overflow-y-auto everything-store-scrollable"
+    className="flex-1 overflow-y-auto"
     style={{
       maxHeight: 'calc(100% - 40px)',
       scrollbarColor: '#f97316 #1f2937',
@@ -547,22 +547,22 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     }}
   >
     <style>{`
-      .everything-store-scrollable::-webkit-scrollbar {
+      div[style*="maxHeight: calc(100% - 40px)"]::-webkit-scrollbar {
         width: 12px;
       }
-      .everything-store-scrollable::-webkit-scrollbar-track {
+      div[style*="maxHeight: calc(100% - 40px)"]::-webkit-scrollbar-track {
         background: #1f2937;
         border-radius: 6px;
       }
-      .everything-store-scrollable::-webkit-scrollbar-thumb {
+      div[style*="maxHeight: calc(100% - 40px)"]::-webkit-scrollbar-thumb {
         background: #f97316;
         border-radius: 6px;
       }
-      .everything-store-scrollable::-webkit-scrollbar-thumb:hover {
+      div[style*="maxHeight: calc(100% - 40px)"]::-webkit-scrollbar-thumb:hover {
         background: #ea580c;
       }
     `}</style>
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-2">
       {isLoadingProducts ? (
         <div className="col-span-2 text-center text-muted-foreground py-4">Loading products...</div>
       ) : allProducts && allProducts.length > 0 ? (
@@ -570,7 +570,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         [...allProducts].sort(() => Math.random() - 0.5).slice(0, 20).map((product) => (
           <div
             key={product.id}
-            className="border rounded-md p-2 relative h-32 group hover:border-orange-400 transition cursor-pointer overflow-hidden flex flex-col"
+            className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
             style={{
               backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
               backgroundSize: 'cover',
@@ -581,28 +581,29 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
             {/* Overlay */}
             <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
 
-            {/* Product Details - TOP */}
-            <div className="relative z-10 mb-auto flex-shrink-0">
-              <p className="font-semibold text-xs truncate text-white">{product.name}</p>
-              {product.price && <p className="text-orange-400 text-xs font-semibold">${product.price.toFixed(2)}</p>}
+            {/* Product Name */}
+            <div className="relative z-10 text-xs font-semibold text-white truncate">
+              {product.name}
             </div>
 
-            {/* Spacer */}
-            <div className="flex-1"></div>
+            {/* Eye Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onProductView(product);
+              }}
+              className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+              title="View product details"
+            >
+              <Search className="h-3 w-3 text-white" />
+            </button>
 
-            {/* Eye Button - BOTTOM */}
-            <div className="relative z-10 flex flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onProductView(product);
-                }}
-                className="w-full h-6 bg-black bg-opacity-60 hover:bg-opacity-80 rounded transition flex items-center justify-center"
-                title="View product details"
-              >
-                <Search className="h-4 w-4 text-white" />
-              </button>
-            </div>
+            {/* Price */}
+            {product.price && (
+              <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
+                ${product.price.toFixed(2)}
+              </div>
+            )}
           </div>
         ))
       ) : (
@@ -612,6 +613,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
       )}
     </div>
   </div>
+</div>
 )}
         
 
