@@ -890,25 +890,25 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
     }
   }, [user, isOpen]);
 
-//i have an error. trying to find the error. is this whats causing the error? part000001 of X
-  // Fetch everything products separately (all products, no duplicates)
-// useEffect(() => {
- // const fetchEverythingProducts = async () => {
-  //  try {
-  //    const res = await fetch('/api/products/everything/all');
-  //    const data = await res.json();
-  //    setEverythingProducts(Array.isArray(data) ? data : []);
-  //    console.log(`[PRODUCTS] Fetched ${data.length} products for Everything store`);
-  //  } catch (error) {
- //     console.error('Error fetching everything products:', error);
- //     setEverythingProducts([]);
-//    }
-//  };
-//
-//  if (isOpen) {
-//    fetchEverythingProducts();
-//  }
-// }, [isOpen]);
+//i have an error. trying to find the error. is this whats causing the error? part000001 of X ***Update i uncommented this cause the ai said so?
+// Fetch everything products separately (all products, no duplicates)
+useEffect(() => {
+  const fetchEverythingProducts = async () => {
+    try {
+      const res = await fetch('/api/products/everything/all');
+      const data = await res.json();
+      setEverythingProducts(Array.isArray(data) ? data : []);
+      console.log(`[PRODUCTS] Fetched ${data.length} products for Everything store`);
+    } catch (error) {
+      console.error('Error fetching everything products:', error);
+      setEverythingProducts([]);
+    }
+  };
+
+  if (isOpen) {
+    fetchEverythingProducts();
+  }
+}, [isOpen]);
 
   
   const handleMagnify = (product: Product) => {
@@ -1531,7 +1531,7 @@ default:
           <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
         )}
         
-        <QuadrantsModal 
+       <QuadrantsModal 
   isOpen={isQuadrantsModalOpen}
   onClose={() => setIsQuadrantsModalOpen(false)}
   stores={ALL_STORES}
@@ -1546,10 +1546,13 @@ default:
   }}
   getCartUrl={getCartUrl}
   storeProducts={storeProducts}
+  allProductsForAdmin={allProductsForAdmin}
   allProducts={everythingProducts}
+  setAddProductModalOpen={setAddProductModalOpen}
   setSelectedProduct={setSelectedProduct}
   setProductDetailModalOpen={setProductDetailModalOpen}
-  allProductsForAdmin={allProductsForAdmin}
+  setAllProductsForAdmin={setAllProductsForAdmin}
+  setUserStoreProducts={setUserStoreProducts}
   onProductView={(product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
@@ -1578,11 +1581,6 @@ default:
       alert('Failed to delete product');
     }
   }}
-  onProductEdit={(product: Product) => {
-    setSelectedProduct(product);
-    setAddProductModalOpen(true);
-  }}
-  allProducts={everythingProducts}
 />
 
         <HomeModal 
