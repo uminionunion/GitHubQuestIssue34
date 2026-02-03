@@ -677,6 +677,41 @@ router.get('/admin/all', authenticate, async (req, res) => {
     console.error('[PRODUCTS] Error fetching admin products:', error);
     res.status(500).json({ message: 'Failed to fetch products' });
   }
+
+// GET - Get products by high-high admin user (different from regular user products)
+router.get('/high-high-admin/:userId', authenticate, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // Verify user is high-high admin
+    const user = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', parseInt(userId))
+      .executeTakeFirst();
+
+    if (!user || user.is_high_high_admin !== 1) {
+      res.status(400).json({ message: 'User is not a high-high admin' });
+      return;
+    }
+
+    // Fetch all products added by this high-high admin across all stores
+    const products = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('store_type', '=', 'store')
+      .where('is_in_trash', '=', 0)
+      .orderBy('id', 'desc')
+      .execute();
+
+    res.json(products);
+  } catch (error) {
+    console.error('[PRODUCTS] Error fetching high-high admin products:', error);
+    res.status(500).json({ message: 'Failed to fetch products' });
+  }
+});
+
+  
 });
 
 // DELETE - Delete product as HIGH-HIGH-HIGH admin
