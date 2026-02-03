@@ -94,10 +94,10 @@ router.post('/', authenticate, async (req, res) => {
       finalStoreId = parsedStoreId;
       console.log(`[PRODUCTS] HIGH-HIGH admin ${user.username} adding to store #${finalStoreId}`);
     } else {
-      // Regular user: personal store - ALSO appears in Everything store
+      // Regular user: personal store
       storeType = 'user';
-      finalStoreId = 0;  // CHANGE: Set to 0 so it appears in Everything
-      console.log(`[PRODUCTS] User ${user.username} adding to personal store (store_id=0 for Everything)`);
+      finalStoreId = null;
+      console.log(`[PRODUCTS] User ${user.username} adding to personal store`);
     }
 
     // Create the product
@@ -175,15 +175,36 @@ router.get('/user/:userId', async (req, res) => {
 // GET - Get all products for "Everything" (all sources, no duplicates)
 router.get('/everything/all', async (req, res) => {
   try {
-    // Fetch all products from all sources
+    // Fetch ALL products from ALL users, ALL stores, and main store
+    // This includes: store_type='main', store_type='user' (ANY user), store_type='store'
     const allProducts = await db
       .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('is_in_trash', '=', 0)
-      .orderBy('created_at', 'desc')
+      .leftJoin(
+        'users',
+        'MainHubUpgradeV001ForProducts.user_id',
+        'users.id'
+      )
+      .select([
+        'MainHubUpgradeV001ForProducts.id',
+        'MainHubUpgradeV001ForProducts.name',
+        'MainHubUpgradeV001ForProducts.subtitle',
+        'MainHubUpgradeV001ForProducts.description',
+        'MainHubUpgradeV001ForProducts.price',
+        'MainHubUpgradeV001ForProducts.image_url',
+        'MainHubUpgradeV001ForProducts.store_type',
+        'MainHubUpgradeV001ForProducts.user_id',
+        'MainHubUpgradeV001ForProducts.store_id',
+        'MainHubUpgradeV001ForProducts.payment_method',
+        'MainHubUpgradeV001ForProducts.payment_url',
+        'MainHubUpgradeV001ForProducts.sku_id',
+        'MainHubUpgradeV001ForProducts.created_at',
+        'users.username as creator_username',
+      ])
+      .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
+      .orderBy('MainHubUpgradeV001ForProducts.created_at', 'desc')
       .execute();
 
-    // Deduplicate by product ID (in case there are duplicates)
+    // Deduplicate by product ID
     const seen = new Set<number>();
     const uniqueProducts = allProducts.filter(product => {
       if (seen.has(product.id)) {
@@ -193,7 +214,7 @@ router.get('/everything/all', async (req, res) => {
       return true;
     });
 
-    console.log(`[PRODUCTS] Fetched ${uniqueProducts.length} unique products for Everything store (deduped from ${allProducts.length})`);
+    console.log(`[PRODUCTS] Fetched ${uniqueProducts.length} unique products for Everything store (from all users and stores, deduped from ${allProducts.length})`);
     res.json(uniqueProducts);
   } catch (error) {
     console.error('[PRODUCTS] Error fetching everything products:', error);
