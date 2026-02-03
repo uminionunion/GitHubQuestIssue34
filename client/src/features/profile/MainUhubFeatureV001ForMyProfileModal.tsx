@@ -349,98 +349,97 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                   <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                     Log in to manage your store
                   </div>
-                ) : user.is_high_high_high_admin === 1 ? (
-                  // HIGH-HIGH-HIGH admin: show all products with full details
-                  allProductsForAdmin.length > 0 ? (
-                    allProductsForAdmin.map((p) => (
-                      <div 
-                        key={p.id}
-                        className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
-                      >
-                        {/* Product Image */}
-                        <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
-                          {p.image_url ? (
-                            <img 
-                              src={p.image_url} 
-                              alt={p.name} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
-                              No img
-                            </div>
-                          )}
-                        </div>
+                ) : (user.is_high_high_admin === 1 || user.is_high_high_high_admin === 1) ? (
+  // HIGH-HIGH admin or HIGH-HIGH-HIGH admin: show all products they added with full details
+  userStoreProducts.length > 0 ? (
+    userStoreProducts.map((p) => (
+      <div 
+        key={p.id}
+        className="border rounded-lg p-3 flex items-center gap-3 hover:border-orange-400 transition"
+      >
+        {/* Product Image */}
+        <div className="w-12 h-12 flex-shrink-0 rounded border border-gray-700 overflow-hidden">
+          {p.image_url ? (
+            <img 
+              src={p.image_url} 
+              alt={p.name} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">
+              No img
+            </div>
+          )}
+        </div>
 
-                        {/* Product Info */}
-                        <div className="flex-grow min-w-0">
-                          <p className="font-semibold text-sm truncate">{p.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
-                            {p.creator_username && <span>by {p.creator_username}</span>}
-                          </div>
-                        </div>
+        {/* Product Info */}
+        <div className="flex-grow min-w-0">
+          <p className="font-semibold text-sm truncate">{p.name}</p>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
+          </div>
+        </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex gap-1 flex-shrink-0">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-blue-400 hover:text-blue-300"
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setProductDetailModalOpen(true);
-                            }}
-                            title="View product details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-green-400 hover:text-green-300"
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setAddProductModalOpen(true);
-                            }}
-                            title="Edit product"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-red-400 hover:text-red-300"
-                            onClick={async () => {
-                              if (confirm('Delete this product?')) {
-                                try {
-                                  const response = await fetch(`/api/products/${p.id}/trash`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                  });
-                                  if (response.ok) {
-                                    const adminRes = await fetch('/api/products/admin/all');
-                                    const adminData = await adminRes.json();
-                                    setAllProductsForAdmin(Array.isArray(adminData) ? adminData : []);
-                                  }
-                                } catch (error) {
-                                  console.error('Error deleting product:', error);
-                                  alert('Failed to delete product');
-                                }
-                              }
-                            }}
-                            title="Delete product"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center text-muted-foreground py-4 text-sm">
-                      No products available
-                    </div>
-                  )
+        {/* Action Buttons */}
+        <div className="flex gap-1 flex-shrink-0">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-blue-400 hover:text-blue-300"
+            onClick={() => {
+              setSelectedProduct(p);
+              setProductDetailModalOpen(true);
+            }}
+            title="View product details"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-green-400 hover:text-green-300"
+            onClick={() => {
+              setSelectedProduct(p);
+              setAddProductModalOpen(true);
+            }}
+            title="Edit product"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-red-400 hover:text-red-300"
+            onClick={async () => {
+              if (confirm('Delete this product?')) {
+                try {
+                  const response = await fetch(`/api/products/${p.id}/trash`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                  });
+                  if (response.ok) {
+                    const newRes = await fetch(`/api/products/high-high-admin/${user.id}`);
+                    const newData = await newRes.json();
+                    setUserStoreProducts(Array.isArray(newData) ? newData : []);
+                  }
+                } catch (error) {
+                  console.error('Error deleting product:', error);
+                  alert('Failed to delete product');
+                }
+              }
+            }}
+            title="Delete product"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="text-center text-muted-foreground py-4 text-sm">
+      No products available
+    </div>
+  )
                 ) : (
                   // Regular user: show only their own products with full details
                   userStoreProducts.length > 0 ? (
@@ -558,57 +557,85 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </div>
         )}
 
-        {/* PAGES 2-10 - SHOW STORE PRODUCTS */}
-{currentPage > 1 && currentPage <= 9 && (
-  <div className="grid grid-cols-2 gap-4 h-[70vh]">
-    {storePages[currentPage - 1].map((store) => {
-      const storeProds = store ? storeProducts[store.number] || [] : [];
-      return (
-        <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
-          <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
-          {store ? (
-            <div 
-              className="flex-1 rounded-md flex flex-col cursor-pointer hover:border-orange-400 transition overflow-y-auto space-y-2"
-            >
-              {storeProds.length > 0 ? (
-                storeProds.map((product) => (
-                  <div 
-                    key={product.id}
-                    className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setProductDetailModalOpen(true);
-                    }}
-                  >
-                    {product.image_url && (
-                      <img 
-                        src={product.image_url} 
-                        alt={product.name}
-                        className="w-8 h-8 rounded object-cover flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{product.name}</p>
-                      {product.price && <p className="text-orange-400">${product.price.toFixed(2)}</p>}
+       {/* PAGES 2-10 REMAIN THE SAME */}
+        {currentPage > 1 && currentPage <= 9 && (
+          <div className="grid grid-cols-2 gap-4 h-[70vh]">
+            {storePages[currentPage - 1].map((store) => (
+              <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
+                <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
+                {store ? (
+                  <div className="flex-1 flex flex-col">
+                    {/* Store Products Grid */}
+                    <div className="flex-1 overflow-y-auto mb-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        {storeProducts[store.number] && storeProducts[store.number].length > 0 ? (
+                          storeProducts[store.number].map((product) => (
+                            <div
+                              key={product.id}
+                              className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition"
+                              style={{
+                                backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                              }}
+                            >
+                              {/* Overlay */}
+                              <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
+
+                              {/* Product Name */}
+                              <div className="relative z-10 text-xs font-semibold text-white truncate">
+                                {product.name}
+                              </div>
+
+                              {/* Eye Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedProduct(product);
+                                  setProductDetailModalOpen(true);
+                                }}
+                                className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+                                title="View product details"
+                              >
+                                <Eye className="h-3 w-3 text-white" />
+                              </button>
+
+                              {/* Price */}
+                              {product.price && (
+                                <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
+                                  ${product.price.toFixed(2)}
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-2 text-center text-muted-foreground py-4 text-sm">
+                            No products yet
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Store Background Image */}
+                    <div
+                      className="h-24 bg-cover bg-center cursor-pointer rounded-md"
+                      onClick={() => {
+                        onSelectStore(store);
+                        onClose();
+                      }}
+                      style={{backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png')`}}
+                      title={`Click to view ${store.name}`}
+                    >
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                  No products available
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
-              Coming Soon
-            </div>
-          )}
-        </div>
-      );
-    })}
-  </div>
-)}
+                ) : (
+                  <div className="bg-muted rounded-md flex items-center justify-center text-muted-foreground flex-1">
+                    Coming Soon
+                  </div>
+                )}
+              </div>
+            ))}</div>
+        )}
 
         {currentPage === 10 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
@@ -788,74 +815,58 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   }, [user, isOpen]);
 
   // Fetch database products for all stores
-useEffect(() => {
-  const fetchAllProducts = async () => {
-    setIsLoadingProducts(true);
-    try {
-      // Fetch main store products (store #0)
-      const mainRes = await fetch('/api/products/store/0');
-      const mainData = await mainRes.json();
-      setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+      setIsLoadingProducts(true);
+      try {
+        // Fetch main store products (store #0)
+        const mainRes = await fetch('/api/products/store/0');
+        const mainData = await mainRes.json();
+        setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
 
-      // Fetch current user's products if logged in
-      if (user) {
-        const userRes = await fetch(`/api/products/user/${user.id}`);
-        const userData = await userRes.json();
-        setUserStoreProducts(Array.isArray(userData) ? userData : []);
-
-        // If HIGH-HIGH-HIGH admin, fetch all products
-        if (user.is_high_high_high_admin === 1) {
-          try {
-            const adminRes = await fetch('/api/products/admin/all');
+        // Fetch current user's products if logged in
+        if (user) {
+          if (user.is_high_high_admin === 1) {
+            // High-high admin: fetch all products they added to stores
+            const adminRes = await fetch(`/api/products/high-high-admin/${user.id}`, {
+              headers: { 'Content-Type': 'application/json' }
+            });
             const adminData = await adminRes.json();
-            setAllProductsForAdmin(Array.isArray(adminData) ? adminData : []);
-            console.log(`[PRODUCTS] Fetched ${adminData.length} products for admin`);
-          } catch (error) {
-            console.error('Error fetching admin products:', error);
-            setAllProductsForAdmin([]);
+            setUserStoreProducts(Array.isArray(adminData) ? adminData : []);
+          } else {
+            // Regular user: fetch their personal store products
+            const userRes = await fetch(`/api/products/user/${user.id}`);
+            const userData = await userRes.json();
+            setUserStoreProducts(Array.isArray(userData) ? userData : []);
           }
         }
-      }
 
-      // Fetch products for each store #01-#30
-      const storeProductsMap: { [key: number]: Product[] } = {};
-      for (let storeNum = 1; storeNum <= 30; storeNum++) {
-        try {
-          const storeRes = await fetch(`/api/products/store/${storeNum}`);
-          const storeData = await storeRes.json();
-          storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
-          console.log(`[PRODUCTS] Store ${storeNum} has ${storeProductsMap[storeNum].length} products`);
-        } catch (error) {
-          console.error(`Error fetching products for store ${storeNum}:`, error);
-          storeProductsMap[storeNum] = [];
+        // Fetch products for each store #01-#30
+        const storeProductsMap: { [key: number]: Product[] } = {};
+        for (let storeNum = 1; storeNum <= 30; storeNum++) {
+          try {
+            const storeRes = await fetch(`/api/products/store/${storeNum}`);
+            const storeData = await storeRes.json();
+            storeProductsMap[storeNum] = Array.isArray(storeData) ? storeData : [];
+          } catch (error) {
+            console.error(`Error fetching products for store ${storeNum}:`, error);
+            storeProductsMap[storeNum] = [];
+          }
         }
-      }
-      setStoreProducts(storeProductsMap);
-
-      // FETCH EVERYTHING PRODUCTS - ALL USERS, ALL STORES
-      try {
-        const everythingRes = await fetch('/api/products/everything/all');
-        const everythingData = await everythingRes.json();
-        setEverythingProducts(Array.isArray(everythingData) ? everythingData : []);
-        console.log(`[PRODUCTS] Fetched ${everythingData.length} products for Everything store`);
+        setStoreProducts(storeProductsMap);
       } catch (error) {
-        console.error('Error fetching everything products:', error);
-        setEverythingProducts([]);
+        console.error('Error fetching products:', error);
+        setMainStoreProducts([]);
+        setUserStoreProducts([]);
+      } finally {
+        setIsLoadingProducts(false);
       }
+    };
 
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setMainStoreProducts([]);
-      setUserStoreProducts([]);
-    } finally {
-      setIsLoadingProducts(false);
+    if (isOpen) {
+      fetchAllProducts();
     }
-  };
-
-  if (isOpen) {
-    fetchAllProducts();
-  }
-}, [user, isOpen]);
+  }, [user, isOpen]);
 
 //i have an error. trying to find the error. is this whats causing the error? part000001 of X
   // Fetch everything products separately (all products, no duplicates)
