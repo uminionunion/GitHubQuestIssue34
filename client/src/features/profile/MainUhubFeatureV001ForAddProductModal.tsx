@@ -275,7 +275,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span> With Cash <sub style={{ color: "#ff8c00", marginLeft: "4px" }}> (primarily for local pickup (similar to Craigslist/FB‑Marketplace, you message one another to make a sale & go from there)) </sub> </span>
+                <span> With Cash <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (primarily for local pickup (similar to Craigslist/FB‑Marketplace, you message one another to make a sale & go from there)) </span> </span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -287,7 +287,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span> (Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <sub style={{ color: "#ff8c00", marginLeft: "4px" }}> (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.") </sub> </span>
+                <span> (Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <span style={{ color: "#ffcc00", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.") </span> </span>
               </label>
 
                 {paymentMethod === 'through_site' && (
@@ -341,7 +341,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span> (Other:) Venmo/CashApp/Crypto/OtherApp <sub style={{ color: "#ff8c00", marginLeft: "4px" }}> (Customer messages you and yall go from there.) </sub> </span>
+                <span> (Other:) Venmo/CashApp/Crypto/OtherApp <span style={{ color: "#ffbf00", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (Customer messages you and yall go from there.) </span> </span>
               </label>
 
              
