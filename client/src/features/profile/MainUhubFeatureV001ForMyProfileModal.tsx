@@ -643,7 +643,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 };
 
 // HOME MODAL
-const HomeModal = ({ isOpen, onClose }) => {
+const HomeModal = ({ isOpen, onClose, userProducts = [] }) => {
   const [myAccountExpanded, setMyAccountExpanded] = useState(false);
 
   if (!isOpen) return null;
@@ -694,11 +694,34 @@ const HomeModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          <div className="border rounded-lg p-4 overflow-auto flex flex-col">
+         <div className="border rounded-lg p-4 overflow-auto flex flex-col">
             <h3 className="font-bold mb-4">My Store</h3>
-            <div className="text-center text-muted-foreground py-8 flex-1 flex items-center justify-center">
-              Your store preview appears here when visitors come to your profile
-            </div>
+            {userProducts && userProducts.length > 0 ? (
+              <div className="space-y-2 overflow-y-auto flex-1">
+                {userProducts.map((p) => (
+                  <div 
+                    key={p.id}
+                    className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+                  >
+                    {p.image_url && (
+                      <img 
+                        src={p.image_url} 
+                        alt={p.name}
+                        className="w-8 h-8 rounded object-cover flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">{p.name}</p>
+                      {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8 flex-1 flex items-center justify-center">
+                Your store preview appears here when you add products
+              </div>
+            )}
           </div>
 
           <div className="border rounded-lg p-4 overflow-auto flex flex-col">
@@ -1554,6 +1577,7 @@ default:
         <HomeModal 
           isOpen={isHomeModalOpen}
           onClose={() => setIsHomeModalOpen(false)}
+          userProducts={userStoreProducts}
         />
     </>
     );
