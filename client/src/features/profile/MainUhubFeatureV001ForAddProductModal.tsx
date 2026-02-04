@@ -264,7 +264,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
 )}
 
           <div>
-            <label className="block font-semibold mb-2">Payment Method: <sub style="color: #ffa64d;"> (How would you like your customers to pay/buy your product?) </sub></label>
+            <label className="block font-semibold mb-2">Payment Method: (How would you like your customers to pay/buy your product?)</label>
             <div className="space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -275,7 +275,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span>With Cash <sub style="color: #ffa64d;">(primarily for local pickup (similar to Craigslist/FB-Marketplace, you message one another to make a sale & go from there))</sub></span>
+                <span>With Cash (primarily for local pickup (similar to Craigslist/FB-Marketplace, you message one another to make a sale & go from there))</span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -287,35 +287,18 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span>(Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <sub style="color: #ffa64d;">(You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.")</sub></span>
+                <span>(Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.")</span>
               </label>
 
                 {paymentMethod === 'through_site' && (
-          <div>
-  <label className="block font-semibold mb-2">Website URL</label>
-
-  <Input
-    value={websiteUrl}
-    onChange={(e) => setWebsiteUrl(e.target.value)}
-    placeholder="https://example.com/product"
-  />
-
-  <div className="mt-1">
-    <sub style={{ color: "#ffa64d" }}>
-      Want to learn how to create a website with step‑by‑step instructions?
-      We provide free lessons over at:
-      (<a
-        href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        uminion's Lesson003
-      </a>
-      ) off our GitHub.
-    </sub>
-  </div>
-</div>
-
+            <div>
+              <label className="block font-semibold mb-2">Website URL</label>
+              <Input
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                placeholder="https://example.com/product"
+              />
+            </div>
           )}
 
                <label className="flex items-center gap-2 cursor-pointer opacity-50">
