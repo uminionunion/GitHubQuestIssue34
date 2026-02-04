@@ -558,57 +558,85 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </div>
         )}
 
-        {/* PAGES 2-10 - SHOW STORE PRODUCTS */}
-{currentPage > 1 && currentPage <= 9 && (
-  <div className="grid grid-cols-2 gap-4 h-[70vh]">
-    {storePages[currentPage - 1].map((store) => {
-      const storeProds = store ? storeProducts[store.number] || [] : [];
-      return (
-        <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
-          <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
-          {store ? (
-            <div 
-              className="flex-1 rounded-md flex flex-col cursor-pointer hover:border-orange-400 transition overflow-y-auto space-y-2"
-            >
-              {storeProds.length > 0 ? (
-                storeProds.map((product) => (
-                  <div 
-                    key={product.id}
-                    className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setProductDetailModalOpen(true);
-                    }}
-                  >
-                    {product.image_url && (
-                      <img 
-                        src={product.image_url} 
-                        alt={product.name}
-                        className="w-8 h-8 rounded object-cover flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{product.name}</p>
-                      {product.price && <p className="text-orange-400">${product.price.toFixed(2)}</p>}
+        {/* PAGES 2-10 REMAIN THE SAME */}
+        {currentPage > 1 && currentPage <= 9 && (
+          <div className="grid grid-cols-2 gap-4 h-[70vh]">
+            {storePages[currentPage - 1].map((store) => (
+              <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
+                <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
+                {store ? (
+                  <div className="flex-1 flex flex-col">
+                    {/* Store Products Grid */}
+                    <div className="flex-1 overflow-y-auto mb-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        {storeProducts[store.number] && storeProducts[store.number].length > 0 ? (
+                          storeProducts[store.number].map((product) => (
+                            <div
+                              key={product.id}
+                              className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition"
+                              style={{
+                                backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                              }}
+                            >
+                              {/* Overlay */}
+                              <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
+
+                              {/* Product Name */}
+                              <div className="relative z-10 text-xs font-semibold text-white truncate">
+                                {product.name}
+                              </div>
+
+                              {/* Eye Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedProduct(product);
+                                  setProductDetailModalOpen(true);
+                                }}
+                                className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+                                title="View product details"
+                              >
+                                <Eye className="h-3 w-3 text-white" />
+                              </button>
+
+                              {/* Price */}
+                              {product.price && (
+                                <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
+                                  ${product.price.toFixed(2)}
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-2 text-center text-muted-foreground py-4 text-sm">
+                            No products yet
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Store Background Image */}
+                    <div
+                      className="h-24 bg-cover bg-center cursor-pointer rounded-md"
+                      onClick={() => {
+                        onSelectStore(store);
+                        onClose();
+                      }}
+                      style={{backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png')`}}
+                      title={`Click to view ${store.name}`}
+                    >
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                  No products available
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
-              Coming Soon
-            </div>
-          )}
-        </div>
-      );
-    })}
-  </div>
-)}
+                ) : (
+                  <div className="bg-muted rounded-md flex items-center justify-center text-muted-foreground flex-1">
+                    Coming Soon
+                  </div>
+                )}
+              </div>
+            ))}</div>
+        )}
 
         {currentPage === 10 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
