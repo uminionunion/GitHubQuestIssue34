@@ -264,7 +264,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
 )}
 
           <div>
-            <label className="block font-semibold mb-2">Payment Method: (How would you like your customers to pay/buy your product?)</label>
+            <label className="block font-semibold mb-2"> Payment Method: <sub style={{ color: "#ff8c00", marginLeft: "4px" }}> (How would you like your customers to pay/buy your product?) </sub> </label>
             <div className="space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -275,7 +275,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span>With Cash (primarily for local pickup (similar to Craigslist/FB-Marketplace, you message one another to make a sale & go from there))</span>
+                <span> With Cash <sub style={{ color: "#ff8c00", marginLeft: "4px" }}> (primarily for local pickup (similar to Craigslist/FB‑Marketplace, you message one another to make a sale & go from there)) </sub> </span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -287,11 +287,11 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span>(Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.")</span>
+                <span> (Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <sub style={{ color: "#ff8c00", marginLeft: "4px" }}> (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.") </sub> </span>
               </label>
 
                 {paymentMethod === 'through_site' && (
-            <div>
+           <div>
   <label className="block font-semibold mb-2">Website URL</label>
 
   <Input
@@ -301,13 +301,15 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
   />
 
   <div className="mt-1">
-    <sub style={{ color: "#ffa64d" }}>
+    <sub style={{ color: "#ff8c00" }}>
       Want to learn how to create a website with step‑by‑step instructions?
       We provide free lessons over at:
-      (<a
+      (
+      <a
         href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
         target="_blank"
         rel="noopener noreferrer"
+        style={{ color: "#1a0dab", textDecoration: "underline" }}
       >
         uminion's Lesson003
       </a>
@@ -315,6 +317,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
     </sub>
   </div>
 </div>
+
 
           )}
 
@@ -338,7 +341,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span>(Other:) Venmo/CashApp/Crpyto/OtherApp (Customer messages you and yall go from there.)</span>
+                <span> (Other:) Venmo/CashApp/Crypto/OtherApp <sub style={{ color: "#ff8c00", marginLeft: "4px" }}> (Customer messages you and yall go from there.) </sub> </span>
               </label>
 
              
