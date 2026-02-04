@@ -290,6 +290,28 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                 <span>(Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.")</span>
               </label>
 
+                {paymentMethod === 'through_site' && (
+            <div>
+              <label className="block font-semibold mb-2">Website URL</label>
+              <Input
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                placeholder="https://example.com/product"
+              />
+            </div>
+          )}
+
+               <label className="flex items-center gap-2 cursor-pointer opacity-50">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="through_union"
+                  disabled
+                  className="w-4 h-4"
+                />
+                <span>Through the Union (Coming Soon)</span>
+              </label>
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
@@ -302,16 +324,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                 <span>(Other:) Venmo/CashApp/Crpyto/OtherApp (Customer messages you and yall go from there.)</span>
               </label>
 
-              <label className="flex items-center gap-2 cursor-pointer opacity-50">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="through_union"
-                  disabled
-                  className="w-4 h-4"
-                />
-                <span>Through the Union (Coming Soon)</span>
-              </label>
+             
               
             </div>
           </div>
@@ -343,16 +356,6 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
             </div>
           )}
 
-          {paymentMethod === 'through_site' && (
-            <div>
-              <label className="block font-semibold mb-2">Website URL</label>
-              <Input
-                value={websiteUrl}
-                onChange={(e) => setWebsiteUrl(e.target.value)}
-                placeholder="https://example.com/product"
-              />
-            </div>
-          )}
 
           <div>
             <label className="block font-semibold mb-2">Product Image</label>
