@@ -264,7 +264,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
 )}
 
           <div>
-            <label className="block font-semibold mb-2"> Payment Method: <sub style={{ color: "#ff8c00", marginLeft: "4px" }}> (How would you like your customers to pay/buy your product?) </sub> </label>
+            <label className="block font-semibold mb-2"> Payment Method: <span style={{ color: "#ffcc00", marginLeft: "4px", fontSize: "0.85em", verticalAlign: "baseline" }} > (How would you like your customers to pay/buy your product?) </span> </label>
             <div className="space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -287,7 +287,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span> (Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <span style={{ color: "#ffcc00", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.") </span> </span>
+                <span> (Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.") </span> </span>
               </label>
 
                 {paymentMethod === 'through_site' && (
@@ -301,15 +301,15 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
   />
 
   <div className="mt-1">
-    <sub style={{ color: "#ff8c00" }}>
-      Want to learn how to create a website with step‑by‑step instructions?
+    <sub style={{ color: "#ffcc00" }}>
+      Want to learn how to create a website with step‑by‑step instructions? <br>
       We provide free lessons over at:
       (
       <a
         href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
         target="_blank"
         rel="noopener noreferrer"
-        style={{ color: "#1a0dab", textDecoration: "underline" }}
+        style={{ color: "#00e5ff", textDecoration: "underline" }}
       >
         uminion's Lesson003
       </a>
@@ -341,7 +341,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span> (Other:) Venmo/CashApp/Crypto/OtherApp <span style={{ color: "#ffbf00", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (Customer messages you and yall go from there.) </span> </span>
+                <span> (Other:) Venmo/CashApp/Crypto/OtherApp <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (Customer messages you and yall go from there.) </span> </span>
               </label>
 
              
