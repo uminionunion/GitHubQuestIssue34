@@ -302,7 +302,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
 
   <div className="mt-1">
     <sub style={{ color: "#ffcc00" }}>
-      Want to learn how to create a website with step‑by‑step instructions? <br>
+      Want to learn how to create a website with step‑by‑step instructions? <br />
       We provide free lessons over at:
       (
       <a
