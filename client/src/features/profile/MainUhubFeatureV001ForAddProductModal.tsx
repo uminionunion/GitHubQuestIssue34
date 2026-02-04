@@ -310,7 +310,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span>Through Site</span>
+                <span>Have Customers Purchase your Item/Service/Product through your own Website? (you'd provide a link to where the product can be purchased)</span>
               </label>
             </div>
           </div>
