@@ -291,14 +291,31 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
               </label>
 
                 {paymentMethod === 'through_site' && (
-            <div>
-              <label className="block font-semibold mb-2">Website URL <sub style="color: #ffa64d;"> (Want to learn how to create a website with step by step instructions? We provide free lessons over at:>>> https://github.com/uminionunion/UminionsWebsite/discussions/14 <<<" </sub></label>
-              <Input
-                value={websiteUrl}
-                onChange={(e) => setWebsiteUrl(e.target.value)}
-                placeholder="https://example.com/product"
-              />
-            </div>
+          <div>
+  <label className="block font-semibold mb-2">Website URL</label>
+
+  <Input
+    value={websiteUrl}
+    onChange={(e) => setWebsiteUrl(e.target.value)}
+    placeholder="https://example.com/product"
+  />
+
+  <div className="mt-1">
+    <sub style={{ color: "#ffa64d" }}>
+      Want to learn how to create a website with step‑by‑step instructions?
+      We provide free lessons over at:
+      (<a
+        href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        uminion's Lesson003
+      </a>
+      ) off our GitHub.
+    </sub>
+  </div>
+</div>
+
           )}
 
                <label className="flex items-center gap-2 cursor-pointer opacity-50">
