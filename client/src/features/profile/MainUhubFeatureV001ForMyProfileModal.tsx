@@ -246,6 +246,26 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-6 w-6" />
           </Button>
+
+  <div className="flex justify-between items-center mt-6">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+          </Button>
+          <span className="text-sm font-semibold">Page {currentPage} of 10</span>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(10, prev + 1))}
+            disabled={currentPage === 10}
+          >
+            Next <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+
+          
         </div>
 
         {/* PAGE 1 - REDESIGNED LAYOUT */}
@@ -640,23 +660,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </div>
         )}
 
-        <div className="flex justify-between items-center mt-6">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" /> Previous
-          </Button>
-          <span className="text-sm font-semibold">Page {currentPage} of 10</span>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(10, prev + 1))}
-            disabled={currentPage === 10}
-          >
-            Next <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
+      
       </div>
     </div>
   );
