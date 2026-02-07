@@ -21,36 +21,36 @@ interface MainUhubFeatureV001ForMyProfileModalProps {
 
 const ALL_STORES = [
   { id: 0, name: 'Union Main Store', number: 0, displayName: 'Union Main Store#0' },
-  { id: 1, name: 'NewEngland', number: 1, displayName: '#01' },
-  { id: 2, name: 'UnionStore', number: 2, displayName: '#02' },
-  { id: 3, name: 'UnionEconomic', number: 3, displayName: '#03' },
-  { id: 4, name: 'UnionEnvironment', number: 4, displayName: '#04' },
-  { id: 5, name: 'UnionHealth', number: 5, displayName: '#05' },
-  { id: 6, name: 'UnionEducation', number: 6, displayName: '#06' },
-  { id: 7, name: 'UnionCulture', number: 7, displayName: '#07' },
-  { id: 8, name: 'UnionTech', number: 8, displayName: '#08' },
-  { id: 9, name: 'UnionCreate', number: 9, displayName: '#09' },
-  { id: 10, name: 'UnionCommunity', number: 10, displayName: '#10' },
-  { id: 11, name: 'UnionWelcome', number: 11, displayName: '#11' },
-  { id: 12, name: 'UnionEvent', number: 12, displayName: 'UnionEvent#12' },
-  { id: 13, name: 'UnionConnections', number: 13, displayName: '#13' },
-  { id: 14, name: 'UnionNews', number: 14, displayName: '#14' },
-  { id: 15, name: 'UnionRadio', number: 15, displayName: '#15' },
-  { id: 16, name: 'UnionFood', number: 16, displayName: '#16' },
-  { id: 17, name: 'UnionTravel', number: 17, displayName: '#17' },
-  { id: 18, name: 'UnionHomeLiving', number: 18, displayName: '#18' },
-  { id: 19, name: 'UnionPolitic', number: 19, displayName: 'UnionPolitic#19' },
-  { id: 20, name: 'UnionSAM', number: 20, displayName: 'UnionSAM#20' },
-  { id: 21, name: 'UnionArtisan', number: 21, displayName: '#21' },
-  { id: 22, name: 'UnionBooks', number: 22, displayName: '#22' },
-  { id: 23, name: 'UnionGames', number: 23, displayName: '#23' },
-  { id: 24, name: 'UnionFitness', number: 24, displayName: '#24' },
-  { id: 25, name: 'UnionArena', number: 25, displayName: '#25' },
-  { id: 26, name: 'UnionTrades', number: 26, displayName: '#26' },
-  { id: 27, name: 'UnionSecret', number: 27, displayName: '#27' },
-  { id: 28, name: 'UnionSports', number: 28, displayName: '#28' },
-  { id: 29, name: 'UnionHousing', number: 29, displayName: '#29' },
-  { id: 30, name: 'UnionHealthcare', number: 30, displayName: '#30' },
+  { id: 1, name: 'NewEngland#01', number: 1, displayName: 'NewEngland#01' },
+  { id: 2, name: 'CentralEastCoast#02', number: 2, displayName: 'CentralEastCoast#02' },
+  { id: 3, name: 'SouthEast#03', number: 3, displayName: 'SouthEast#03' },
+  { id: 4, name: 'Appalachia&TheGreatLakes#04', number: 4, displayName: 'Appalachia&TheGreatLakes#04' },
+  { id: 5, name: 'CentralSouth&Mexico#05', number: 5, displayName: 'CentralSouth&Mexico#05' },
+  { id: 6, name: 'CentralNorth&Canada#06', number: 6, displayName: 'CentralNorth&Canada#06' },
+  { id: 7, name: 'SouthWest#07', number: 7, displayName: 'SouthWest#07' },
+  { id: 8, name: 'NorthWest#08', number: 8, displayName: 'NorthWest#08' },
+  { id: 9, name: 'International#09', number: 9, displayName: 'International#09' },
+  { id: 10, name: 'TheGreatHall#10', number: 10, displayName: 'TheGreatHall#10' },
+  { id: 11, name: 'UnionWaterfall#11', number: 11, displayName: 'UnionWaterfall#11' },
+  { id: 12, name: 'UnionEvent#12', number: 12, displayName: 'UnionEvent#12' },
+  { id: 13, name: 'UnionSupport#13', number: 13, displayName: 'UnionSupport#13' },
+  { id: 14, name: 'UnionNews#14', number: 14, displayName: 'UnionNews#14' },
+  { id: 15, name: 'UnionRadio#15', number: 15, displayName: 'UnionRadio#15' },
+  { id: 16, name: 'UnionDrive#16', number: 16, displayName: 'UnionDrive#16' },
+  { id: 17, name: 'UnionArchive&Education#17', number: 17, displayName: 'UnionArchive&Education#17' },
+  { id: 18, name: 'UnionTech#18', number: 18, displayName: 'UnionTech#18' },
+  { id: 19, name: 'UnionPolitic#19', number: 19, displayName: 'UnionPolitic#19' },
+  { id: 20, name: 'UnionSAM#20', number: 20, displayName: 'UnionSAM#20' },
+  { id: 21, name: 'UnionUkraine#21', number: 21, displayName: 'UnionUkraine#21' },
+  { id: 22, name: 'FestyLove#22', number: 22, displayName: 'FestyLove#22' },
+  { id: 23, name: 'UnionLegal#23', number: 23, displayName: 'UnionLegal#23' },
+  { id: 24, name: 'UnionMarket#24', number: 24, displayName: 'UnionMarket#24' },
+  { id: 25, name: 'UnionArena#25', number: 25, displayName: 'UnionArena#25' },
+  { id: 26, name: 'UnionTradeEnergy&CommunityWIFI#26', number: 26, displayName: 'UnionTradeEnergy&CommunityWIFI#26' },
+  { id: 27, name: 'UnionSecret#27', number: 27, displayName: 'UnionSecret#27' },
+  { id: 28, name: 'UnionSports#28', number: 28, displayName: 'UnionSports#28' },
+  { id: 29, name: 'UnionWheelsVehicles&eMods#29', number: 29, displayName: 'UnionWheelsVehicles&eMods#29' },
+  { id: 30, name: 'UnionHousing&Healthcare#30', number: 30, displayName: 'UnionHousing&Healthcare#30' },
 ];
 
 const socialLinksLeft = [
@@ -1329,7 +1329,7 @@ default:
                <Users className="h-4 w-4 mb-1" /> Friends
              </Button>
              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Broadcast" onClick={() => setCenterView('broadcasts')}><Megaphone className="h-4 w-4 mb-1" /> Broadcast</Button>
-             <a href="https://github.com/uminionunion/GitHubQuestIssue34" target="_blank" rel="noopener noreferrer" className="w-full h-full">
+             <a href="https://github.com/uminionunion/UminionsWebsite/discussions/13" target="_blank" rel="noopener noreferrer" className="w-full h-full">
                <Button variant="outline" className="w-full h-full flex flex-col items-center justify-center text-xs" title="Code" disabled={!user}><Code className="h-4 w-4 mb-1" /> Code</Button>
              </a>
              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="h-4 w-4 mb-1" /> Settings</Button>
