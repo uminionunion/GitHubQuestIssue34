@@ -616,17 +616,10 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Store Background Image */}
-                    <div
-                      className="h-24 bg-cover bg-center cursor-pointer rounded-md"
-                      onClick={() => {
-                        onSelectStore(store);
-                        onClose();
-                      }}
-                      style={{backgroundImage: `url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.13-Made-on-NC-JPEG.png')`}}
-                      title={`Click to view ${store.name}`}
-                    >
-                    </div>
+                    {/* Store Background Image (there was a '<div> & </div> here that i deleted cause i didnt need it no more (-Salem) as of 2:03pm on 2/7/26) */}
+
+
+                    
                   </div>
                 ) : (
                   <div className="bg-muted rounded-md flex items-center justify-center text-muted-foreground flex-1">
