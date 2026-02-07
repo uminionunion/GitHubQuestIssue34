@@ -243,9 +243,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
       <div className="bg-background border rounded-lg p-6 max-w-6xl w-[95%] max-h-[90vh] overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Store Quadrants (All 30 Stores)</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-6 w-6" />
-          </Button>
+
 
   <div className="flex justify-between items-center mt-6">
           <Button
@@ -265,7 +263,11 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </Button>
         </div>
 
+
           
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-6 w-6" />
+          </Button>          
         </div>
 
         {/* PAGE 1 - REDESIGNED LAYOUT */}
