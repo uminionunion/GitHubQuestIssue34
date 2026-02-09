@@ -12,6 +12,7 @@ import { CreateBroadcastView } from './CreateBroadcastView';
 import BroadcastCarousel from './BroadcastCarousel';
 import AdminProductsList from './AdminProductsList';
 import EverythingProductsList from './EverythingProductsList';
+import ProductSearchDropdown from './ProductSearchDropdown';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -197,6 +198,7 @@ interface QuadrantsModalProps {
   allProducts?: Product[];
   setSelectedProduct: (product: Product | null) => void;
   setProductDetailModalOpen: (open: boolean) => void;
+  setAddProductModalOpen?: (open: boolean) => void;
   allProductsForAdmin?: Product[];
 }
 
@@ -405,30 +407,27 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 
                         {/* Action Buttons */}
                         <div className="flex gap-1 flex-shrink-0">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-blue-400 hover:text-blue-300"
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setProductDetailModalOpen(true);
-                            }}
-                            title="View product details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-green-400 hover:text-green-300"
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setAddProductModalOpen(true);
-                            }}
-                            title="Edit product"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                         <Button
+  size="icon"
+  variant="ghost"
+  className="h-8 w-8 text-blue-400 hover:text-blue-300"
+  onClick={() => onProductView(p)}
+  title="View product details"
+>
+  <Eye className="h-4 w-4" />
+</Button>
+                         <Button
+  size="icon"
+  variant="ghost"
+  className="h-8 w-8 text-green-400 hover:text-green-300"
+  onClick={() => {
+    setSelectedProduct(p);
+    setAddProductModalOpen?.(true);
+  }}
+  title="Edit product"
+>
+  <Pencil className="h-4 w-4" />
+</Button>
                           <Button
                             size="icon"
                             variant="ghost"
@@ -496,30 +495,29 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 
                         {/* Action Buttons */}
                         <div className="flex gap-1 flex-shrink-0">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-blue-400 hover:text-blue-300"
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setProductDetailModalOpen(true);
-                            }}
-                            title="View product details"
-                          >
+                         <Button
+  size="icon"
+  variant="ghost"
+  className="h-8 w-8 text-blue-400 hover:text-blue-300"
+  onClick={() => onProductView(p)}
+  title="View product details"
+>
+  <Eye className="h-4 w-4" />
+</Button>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-green-400 hover:text-green-300"
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setAddProductModalOpen(true);
-                            }}
-                            title="Edit product"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+              <Button
+  size="icon"
+  variant="ghost"
+  className="h-8 w-8 text-green-400 hover:text-green-300"
+  onClick={() => {
+    setSelectedProduct(p);
+    setAddProductModalOpen?.(true);
+  }}
+  title="Edit product"
+>
+  <Pencil className="h-4 w-4" />
+</Button>
                           <Button
                             size="icon"
                             variant="ghost"
@@ -581,76 +579,107 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         )}
 
         {/* PAGES 2-10 REMAIN THE SAME */}
-        {currentPage > 1 && currentPage <= 9 && (
-          <div className="grid grid-cols-2 gap-4 h-[70vh]">
-            {storePages[currentPage - 1].map((store) => (
-              <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
-                <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
-                {store ? (
-                  <div className="flex-1 flex flex-col">
-                    {/* Store Products Grid */}
-                    <div className="flex-1 overflow-y-auto mb-3">
-                      <div className="grid grid-cols-2 gap-2">
-                        {storeProducts[store.number] && storeProducts[store.number].length > 0 ? (
-                          storeProducts[store.number].map((product) => (
-                            <div
-                              key={product.id}
-                              className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition"
-                              style={{
-                                backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center'
-                              }}
-                            >
-                              {/* Overlay */}
-                              <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
+       {currentPage > 1 && currentPage <= 9 && (
+  <div className="grid grid-cols-2 gap-4 h-[70vh]">
+    {storePages[currentPage - 1].map((store) => (
+      <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
+        <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
+        {store ? (
+          <div className="flex-1 flex flex-col">
+            {/* Search Bar */}
+            <div className="mb-3">
+              <ProductSearchDropdown
+                allProducts={everythingProducts}
+                onProductSelect={(product) => {
+                  onProductView(product);
+                }}
+              />
+            </div>
 
-                              {/* Product Name */}
-                              <div className="relative z-10 text-xs font-semibold text-white truncate">
-                                {product.name}
-                              </div>
+            {/* Store Products Grid */}
+            <div className="flex-1 overflow-y-auto mb-3">
+              <div className="grid grid-cols-2 gap-2">
+                {storeProducts[store.number] && storeProducts[store.number].length > 0 ? (
+                  storeProducts[store.number].map((product) => (
+                    <div
+                      key={product.id}
+                      className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition"
+                      style={{
+                        backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }}
+                    >
+                      {/* Overlay */}
+                      <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
 
-                              {/* Eye Button */}
-<button
-  onClick={(e) => {
-    e.stopPropagation();
-    onProductView(product);
-  }}
-  className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
-  title="View product details"
->
-  <Eye className="h-3 w-3 text-white" />
-</button>
-
-                              {/* Price */}
-                              {product.price && (
-                                <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
-                                  ${product.price.toFixed(2)}
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="col-span-2 text-center text-muted-foreground py-4 text-sm">
-                            No products yet
-                          </div>
-                        )}
+                      {/* Product Name */}
+                      <div className="relative z-10 text-xs font-semibold text-white truncate">
+                        {product.name}
                       </div>
+
+                      {/* Eye Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onProductView(product);
+                        }}
+                        className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+                        title="View product details"
+                      >
+                        <Eye className="h-3 w-3 text-white" />
+                      </button>
+
+                      {/* Price */}
+                      {product.price && (
+                        <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
+                          ${product.price.toFixed(2)}
+                        </div>
+                      )}
                     </div>
-
-                    {/* Store Background Image (there was a '<div> & </div> here that i deleted cause i didnt need it no more (-Salem) as of 2:03pm on 2/7/26) */}
-
-
-                    
-                  </div>
+                  ))
                 ) : (
-                  <div className="bg-muted rounded-md flex items-center justify-center text-muted-foreground flex-1">
-                    Coming Soon
+                  <div className="col-span-2 text-center text-muted-foreground py-4 text-sm">
+                    No products yet
                   </div>
                 )}
               </div>
-            ))}</div>
+            </div>
+
+            {/* Page Navigation */}
+            <div className="border-t pt-2 mt-auto">
+              <div className="flex justify-between items-center mb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="text-xs"
+                >
+                  ← Previous
+                </Button>
+                <span className="text-xs font-semibold">Page {currentPage} of 10</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(10, prev + 1))}
+                  disabled={currentPage === 10}
+                  className="text-xs"
+                >
+                  Next →
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-muted rounded-md flex items-center justify-center text-muted-foreground flex-1">
+            Coming Soon
+          </div>
         )}
+      </div>
+    ))}
+  </div>
+)}
 
         {currentPage === 10 && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
@@ -1564,6 +1593,7 @@ default:
   storeProducts={storeProducts}
   setSelectedProduct={setSelectedProduct}
   setProductDetailModalOpen={setProductDetailModalOpen}
+  setAddProductModalOpen={setAddProductModalOpen}
   allProductsForAdmin={allProductsForAdmin}
   onProductView={(product) => {
     setSelectedProduct(product);
