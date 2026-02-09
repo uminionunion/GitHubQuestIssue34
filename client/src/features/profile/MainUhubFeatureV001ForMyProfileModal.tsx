@@ -247,20 +247,20 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 
   <div className="flex justify-between items-center mt-6">
           <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" /> Previous
-          </Button>
+  variant="outline"
+  onClick={() => setCurrentPage(prev => prev === 1 ? 10 : prev - 1)}
+  disabled={false}
+>
+  <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+</Button>
           <span className="text-sm font-semibold">Page {currentPage} of 10</span>
           <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(10, prev + 1))}
-            disabled={currentPage === 10}
-          >
-            Next <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
+  variant="outline"
+  onClick={() => setCurrentPage(prev => prev === 10 ? 1 : prev + 1)}
+  disabled={false}
+>
+  Next <ChevronRight className="h-4 w-4 ml-2" />
+</Button>
         </div>
 
 
