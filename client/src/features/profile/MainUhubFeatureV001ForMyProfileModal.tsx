@@ -247,7 +247,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[10000]">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100000]">
       <div className="bg-background border rounded-lg p-6 max-w-6xl w-[95%] max-h-[90vh] overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Store Quadrants (All 30 Stores)</h2>
