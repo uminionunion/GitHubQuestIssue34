@@ -515,7 +515,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   title="Edit product"
 >
   <Pencil className="h-4 w-4" />
-</Button>>
+</Button>
                           <Button
                             size="icon"
                             variant="ghost"
