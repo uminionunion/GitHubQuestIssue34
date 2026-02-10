@@ -200,6 +200,8 @@ interface QuadrantsModalProps {
   setProductDetailModalOpen: (open: boolean) => void;
   setAddProductModalOpen?: (open: boolean) => void;
   allProductsForAdmin?: Product[];
+  setSelectedProduct?: (product: Product | null) => void;
+  setAddProductModalOpen?: (open: boolean) => void;
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -217,7 +219,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   onProductView,
   onProductDelete,
   allProducts = [],
-  allProductsForAdmin = []
+  allProductsForAdmin = [],
+  setSelectedProduct,
+  setAddProductModalOpen
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -422,7 +426,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   className="h-8 w-8 text-green-400 hover:text-green-300"
   onClick={() => {
     setSelectedProduct(p);
-    setAddProductModalOpen?.(true);
+    setAddProductModalOpen(true);
   }}
   title="Edit product"
 >
