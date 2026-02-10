@@ -269,6 +269,19 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 >
   Next <ChevronRight className="h-4 w-4 ml-2" />
 </Button>
+
+{/* Search Bar - Only on Page 1 */}
+  {currentPage === 1 && (
+    <div className="w-64">
+      <ProductSearchDropdown
+        allProducts={everythingProducts}
+        onProductSelect={(product) => {
+          onProductView(product);
+        }}
+      />
+    </div>
+  )}
+    
         </div>
 
 
@@ -590,17 +603,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
         {store ? (
           <div className="flex-1 flex flex-col">
-            {/* Search Bar */}
-            <div className="mb-3">
-              <ProductSearchDropdown
-                allProducts={everythingProducts}
-                onProductSelect={(product) => {
-                  onProductView(product);
-                }}
-              />
-            </div>
-
-            {/* Store Products Grid */}
+           {/* Store Products Grid */}
             <div className="flex-1 overflow-y-auto mb-3">
               <div className="grid grid-cols-2 gap-2">
                 {storeProducts[store.number] && storeProducts[store.number].length > 0 ? (
