@@ -200,6 +200,7 @@ interface QuadrantsModalProps {
   setProductDetailModalOpen: (open: boolean) => void;
   setAddProductModalOpen?: (open: boolean) => void;
   allProductsForAdmin?: Product[];
+  everythingProducts?: Product[];
   setSelectedProduct?: (product: Product | null) => void;
   setAddProductModalOpen?: (open: boolean) => void;
 }
@@ -221,7 +222,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   allProducts = [],
   allProductsForAdmin = [],
   setSelectedProduct,
-  setAddProductModalOpen
+  setAddProductModalOpen,
+  everythingProducts = []
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -245,7 +247,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[10000]">
       <div className="bg-background border rounded-lg p-6 max-w-6xl w-[95%] max-h-[90vh] overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Store Quadrants (All 30 Stores)</h2>
@@ -1597,6 +1599,7 @@ default:
   setProductDetailModalOpen={setProductDetailModalOpen}
   setAddProductModalOpen={setAddProductModalOpen}
   allProductsForAdmin={allProductsForAdmin}
+  everythingProducts={everythingProducts}
   onProductView={(product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
