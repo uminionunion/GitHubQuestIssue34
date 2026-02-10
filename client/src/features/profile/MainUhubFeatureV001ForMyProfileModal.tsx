@@ -504,9 +504,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 >
   <Eye className="h-4 w-4" />
 </Button>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-              <Button
+<Button
   size="icon"
   variant="ghost"
   className="h-8 w-8 text-green-400 hover:text-green-300"
@@ -517,7 +515,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   title="Edit product"
 >
   <Pencil className="h-4 w-4" />
-</Button>
+</Button>>
                           <Button
                             size="icon"
                             variant="ghost"
