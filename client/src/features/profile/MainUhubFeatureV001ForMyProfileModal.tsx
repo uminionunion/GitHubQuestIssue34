@@ -13,6 +13,7 @@ import BroadcastCarousel from './BroadcastCarousel';
 import AdminProductsList from './AdminProductsList';
 import EverythingProductsList from './EverythingProductsList';
 import ProductSearchDropdown from './ProductSearchDropdown';
+import MainUhubFeatureV001ForEditProductModal from './MainUhubFeatureV001ForEditProductModal';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -461,10 +462,11 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   size="icon"
   variant="ghost"
   className="h-8 w-8 text-green-400 hover:text-green-300"
-  onClick={() => {
-    setSelectedProduct(p);
-    setAddProductModalOpen(true);
-  }}
+  onClick={(e) => {
+  e.stopPropagation();
+  setEditingProduct(p);
+  setEditProductModalOpen(true);
+}}
   title="Edit product"
 >
   <Pencil className="h-4 w-4" />
@@ -549,10 +551,11 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   size="icon"
   variant="ghost"
   className="h-8 w-8 text-green-400 hover:text-green-300"
-  onClick={() => {
-    setSelectedProduct(p);
-    setAddProductModalOpen?.(true);
-  }}
+  onClick={(e) => {
+  e.stopPropagation();
+  setEditingProduct(p);
+  setEditProductModalOpen(true);
+}}
   title="Edit product"
 >
   <Pencil className="h-4 w-4" />
@@ -945,6 +948,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [userStoresData, setUserStoresData] = useState<any[]>([]);
 
   
+const [editingProduct, setEditingProduct] = useState<any>(null);
+const [isEditProductModalOpen, setEditProductModalOpen] = useState(false);
+const [userStores, setUserStores] = useState<any[]>([]);
+const [isLoadingUserStores, setIsLoadingUserStores] = useState(false);
+  
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
       'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
@@ -1074,6 +1082,35 @@ useEffect(() => {
       fetchUserStores();
     }
   }, [isOpen]);
+
+
+
+
+// Fetch user's custom stores when modal opens
+useEffect(() => {
+  if (user && isOpen) {
+    setIsLoadingUserStores(true);
+    fetch(`/api/products/user/${user.id}/stores`)
+      .then(res => res.json())
+      .then(data => {
+        console.log('[PROFILE MODAL] Fetched user stores:', data);
+        setUserStores(Array.isArray(data) ? data : []);
+      })
+      .catch(error => {
+        console.error('[PROFILE MODAL] Error fetching user stores:', error);
+        setUserStores([]);
+      })
+      .finally(() => setIsLoadingUserStores(false));
+  }
+}, [user, isOpen]);
+
+
+
+
+
+
+
+  
 
   
   const handleMagnify = (product: Product) => {
@@ -1695,6 +1732,39 @@ default:
         {isProductDetailModalOpen && (
           <MainUhubFeatureV001ForProductDetailModal isOpen={isProductDetailModalOpen} onClose={() => setProductDetailModalOpen(false)} product={selectedProduct} />
         )}
+
+
+
+
+
+{isEditProductModalOpen && (
+  <MainUhubFeatureV001ForEditProductModal
+    isOpen={isEditProductModalOpen}
+    onClose={() => {
+      setEditProductModalOpen(false);
+      setEditingProduct(null);
+    }}
+    product={editingProduct}
+    userStores={userStores}
+    onProductUpdated={() => {
+      // Refresh products after assignment
+      if (user) {
+        // Re-fetch user products
+        const currentTab = centerView; // or whatever variable tracks current view
+        setProductsNeedRefresh(true); // If you have a refresh trigger
+      }
+    }}
+  />
+)}
+
+
+
+
+
+
+
+
+      
         
         <QuadrantsModal 
   isOpen={isQuadrantsModalOpen}
