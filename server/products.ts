@@ -855,7 +855,7 @@ router.get('/user-stores/all', async (req, res) => {
   try {
     const stores = await db
       .selectFrom('user_stores')
-      .leftJoin('products', 'user_stores.id', 'products.user_store_id')
+      .leftJoin('MainHubUpgradeV001ForProducts', 'user_stores.id', 'MainHubUpgradeV001ForProducts.user_store_id') 
       .select([
         'user_stores.id',
         'user_stores.name',
