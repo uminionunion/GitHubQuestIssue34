@@ -203,8 +203,8 @@ interface QuadrantsModalProps {
   setAddProductModalOpen?: (open: boolean) => void;
   allProductsForAdmin?: Product[];
   everythingProducts?: Product[];
-  setSelectedProduct?: (product: Product | null) => void;
-  setAddProductModalOpen?: (open: boolean) => void;
+  setEditingProduct: (product: any) => void;
+  setEditProductModalOpen: (open: boolean) => void;
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -226,7 +226,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   allProductsForAdmin = [],
   setSelectedProduct,
   setAddProductModalOpen,
-  everythingProducts = []
+  everythingProducts = [],
+  setEditingProduct,
+  setEditProductModalOpen
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -1766,7 +1768,7 @@ default:
 
       
         
-        <QuadrantsModal 
+       <QuadrantsModal 
   isOpen={isQuadrantsModalOpen}
   onClose={() => setIsQuadrantsModalOpen(false)}
   stores={ALL_STORES}
@@ -1787,6 +1789,8 @@ default:
   setAddProductModalOpen={setAddProductModalOpen}
   allProductsForAdmin={allProductsForAdmin}
   everythingProducts={everythingProducts}
+  setEditingProduct={setEditingProduct}
+  setEditProductModalOpen={setEditProductModalOpen}
   onProductView={(product) => {
     setSelectedProduct(product);
     setProductDetailModalOpen(true);
@@ -1822,6 +1826,12 @@ default:
   allProducts={everythingProducts}
 />
 
+
+
+
+
+
+      
         <HomeModal 
           isOpen={isHomeModalOpen}
           onClose={() => setIsHomeModalOpen(false)}
