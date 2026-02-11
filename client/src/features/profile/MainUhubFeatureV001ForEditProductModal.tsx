@@ -43,40 +43,55 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
   if (!isOpen || !product || !user) return null;
 
   const handleAssignToUserStore = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  if (!selectedUserStore) {
+    setError('Please select a user store');
+    return;
+  }
+
+  if (!product || !product.id) {
+    setError('Product data is missing');
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    console.log(`[EDIT PRODUCT] Assigning product ${product.id} to user store ${selectedUserStore}`);
     
-    if (!selectedUserStore) {
-      setError('Please select a user store');
-      return;
+    const response = await fetch(`/api/products/${product.id}/user-store`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userStoreId: selectedUserStore }),
+    });
+
+    // Check if response is actually JSON before parsing
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      console.error('[EDIT PRODUCT] Non-JSON response:', response.status, response.statusText);
+      throw new Error(`Server error: ${response.status} ${response.statusText}`);
     }
 
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/products/${product.id}/user-store`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userStoreId: selectedUserStore }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to assign product to store');
-      }
-
-      console.log(`[EDIT PRODUCT] Product ${product.id} assigned to user store ${selectedUserStore}`);
-      
-      if (onProductUpdated) {
-        onProductUpdated();
-      }
-      
-      onClose();
-    } catch (err) {
-      console.error('Error assigning product to store:', err);
-      setError(err instanceof Error ? err.message : 'Failed to assign product to store');
-    } finally {
-      setIsSubmitting(false);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to assign product to store');
     }
-  };
+
+    const data = await response.json();
+    console.log(`[EDIT PRODUCT] Success:`, data);
+    
+    if (onProductUpdated) {
+      onProductUpdated();
+    }
+    
+    onClose();
+  } catch (err) {
+    console.error('Error assigning product to store:', err);
+    setError(err instanceof Error ? err.message : 'Failed to assign product to store');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
