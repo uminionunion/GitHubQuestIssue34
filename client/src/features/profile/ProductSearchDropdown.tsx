@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Product {
   id: number;
@@ -27,12 +27,16 @@ const ProductSearchDropdown: React.FC<ProductSearchDropdownProps> = ({
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [currentPage, setCurrentPage] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const ITEMS_PER_PAGE = 10;
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setSelectedIndex(-1);
+    setCurrentPage(0);
 
     if (!query.trim()) {
       setSearchResults([]);
@@ -62,6 +66,7 @@ const ProductSearchDropdown: React.FC<ProductSearchDropdownProps> = ({
     setSearchQuery('');
     setSearchResults([]);
     setIsOpen(false);
+    setCurrentPage(0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -104,6 +109,12 @@ const ProductSearchDropdown: React.FC<ProductSearchDropdownProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Calculate pagination
+  const totalPages = Math.ceil(searchResults.length / ITEMS_PER_PAGE);
+  const startIndex = currentPage * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentPageResults = searchResults.slice(startIndex, endIndex);
+
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <div className="relative flex items-center">
@@ -111,7 +122,7 @@ const ProductSearchDropdown: React.FC<ProductSearchDropdownProps> = ({
         <Input
           ref={inputRef}
           type="text"
-          placeholder="Search products by name, subtitle, or description..."
+          placeholder="Search products..."
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -128,6 +139,7 @@ const ProductSearchDropdown: React.FC<ProductSearchDropdownProps> = ({
               setSearchQuery('');
               setSearchResults([]);
               setIsOpen(false);
+              setCurrentPage(0);
               inputRef.current?.focus();
             }}
             className="absolute right-3 text-muted-foreground hover:text-foreground"
@@ -140,13 +152,13 @@ const ProductSearchDropdown: React.FC<ProductSearchDropdownProps> = ({
       {/* Dropdown Results */}
       {isOpen && searchResults.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
-          {searchResults.slice(0, 10).map((product, index) => (
+          {currentPageResults.map((product, index) => (
             <button
               key={product.id}
               onClick={() => handleSelectProduct(product)}
-              onMouseEnter={() => setSelectedIndex(index)}
+              onMouseEnter={() => setSelectedIndex(startIndex + index)}
               className={`w-full px-4 py-3 text-left border-b border-gray-700 transition flex items-center gap-3 ${
-                selectedIndex === index
+                selectedIndex === startIndex + index
                   ? 'bg-orange-500/20 border-orange-400'
                   : 'hover:bg-gray-800'
               }`}
@@ -173,9 +185,40 @@ const ProductSearchDropdown: React.FC<ProductSearchDropdownProps> = ({
               </div>
             </button>
           ))}
-          {searchResults.length > 10 && (
-            <div className="px-4 py-2 text-xs text-gray-500 text-center border-t border-gray-700">
-              Showing 10 of {searchResults.length} results
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="px-4 py-3 border-t border-gray-700 bg-gray-800 flex items-center justify-between">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                disabled={currentPage === 0}
+                className="text-xs"
+              >
+                <ChevronLeft className="h-3 w-3 mr-1" /> Prev
+              </Button>
+
+              <span className="text-xs text-gray-400 font-semibold">
+                Page {currentPage + 1} of {totalPages} | Showing {startIndex + 1}-{Math.min(endIndex, searchResults.length)} of {searchResults.length}
+              </span>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                disabled={currentPage === totalPages - 1}
+                className="text-xs"
+              >
+                Next <ChevronRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          )}
+
+          {/* Single page results summary */}
+          {totalPages === 1 && searchResults.length > 0 && (
+            <div className="px-4 py-2 text-xs text-gray-500 text-center border-t border-gray-700 bg-gray-800">
+              Showing all {searchResults.length} results
             </div>
           )}
         </div>
