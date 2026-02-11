@@ -42,6 +42,13 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [isEditMode] = useState(!!editingProduct);
+const [addToUserStore, setAddToUserStore] = useState(false);
+const [userStores, setUserStores] = useState<any[]>([]);
+const [selectedUserStoreId, setSelectedUserStoreId] = useState<string>('');
+const [newStoreName, setNewStoreName] = useState('');
+const [newStoreSubtitle, setNewStoreSubtitle] = useState('');
+const [newStoreDescription, setNewStoreDescription] = useState('');
+const [showCreateNewStore, setShowCreateNewStore] = useState(false);
 
   // Pre-fill form when editing
   React.useEffect(() => {
