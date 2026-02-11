@@ -761,4 +761,147 @@ router.delete('/admin/:productId', authenticate, async (req, res) => {
   }
 });
 
+
+
+
+
+
+// Get user's custom stores
+router.get('/user/:userId/stores', async (req, res) => {
+  try {
+    const stores = await db
+      .selectFrom('user_stores')
+      .selectAll()
+      .where('user_id', '=', parseInt(req.params.userId))
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    res.json(stores);
+  } catch (error) {
+    console.error('Error fetching user stores:', error);
+    res.status(500).json({ error: 'Failed to fetch user stores' });
+  }
+});
+
+// Create new user store
+router.post('/user/:userId/stores', async (req, res) => {
+  try {
+    const { name, subtitle, description } = req.body;
+    const userId = parseInt(req.params.userId);
+
+    if (!name || name.trim().length === 0) {
+      res.status(400).json({ error: 'Store name is required' });
+      return;
+    }
+
+    if (name.length > 250) {
+      res.status(400).json({ error: 'Store name must be 250 characters or less' });
+      return;
+    }
+
+    if (subtitle && subtitle.length > 250) {
+      res.status(400).json({ error: 'Subtitle must be 250 characters or less' });
+      return;
+    }
+
+    if (description && description.length > 1000) {
+      res.status(400).json({ error: 'Description must be 1000 characters or less' });
+      return;
+    }
+
+    const store = await db
+      .insertInto('user_stores')
+      .values({
+        user_id: userId,
+        name: name.trim(),
+        subtitle: subtitle?.trim() || null,
+        description: description?.trim() || null,
+      })
+      .returning('id')
+      .executeTakeFirst();
+
+    res.json(store);
+  } catch (error) {
+    console.error('Error creating user store:', error);
+    if (error.message.includes('UNIQUE')) {
+      res.status(400).json({ error: 'Store with this name already exists' });
+    } else {
+      res.status(500).json({ error: 'Failed to create user store' });
+    }
+  }
+});
+
+// Add product to user store (update existing product)
+router.put('/products/:productId/user-store', async (req, res) => {
+  try {
+    const { userStoreId } = req.body;
+    const productId = parseInt(req.params.productId);
+
+    await db
+      .updateTable('products')
+      .set({ user_store_id: userStoreId || null })
+      .where('id', '=', productId)
+      .execute();
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating product user store:', error);
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+});
+
+// Get all user stores with their products (for quadrants page 10+)
+router.get('/user-stores/all', async (req, res) => {
+  try {
+    const stores = await db
+      .selectFrom('user_stores')
+      .leftJoin('products', 'user_stores.id', 'products.user_store_id')
+      .select([
+        'user_stores.id',
+        'user_stores.name',
+        'user_stores.subtitle',
+        'user_stores.description',
+        'user_stores.user_id',
+        'products.id as product_id',
+        'products.name as product_name',
+        'products.price',
+        'products.image_url',
+        'products.description as product_description',
+      ])
+      .orderBy('user_stores.created_at', 'desc')
+      .execute();
+
+    // Transform flat results into nested structure
+    const storesMap = new Map();
+    stores.forEach(row => {
+      if (!storesMap.has(row.id)) {
+        storesMap.set(row.id, {
+          id: row.id,
+          name: row.name,
+          subtitle: row.subtitle,
+          description: row.description,
+          user_id: row.user_id,
+          products: [],
+        });
+      }
+      if (row.product_id) {
+        storesMap.get(row.id).products.push({
+          id: row.product_id,
+          name: row.product_name,
+          price: row.price,
+          image_url: row.image_url,
+          description: row.product_description,
+        });
+      }
+    });
+
+    res.json(Array.from(storesMap.values()));
+  } catch (error) {
+    console.error('Error fetching user stores:', error);
+    res.status(500).json({ error: 'Failed to fetch user stores' });
+  }
+});
+
+
+
 export default router;
