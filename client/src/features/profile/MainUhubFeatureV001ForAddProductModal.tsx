@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
@@ -42,13 +42,15 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [isEditMode] = useState(!!editingProduct);
-const [addToUserStore, setAddToUserStore] = useState(false);
-const [userStores, setUserStores] = useState<any[]>([]);
-const [selectedUserStoreId, setSelectedUserStoreId] = useState<string>('');
-const [newStoreName, setNewStoreName] = useState('');
-const [newStoreSubtitle, setNewStoreSubtitle] = useState('');
-const [newStoreDescription, setNewStoreDescription] = useState('');
-const [showCreateNewStore, setShowCreateNewStore] = useState(false);
+  
+  // NEW: User Stores State
+  const [addToUserStore, setAddToUserStore] = useState(false);
+  const [userStores, setUserStores] = useState<any[]>([]);
+  const [selectedUserStoreId, setSelectedUserStoreId] = useState<string>('');
+  const [newStoreName, setNewStoreName] = useState('');
+  const [newStoreSubtitle, setNewStoreSubtitle] = useState('');
+  const [newStoreDescription, setNewStoreDescription] = useState('');
+  const [showCreateNewStore, setShowCreateNewStore] = useState(false);
 
   // Pre-fill form when editing
   React.useEffect(() => {
@@ -59,12 +61,11 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
       setPrice((editingProduct.price || '').toString());
       setExistingImageUrl(editingProduct.image_url || '');
       setPaymentMethod(editingProduct.payment_method || '');
-      setExistingQrImageUrl(''); // QR code is typically not stored, just payment_url
+      setExistingQrImageUrl('');
       setWebsiteUrl(editingProduct.payment_url || '');
       setWooSku(editingProduct.sku_id || '');
       setStoreId((editingProduct.store_id || '').toString());
     } else {
-      // Reset form for new product
       setTitle('');
       setSubtitle('');
       setDescription('');
@@ -78,9 +79,27 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
     }
   }, [editingProduct, isOpen]);
 
+  // NEW: Fetch user stores when modal opens
+  useEffect(() => {
+    if (isOpen && user && !isHighHighHighAdmin && !isHighHighAdmin) {
+      fetchUserStores();
+    }
+  }, [isOpen, user]);
+
+  // NEW: Fetch user stores from backend
+  const fetchUserStores = async () => {
+    try {
+      const res = await fetch(`/api/products/user/${user.id}/stores`);
+      const data = await res.json();
+      setUserStores(Array.isArray(data) ? data : []);
+      setShowCreateNewStore(data.length === 0);
+    } catch (error) {
+      console.error('Error fetching user stores:', error);
+    }
+  };
+
   if (!isOpen || !user) return null;
 
-  // Determine user's role and available stores
   const isHighHighHighAdmin = user.is_high_high_high_admin === 1;
   const isHighHighAdmin = user.is_high_high_admin === 1;
 
@@ -97,95 +116,149 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
 
-  if (!title || price === '') {
-    setError('Title and price are required');
-    return;
-  }
-
-  if (!paymentMethod) {
-    setError('Payment method is required');
-    return;
-  }
-
-  if (paymentMethod === 'venmo_cashapp' && !qrCodeImage && !existingQrImageUrl) {
-    setError('QR code image is required for Venmo/CashApp option');
-    return;
-  }
-
-  if (paymentMethod === 'through_site' && !websiteUrl) {
-    setError('Website URL is required for "Through Site" option');
-    return;
-  }
-
-  if ((isHighHighHighAdmin || isHighHighAdmin) && !storeId) {
-    setError('Store selection is required');
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const formData = new FormData();
-    formData.append('name', title);
-    formData.append('subtitle', subtitle);
-    formData.append('description', description);
-    formData.append('price', price);
-    formData.append('payment_method', paymentMethod);
-    formData.append('payment_url', websiteUrl);
-    formData.append('sku_id', wooSku);
-
-    if ((isHighHighHighAdmin || isHighHighAdmin) && storeId) {
-      formData.append('store_id', storeId);
-    }
-
-    if (image) {
-      formData.append('image', image);
-    }
-
-    if (qrCodeImage) {
-      formData.append('qr_code_image', qrCodeImage);
-    }
-
-    // If editing, send PATCH request; if creating, send POST
-    const url = isEditMode ? `/api/products/${editingProduct.id}` : '/api/products';
-    const method = isEditMode ? 'PATCH' : 'POST';
-
-    const response = await fetch(url, {
-      method: method,
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      setError(data.message || `Failed to ${isEditMode ? 'update' : 'create'} product`);
+    if (!title || price === '') {
+      setError('Title and price are required');
       return;
     }
 
-    if (onProductAdded) {
-      onProductAdded();
+    if (!paymentMethod) {
+      setError('Payment method is required');
+      return;
     }
 
-    onClose();
-  } catch (error) {
-    console.error('Error submitting product:', error);
-    setError('An error occurred. Please try again.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    if (paymentMethod === 'venmo_cashapp' && !qrCodeImage && !existingQrImageUrl) {
+      setError('QR code image is required for Venmo/CashApp option');
+      return;
+    }
+
+    if (paymentMethod === 'through_site' && !websiteUrl) {
+      setError('Website URL is required for "Through Site" option');
+      return;
+    }
+
+    if ((isHighHighHighAdmin || isHighHighAdmin) && !storeId) {
+      setError('Store selection is required');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('name', title);
+      formData.append('subtitle', subtitle);
+      formData.append('description', description);
+      formData.append('price', price);
+      formData.append('payment_method', paymentMethod);
+      formData.append('payment_url', websiteUrl);
+      formData.append('sku_id', wooSku);
+
+      if ((isHighHighHighAdmin || isHighHighAdmin) && storeId) {
+        formData.append('store_id', storeId);
+      }
+
+      if (image) {
+        formData.append('image', image);
+      }
+
+      if (qrCodeImage) {
+        formData.append('qr_code_image', qrCodeImage);
+      }
+
+      const url = isEditMode ? `/api/products/${editingProduct.id}` : '/api/products';
+      const method = isEditMode ? 'PATCH' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message || `Failed to ${isEditMode ? 'update' : 'create'} product`);
+        return;
+      }
+
+      const responseData = await response.json();
+
+      // NEW: Handle user store assignment (for regular users only)
+      if (!isHighHighHighAdmin && !isHighHighAdmin && addToUserStore) {
+        let storeId = selectedUserStoreId;
+
+        // Create new store if needed
+        if (!storeId && showCreateNewStore) {
+          if (!newStoreName.trim()) {
+            setError('Store name is required');
+            setIsSubmitting(false);
+            return;
+          }
+
+          try {
+            const storeRes = await fetch(`/api/products/user/${user.id}/stores`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: newStoreName,
+                subtitle: newStoreSubtitle || null,
+                description: newStoreDescription || null,
+              }),
+            });
+
+            if (!storeRes.ok) {
+              const errorData = await storeRes.json();
+              setError(errorData.error || 'Failed to create store');
+              setIsSubmitting(false);
+              return;
+            }
+
+            const storeData = await storeRes.json();
+            storeId = storeData.id;
+          } catch (error) {
+            setError('Failed to create store');
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
+        // Assign product to user store
+        if (storeId) {
+          try {
+            await fetch(`/api/products/${responseData.product_id}/user-store`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userStoreId: parseInt(storeId) }),
+            });
+          } catch (error) {
+            console.error('Error assigning product to store:', error);
+          }
+        }
+      }
+
+      if (onProductAdded) {
+        onProductAdded();
+      }
+
+      onClose();
+    } catch (error) {
+      console.error('Error submitting product:', error);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
       <div className="bg-background border rounded-lg p-6 max-w-2xl w-[90%] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-  <h2 className="text-2xl font-bold">{isEditMode ? 'Edit Product' : 'Add Product'}</h2>
-  <Button variant="ghost" size="icon" onClick={onClose}>
-    <X className="h-6 w-6" />
-  </Button>
-</div>
+          <h2 className="text-2xl font-bold">{isEditMode ? 'Edit Product' : 'Add Product'}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
 
         {error && (
           <div className="bg-red-500/20 border border-red-500 text-red-200 p-3 rounded mb-4 text-sm">
@@ -251,27 +324,31 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
           )}
 
           {(isHighHighHighAdmin || isHighHighAdmin) && (
-  <div>
-    <label className="block font-semibold mb-2">Store Number (required)</label>
-    <select
-      value={storeId}
-      onChange={(e) => setStoreId(e.target.value)}
-      className="w-full border rounded px-3 py-2 bg-background"
-      required
-    >
-      <option value="">Select a store...</option>
-      <option value="0">Show in Union Store</option>
-      {Array.from({ length: 30 }, (_, i) => (
-        <option key={i + 1} value={String(i + 1)}>
-          Store #{String(i + 1).padStart(2, '0')}
-        </option>
-      ))}
-    </select>
-  </div>
-)}
+            <div>
+              <label className="block font-semibold mb-2">Store Number (required)</label>
+              <select
+                value={storeId}
+                onChange={(e) => setStoreId(e.target.value)}
+                className="w-full border rounded px-3 py-2 bg-background"
+                required
+              >
+                <option value="">Select a store...</option>
+                <option value="0">Show in Union Store</option>
+                {Array.from({ length: 30 }, (_, i) => (
+                  <option key={i + 1} value={String(i + 1)}>
+                    Store #{String(i + 1).padStart(2, '0')}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
-            <label className="block font-semibold mb-2"> Payment Method: <span style={{ color: "#ffcc00", marginLeft: "4px", fontSize: "0.85em", verticalAlign: "baseline" }} > (How would you like your customers to pay/buy your product?) </span> </label>
+            <label className="block font-semibold mb-2">
+              Payment Method: <span style={{ color: "#ffcc00", marginLeft: "4px", fontSize: "0.85em", verticalAlign: "baseline" }}>
+                (How would you like your customers to pay/buy your product?)
+              </span>
+            </label>
             <div className="space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -282,7 +359,11 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span> With Cash <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (primarily for local pickup (similar to Craigslist/FB‑Marketplace, you message one another to make a sale & go from there)) </span> </span>
+                <span>
+                  With Cash <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}>
+                    (primarily for local pickup (similar to Craigslist/FB‑Marketplace, you message one another to make a sale & go from there))
+                  </span>
+                </span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -294,41 +375,41 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span> (Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.") </span> </span>
+                <span>
+                  (Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}>
+                    (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.")
+                  </span>
+                </span>
               </label>
 
-                {paymentMethod === 'through_site' && (
-           <div>
-  <label className="block font-semibold mb-2">Website URL</label>
+              {paymentMethod === 'through_site' && (
+                <div>
+                  <label className="block font-semibold mb-2">Website URL</label>
+                  <Input
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="https://example.com/product"
+                  />
+                  <div className="mt-1">
+                    <sub style={{ color: "#ffcc00" }}>
+                      Want to learn how to create a website with step‑by‑step instructions? <br />
+                      We provide free lessons over at:
+                      (
+                      <a
+                        href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#00e5ff", textDecoration: "underline" }}
+                      >
+                        uminion's Lesson003
+                      </a>
+                      ) off our GitHub.
+                    </sub>
+                  </div>
+                </div>
+              )}
 
-  <Input
-    value={websiteUrl}
-    onChange={(e) => setWebsiteUrl(e.target.value)}
-    placeholder="https://example.com/product"
-  />
-
-  <div className="mt-1">
-    <sub style={{ color: "#ffcc00" }}>
-      Want to learn how to create a website with step‑by‑step instructions? <br />
-      We provide free lessons over at:
-      (
-      <a
-        href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ color: "#00e5ff", textDecoration: "underline" }}
-      >
-        uminion's Lesson003
-      </a>
-      ) off our GitHub.
-    </sub>
-  </div>
-</div>
-
-
-          )}
-
-               <label className="flex items-center gap-2 cursor-pointer opacity-50">
+              <label className="flex items-center gap-2 cursor-pointer opacity-50">
                 <input
                   type="radio"
                   name="paymentMethod"
@@ -348,11 +429,12 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span> (Other:) Venmo/CashApp/Crypto/OtherApp <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}> (Customer messages you and yall go from there.) </span> </span>
+                <span>
+                  (Other:) Venmo/CashApp/Crypto/OtherApp <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}>
+                    (Customer messages you and yall go from there.)
+                  </span>
+                </span>
               </label>
-
-             
-              
             </div>
           </div>
 
@@ -383,7 +465,6 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
             </div>
           )}
 
-
           <div>
             <label className="block font-semibold mb-2">Product Image</label>
             <div className="border-2 border-dashed border-border rounded p-4 text-center mb-3">
@@ -409,10 +490,126 @@ const [showCreateNewStore, setShowCreateNewStore] = useState(false);
             />
           </div>
 
+          {/* NEW: User Store Section - Only for regular users */}
+          {!isHighHighHighAdmin && !isHighHighAdmin && (
+            <div className="border-t pt-4 mt-4">
+              <label className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  checked={addToUserStore}
+                  onChange={(e) => {
+                    setAddToUserStore(e.target.checked);
+                    if (!e.target.checked) {
+                      setShowCreateNewStore(false);
+                      setSelectedUserStoreId('');
+                      setNewStoreName('');
+                      setNewStoreSubtitle('');
+                      setNewStoreDescription('');
+                    }
+                  }}
+                  className="w-4 h-4 rounded"
+                />
+                <span className="text-sm font-semibold">Add to a uStore / Create a uStore?</span>
+              </label>
+
+              {addToUserStore && (
+                <div className="ml-4 space-y-4">
+                  {userStores.length > 0 && !showCreateNewStore && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold mb-2">Select Existing Store</label>
+                        <select
+                          value={selectedUserStoreId}
+                          onChange={(e) => {
+                            setSelectedUserStoreId(e.target.value);
+                            if (e.target.value) setShowCreateNewStore(false);
+                          }}
+                          className="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
+                        >
+                          <option value="">Choose a store...</option>
+                          {userStores.map((store) => (
+                            <option key={store.id} value={store.id}>
+                              {store.name} {store.subtitle ? `- ${store.subtitle}` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowCreateNewStore(true)}
+                        className="text-sm text-orange-400 hover:underline"
+                      >
+                        + Create New Store Instead
+                      </button>
+                    </>
+                  )}
+
+                  {showCreateNewStore && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold mb-2">
+                          Store Name <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          type="text"
+                          value={newStoreName}
+                          onChange={(e) => setNewStoreName(e.target.value.slice(0, 250))}
+                          placeholder="e.g., PostersByZeena"
+                          maxLength={250}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">{newStoreName.length}/250 characters</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold mb-2">Store Subtitle (Optional)</label>
+                        <Input
+                          type="text"
+                          value={newStoreSubtitle}
+                          onChange={(e) => setNewStoreSubtitle(e.target.value.slice(0, 250))}
+                          placeholder="e.g., Handmade Art Posters"
+                          maxLength={250}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">{newStoreSubtitle.length}/250 characters</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold mb-2">Store Description (Optional)</label>
+                        <Textarea
+                          value={newStoreDescription}
+                          onChange={(e) => setNewStoreDescription(e.target.value.slice(0, 1000))}
+                          placeholder="Describe your store..."
+                          maxLength={1000}
+                          rows={4}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">{newStoreDescription.length}/1000 characters</p>
+                      </div>
+
+                      {userStores.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCreateNewStore(false);
+                            setNewStoreName('');
+                            setNewStoreSubtitle('');
+                            setNewStoreDescription('');
+                          }}
+                          className="text-sm text-orange-400 hover:underline"
+                        >
+                          ← Select Existing Store Instead
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex gap-3 pt-4">
             <Button type="submit" className="w-full bg-orange-400 hover:bg-orange-500 text-white" disabled={isSubmitting}>
-  {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Product' : 'Add Product')}
-</Button>
+              {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Product' : 'Add Product')}
+            </Button>
             <Button
               type="button"
               variant="outline"
