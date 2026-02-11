@@ -168,6 +168,15 @@ export interface Users {
   is_banned_from_chatrooms: Boolean;
 }
 
+export interface UserStores {
+  id: Generated<number>;
+  user_id: number;
+  name: string;
+  subtitle: string | null;
+  description: string | null;
+  created_at: Generated<string | null>;
+}
+
 export interface DB {
   blocked_users: BlockedUsers;
   friends: Friends;
