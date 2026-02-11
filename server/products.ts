@@ -862,11 +862,11 @@ router.get('/user-stores/all', async (req, res) => {
         'user_stores.subtitle',
         'user_stores.description',
         'user_stores.user_id',
-        'products.id as product_id',
-        'products.name as product_name',
-        'products.price',
-        'products.image_url',
-        'products.description as product_description',
+        'MainHubUpgradeV001ForProducts.id as product_id',
+        'MainHubUpgradeV001ForProducts.name as product_name',
+        'MainHubUpgradeV001ForProducts.price',
+        'MainHubUpgradeV001ForProducts.image_url',
+        'MainHubUpgradeV001ForProducts.description as product_description',
       ])
       .orderBy('user_stores.created_at', 'desc')
       .execute();
