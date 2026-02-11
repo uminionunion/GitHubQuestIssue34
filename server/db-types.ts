@@ -73,6 +73,7 @@ export interface MainHubUpgradeV001ForProducts {
   is_in_trash: Boolean;
   sku_id: string | null;
   created_at: Generated<string | null>;
+  user_store_id: number | null;
 }
 
 export interface MainHubUpgradeV001ForProductTrash {
@@ -105,6 +106,15 @@ export interface MainHubUpgradeV001ForStores {
   store_name: string;
   store_type: string;
   chatroom_id: number | null;
+  description: string | null;
+  created_at: Generated<string | null>;
+}
+
+export interface UserStores {
+  id: Generated<number>;
+  user_id: number;
+  name: string;
+  subtitle: string | null;
   description: string | null;
   created_at: Generated<string | null>;
 }
@@ -175,4 +185,5 @@ export interface DB {
   reports: Reports;
   user_chatrooms: UserChatrooms;
   users: Users;
+  user_stores: UserStores;
 }
