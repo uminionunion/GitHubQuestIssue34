@@ -56,6 +56,8 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
   }
 
   setIsSubmitting(true);
+  setError('');
+  
   try {
     console.log(`[EDIT PRODUCT] Assigning product ${product.id} to user store ${selectedUserStore}`);
     
@@ -65,29 +67,38 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
       body: JSON.stringify({ userStoreId: selectedUserStore }),
     });
 
-    // Check if response is actually JSON before parsing
-    const contentType = response.headers.get('content-type');
-    if (!contentType?.includes('application/json')) {
-      console.error('[EDIT PRODUCT] Non-JSON response:', response.status, response.statusText);
-      throw new Error(`Server error: ${response.status} ${response.statusText}`);
-    }
+    console.log(`[EDIT PRODUCT] Response status: ${response.status}`);
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to assign product to store');
+      const contentType = response.headers.get('content-type');
+      let errorMessage = `Server error: ${response.status} ${response.statusText}`;
+      
+      if (contentType?.includes('application/json')) {
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (parseError) {
+          console.error('[EDIT PRODUCT] Failed to parse error response:', parseError);
+        }
+      }
+      
+      console.error('[EDIT PRODUCT] Request failed:', errorMessage);
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
-    console.log(`[EDIT PRODUCT] Success:`, data);
+    console.log(`[EDIT PRODUCT] ✅ Success:`, data);
     
+    setError('');
     if (onProductUpdated) {
       onProductUpdated();
     }
     
     onClose();
   } catch (err) {
-    console.error('Error assigning product to store:', err);
-    setError(err instanceof Error ? err.message : 'Failed to assign product to store');
+    const errorMsg = err instanceof Error ? err.message : 'Failed to assign product to store';
+    console.error('[EDIT PRODUCT] ❌ Error assigning product to store:', errorMsg);
+    setError(errorMsg);
   } finally {
     setIsSubmitting(false);
   }
