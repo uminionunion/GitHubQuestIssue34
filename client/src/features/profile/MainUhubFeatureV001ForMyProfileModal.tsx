@@ -185,6 +185,7 @@ interface QuadrantsModalProps {
   isOpen: boolean;
   onClose: () => void;
   stores: typeof ALL_STORES;
+  userStoresData?: any[];
   onSelectStore: (store: any) => void;
   user: any;
   mainStoreProducts: Product[];
@@ -209,6 +210,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   isOpen, 
   onClose, 
   stores, 
+  userStoresData = [],
   onSelectStore, 
   user, 
   mainStoreProducts = [], 
@@ -228,18 +230,38 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
   
-  const storePages = [
-    [],
-    [stores[1], stores[2], stores[3], stores[4]],
-    [stores[5], stores[6], stores[7], stores[8]],
-    [stores[9], stores[10], stores[11], stores[12]],
-    [stores[13], stores[14], stores[15], stores[16]],
-    [stores[17], stores[18], stores[19], stores[20]],
-    [stores[21], stores[22], stores[23], stores[24]],
-    [stores[25], stores[26], stores[27], stores[28]],
-    [stores[29], stores[30], null, null],
-    [null, null, null, null],
-  ];
+  // Calculate total pages needed
+  const userStoresCount = userStoresData.length;
+  const userStoresPerPage = 4;
+  const userStorePages = Math.ceil(userStoresCount / userStoresPerPage);
+  const totalPages = 9 + userStorePages; // Pages 1-9 + user store pages
+
+  // Build dynamic pages array
+  const buildStorePages = () => {
+    const pages = [
+      [], // Page 0 (not used)
+      [stores[1], stores[2], stores[3], stores[4]],
+      [stores[5], stores[6], stores[7], stores[8]],
+      [stores[9], stores[10], stores[11], stores[12]],
+      [stores[13], stores[14], stores[15], stores[16]],
+      [stores[17], stores[18], stores[19], stores[20]],
+      [stores[21], stores[22], stores[23], stores[24]],
+      [stores[25], stores[26], stores[27], stores[28]],
+      [stores[29], stores[30], null, null],
+      [null, null, null, null], // Page 9 - coming soon
+    ];
+
+    // Add user store pages starting from page 10
+    for (let i = 0; i < userStorePages; i++) {
+      const start = i * userStoresPerPage;
+      const end = start + userStoresPerPage;
+      pages.push(userStoresData.slice(start, end));
+    }
+
+    return pages;
+  };
+
+  const storePages = buildStorePages();
 
   // Check if user is logged in (to be able see the 'add product' button; yes?' -12:18am on 2/3/26
   const canAddProducts = !!user;
@@ -253,18 +275,18 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           <h2 className="text-2xl font-bold">Store Quadrants (All 30 Stores)</h2>
 
 
-  <div className="flex justify-between items-center mt-6">
+<div className="flex justify-between items-center mt-6">
           <Button
   variant="outline"
-  onClick={() => setCurrentPage(prev => prev === 1 ? 10 : prev - 1)}
+  onClick={() => setCurrentPage(prev => prev === 1 ? totalPages : prev - 1)}
   disabled={false}
 >
   <ChevronLeft className="h-4 w-4 mr-2" /> Previous
 </Button>
-          <span className="text-sm font-semibold">Page {currentPage} of 10</span>
+          <span className="text-sm font-semibold">Page {currentPage} of {totalPages}</span>
           <Button
   variant="outline"
-  onClick={() => setCurrentPage(prev => prev === 10 ? 1 : prev + 1)}
+  onClick={() => setCurrentPage(prev => prev === totalPages ? 1 : prev + 1)}
   disabled={false}
 >
   Next <ChevronRight className="h-4 w-4 ml-2" />
@@ -688,13 +710,80 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   </div>
 )}
 
-        {currentPage === 10 && (
+        {currentPage >= 10 && currentPage <= 10 + userStorePages && (
           <div className="grid grid-cols-2 gap-4 h-[70vh]">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground">
-                Coming Soon
-              </div>
-            ))}
+            {storePages[currentPage - 1].map((userStore, idx) => {
+              if (!userStore) {
+                return (
+                  <div key={`empty-${idx}`} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground">
+                    Coming Soon
+                  </div>
+                );
+              }
+
+              return (
+                <div key={userStore.id} className="border rounded-lg p-4 flex flex-col h-full">
+                  <div className="flex justify-between items-center mb-3">
+                    <div>
+                      <h3 className="font-bold text-sm">{userStore.name}</h3>
+                      {userStore.subtitle && (
+                        <p className="text-xs text-gray-400">{userStore.subtitle}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {userStore.description && (
+                    <p className="text-xs text-gray-500 mb-3 line-clamp-2">{userStore.description}</p>
+                  )}
+
+                  <div className="flex-1 overflow-y-auto">
+                    {userStore.products && userStore.products.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {userStore.products.map((product) => (
+                          <div
+                            key={product.id}
+                            className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
+                            style={{
+                              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
+                            onClick={() => {
+                              setSelectedProduct(product);
+                              setProductDetailModalOpen(true);
+                            }}
+                          >
+                            <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
+                            <div className="relative z-10 text-xs font-semibold text-white truncate">
+                              {product.name}
+                            </div>
+                            {product.price && (
+                              <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
+                                ${product.price.toFixed(2)}
+                              </div>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedProduct(product);
+                                setProductDetailModalOpen(true);
+                              }}
+                              className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+                            >
+                              <Eye className="h-3 w-3 text-white" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center text-muted-foreground text-sm py-8">
+                        No products in this store yet
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -845,13 +934,16 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isQuadrantsModalOpen, setIsQuadrantsModalOpen] = useState(false);
   const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
 
-  //i have an error. trying to find the error. is this whats causing the error? part000002 of X
+  //i have an error. trying to find the error. is this whats causing the error? part000002 of X ***Update:> I think error is solved; cause this might be a repeat of a working code. aka i think safe maybe to delete as of 2/10/26+maybe yes
   // const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
 
   
   const [allProductsForAdmin, setAllProductsForAdmin] = useState<Product[]>([]);
   
   const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
+  
+  const [userStoresData, setUserStoresData] = useState<any[]>([]);
+
   
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -942,7 +1034,9 @@ useEffect(() => {
   }
 }, [user, isOpen]);
 
-//i have an error. trying to find the error. is this whats causing the error? part000001 of X
+  
+
+//i have an error. trying to find the error. is this whats causing the error? part000001 of X ***Update:> I think error is solved; cause this might be a repeat of a working code. aka i think safe maybe to delete as of 2/10/26+maybe yes
   // Fetch everything products separately (all products, no duplicates)
 // useEffect(() => {
  // const fetchEverythingProducts = async () => {
@@ -961,6 +1055,25 @@ useEffect(() => {
 //    fetchEverythingProducts();
 //  }
 // }, [isOpen]);
+
+
+  // NEW: Fetch user stores data
+  useEffect(() => {
+    const fetchUserStores = async () => {
+      try {
+        const res = await fetch('/api/products/user-stores/all');
+        const data = await res.json();
+        setUserStoresData(Array.isArray(data) ? data : []);
+        console.log(`[USER STORES] Loaded ${data.length} user stores`);
+      } catch (error) {
+        console.error('Error fetching user stores:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchUserStores();
+    }
+  }, [isOpen]);
 
   
   const handleMagnify = (product: Product) => {
@@ -1587,6 +1700,7 @@ default:
   isOpen={isQuadrantsModalOpen}
   onClose={() => setIsQuadrantsModalOpen(false)}
   stores={ALL_STORES}
+  userStoresData={userStoresData}
   onSelectStore={(store) => setCenterRightView(store)}
   user={user}
   mainStoreProducts={mainStoreProducts}
