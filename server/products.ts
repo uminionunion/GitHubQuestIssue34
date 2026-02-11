@@ -838,7 +838,7 @@ router.put('/products/:productId/user-store', async (req, res) => {
     const productId = parseInt(req.params.productId);
 
     await db
-      .updateTable('products')
+      .updateTable('MainHubUpgradeV001ForProducts')
       .set({ user_store_id: userStoreId || null })
       .where('id', '=', productId)
       .execute();
