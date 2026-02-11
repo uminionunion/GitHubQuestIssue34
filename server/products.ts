@@ -766,70 +766,9 @@ router.delete('/admin/:productId', authenticate, async (req, res) => {
 
 
 
-// Get user's custom stores
-router.get('/user/:userId/stores', async (req, res) => {
-  try {
-    const stores = await db
-      .selectFrom('user_stores')
-      .selectAll()
-      .where('user_id', '=', parseInt(req.params.userId))
-      .orderBy('created_at', 'desc')
-      .execute();
 
-    res.json(stores);
-  } catch (error) {
-    console.error('Error fetching user stores:', error);
-    res.status(500).json({ error: 'Failed to fetch user stores' });
-  }
-});
 
-// Create new user store
-router.post('/user/:userId/stores', async (req, res) => {
-  try {
-    const { name, subtitle, description } = req.body;
-    const userId = parseInt(req.params.userId);
 
-    if (!name || name.trim().length === 0) {
-      res.status(400).json({ error: 'Store name is required' });
-      return;
-    }
-
-    if (name.length > 250) {
-      res.status(400).json({ error: 'Store name must be 250 characters or less' });
-      return;
-    }
-
-    if (subtitle && subtitle.length > 250) {
-      res.status(400).json({ error: 'Subtitle must be 250 characters or less' });
-      return;
-    }
-
-    if (description && description.length > 1000) {
-      res.status(400).json({ error: 'Description must be 1000 characters or less' });
-      return;
-    }
-
-    const store = await db
-      .insertInto('user_stores')
-      .values({
-        user_id: userId,
-        name: name.trim(),
-        subtitle: subtitle?.trim() || null,
-        description: description?.trim() || null,
-      })
-      .returning('id')
-      .executeTakeFirst();
-
-    res.json(store);
-  } catch (error) {
-    console.error('Error creating user store:', error);
-    if (error.message.includes('UNIQUE')) {
-      res.status(400).json({ error: 'Store with this name already exists' });
-    } else {
-      res.status(500).json({ error: 'Failed to create user store' });
-    }
-  }
-});
 
 // Add product to user store (update existing product)
 router.put('/products/:productId/user-store', async (req, res) => {
@@ -903,5 +842,70 @@ router.get('/user-stores/all', async (req, res) => {
 });
 
 
+
+
+// ============================================================
+// USER STORE ROUTES (moved to end to avoid route conflicts)
+// ============================================================
+
+// POST - Create a new user store
+router.post('/user/:userId/stores', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { userId } = req.params;
+  const { name, subtitle, description } = req.body;
+
+  if (parseInt(userId) !== req.user.userId) {
+    res.status(403).json({ message: 'You can only create stores for your own account' });
+    return;
+  }
+
+  if (!name || !name.trim()) {
+    res.status(400).json({ message: 'Store name is required' });
+    return;
+  }
+
+  try {
+    const store = await db
+      .insertInto('user_stores')
+      .values({
+        user_id: req.user.userId,
+        name: name.trim(),
+        subtitle: subtitle ? subtitle.trim() : null,
+        description: description ? description.trim() : null,
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow();
+
+    console.log(`[PRODUCTS] User ${req.user.userId} created store: ${name} (ID=${store.id})`);
+    res.status(201).json({ id: store.id, message: 'Store created successfully' });
+  } catch (error) {
+    console.error('[PRODUCTS] Error creating user store:', error);
+    res.status(500).json({ message: 'Failed to create user store' });
+  }
+});
+
+// GET - Get user's stores
+router.get('/user/:userId/stores', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const stores = await db
+      .selectFrom('user_stores')
+      .selectAll()
+      .where('user_id', '=', parseInt(userId))
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    console.log(`[PRODUCTS] Fetched ${stores.length} stores for user ${userId}`);
+    res.json(stores);
+  } catch (error) {
+    console.error('[PRODUCTS] Error fetching user stores:', error);
+    res.status(500).json({ message: 'Failed to fetch user stores' });
+  }
+});
 
 export default router;
