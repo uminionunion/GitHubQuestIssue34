@@ -842,70 +842,175 @@ router.get('/user-stores/all', async (req, res) => {
 });
 
 
-
-
-// ============================================================
-// USER STORE ROUTES (moved to end to avoid route conflicts)
-// ============================================================
-
-// POST - Create a new user store
-router.post('/user/:userId/stores', authenticate, async (req, res) => {
+// PUT - Assign product to user store (with full error handling & authentication)
+router.put('/:productId/user-store', authenticate, async (req, res) => {
   if (!req.user) {
+    console.log('[PRODUCTS] PUT user-store: No authenticated user');
     res.status(401).json({ message: 'Unauthorized' });
     return;
   }
 
-  const { userId } = req.params;
-  const { name, subtitle, description } = req.body;
+  const { productId } = req.params;
+  const { userStoreId } = req.body;
 
-  if (parseInt(userId) !== req.user.userId) {
-    res.status(403).json({ message: 'You can only create stores for your own account' });
-    return;
-  }
+  console.log(`[PRODUCTS] PUT /:productId/user-store called: productId=${productId}, userStoreId=${userStoreId}, userId=${req.user.userId}`);
 
-  if (!name || !name.trim()) {
-    res.status(400).json({ message: 'Store name is required' });
+  // Validate productId is a number
+  const parsedProductId = parseInt(productId);
+  if (isNaN(parsedProductId)) {
+    console.log('[PRODUCTS] Invalid productId:', productId);
+    res.status(400).json({ message: 'Invalid product ID' });
     return;
   }
 
   try {
-    const store = await db
-      .insertInto('user_stores')
-      .values({
-        user_id: req.user.userId,
-        name: name.trim(),
-        subtitle: subtitle ? subtitle.trim() : null,
-        description: description ? description.trim() : null,
-      })
-      .returning('id')
-      .executeTakeFirstOrThrow();
+    const product = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('id', '=', parsedProductId)
+      .executeTakeFirst();
 
-    console.log(`[PRODUCTS] User ${req.user.userId} created store: ${name} (ID=${store.id})`);
-    res.status(201).json({ id: store.id, message: 'Store created successfully' });
+    if (!product) {
+      console.log(`[PRODUCTS] Product ${parsedProductId} not found`);
+      res.status(404).json({ message: 'Product not found' });
+      return;
+    }
+
+    // Check if user owns the product
+    if (product.user_id !== req.user.userId) {
+      console.log(`[PRODUCTS] User ${req.user.userId} does not own product ${parsedProductId} (owner: ${product.user_id})`);
+      res.status(403).json({ message: 'You do not own this product' });
+      return;
+    }
+
+    // Verify the user store exists and belongs to the user (if userStoreId is provided)
+    if (userStoreId) {
+      const parsedStoreId = parseInt(userStoreId);
+      if (isNaN(parsedStoreId)) {
+        console.log('[PRODUCTS] Invalid userStoreId:', userStoreId);
+        res.status(400).json({ message: 'Invalid user store ID' });
+        return;
+      }
+
+      const userStore = await db
+        .selectFrom('user_stores')
+        .selectAll()
+        .where('id', '=', parsedStoreId)
+        .where('user_id', '=', req.user.userId)
+        .executeTakeFirst();
+
+      if (!userStore) {
+        console.log(`[PRODUCTS] User store ${parsedStoreId} not found for user ${req.user.userId}`);
+        res.status(404).json({ message: 'User store not found or does not belong to you' });
+        return;
+      }
+
+      console.log(`[PRODUCTS] Verified user store ${parsedStoreId} belongs to user ${req.user.userId}`);
+    }
+
+    // Update product with user store assignment
+    const updatePayload: any = {};
+    if (userStoreId) {
+      updatePayload.user_store_id = parseInt(userStoreId);
+    } else {
+      updatePayload.user_store_id = null;
+    }
+
+    await db
+      .updateTable('MainHubUpgradeV001ForProducts')
+      .set(updatePayload)
+      .where('id', '=', parsedProductId)
+      .execute();
+
+    console.log(`[PRODUCTS] ✅ Product ${parsedProductId} assigned to user store ${userStoreId || 'null'} by user ${req.user.userId}`);
+    res.status(200).json({ 
+      message: 'Product updated successfully', 
+      productId: parsedProductId,
+      userStoreId: userStoreId ? parseInt(userStoreId) : null
+    });
   } catch (error) {
-    console.error('[PRODUCTS] Error creating user store:', error);
-    res.status(500).json({ message: 'Failed to create user store' });
+    console.error('[PRODUCTS] ❌ Error updating product user store:', error);
+    res.status(500).json({ 
+      message: 'Failed to update product', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 });
 
-// GET - Get user's stores
-router.get('/user/:userId/stores', async (req, res) => {
-  const { userId } = req.params;
-
+// GET - All user stores with their products (for page 10+ display)
+router.get('/stores/all/with-products', async (req, res) => {
   try {
+    console.log('[PRODUCTS] Fetching all user stores with their products');
+
+    // Get all user stores with their associated products
     const stores = await db
       .selectFrom('user_stores')
-      .selectAll()
-      .where('user_id', '=', parseInt(userId))
-      .orderBy('created_at', 'desc')
+      .leftJoin(
+        'MainHubUpgradeV001ForProducts',
+        'user_stores.id',
+        'MainHubUpgradeV001ForProducts.user_store_id'
+      )
+      .leftJoin(
+        'users',
+        'user_stores.user_id',
+        'users.id'
+      )
+      .select([
+        'user_stores.id',
+        'user_stores.name',
+        'user_stores.subtitle',
+        'user_stores.description',
+        'user_stores.user_id',
+        'user_stores.created_at as store_created_at',
+        'MainHubUpgradeV001ForProducts.id as product_id',
+        'MainHubUpgradeV001ForProducts.name as product_name',
+        'MainHubUpgradeV001ForProducts.price',
+        'MainHubUpgradeV001ForProducts.image_url',
+        'MainHubUpgradeV001ForProducts.description as product_description',
+        'MainHubUpgradeV001ForProducts.subtitle as product_subtitle',
+        'users.username as store_owner_username',
+      ])
+      .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
+      .orderBy('user_stores.created_at', 'desc')
       .execute();
 
-    console.log(`[PRODUCTS] Fetched ${stores.length} stores for user ${userId}`);
-    res.json(stores);
+    // Transform flat results into nested structure
+    const storesMap = new Map();
+    stores.forEach(row => {
+      if (!storesMap.has(row.id)) {
+        storesMap.set(row.id, {
+          id: row.id,
+          name: row.name,
+          subtitle: row.subtitle,
+          description: row.description,
+          user_id: row.user_id,
+          store_owner_username: row.store_owner_username,
+          created_at: row.store_created_at,
+          products: [],
+        });
+      }
+      if (row.product_id) {
+        storesMap.get(row.id).products.push({
+          id: row.product_id,
+          name: row.product_name,
+          price: row.price,
+          image_url: row.image_url,
+          description: row.product_description,
+          subtitle: row.product_subtitle,
+        });
+      }
+    });
+
+    const result = Array.from(storesMap.values());
+    console.log(`[PRODUCTS] ✅ Fetched ${result.length} user stores with products`);
+    res.json(result);
   } catch (error) {
-    console.error('[PRODUCTS] Error fetching user stores:', error);
+    console.error('[PRODUCTS] ❌ Error fetching user stores with products:', error);
     res.status(500).json({ message: 'Failed to fetch user stores' });
   }
 });
+
+
+
 
 export default router;
