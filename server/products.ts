@@ -36,6 +36,7 @@ router.post('/', authenticate, async (req, res) => {
   let payment_url = req.body.payment_url;
   let store_id = req.body.store_id;
   let sku_id = req.body.sku_id;
+  let user_store_id = req.body.user_store_id;
 
   // Validate required fields
   if (!name || price === undefined || price === '') {
@@ -102,25 +103,26 @@ router.post('/', authenticate, async (req, res) => {
 
     // Create the product
     const product = await db
-      .insertInto('MainHubUpgradeV001ForProducts')
-      .values({
-        name,
-        subtitle: subtitle || null,
-        description: description || null,
-        price: price ? parseFloat(price) : null,
-        image_url: imageUrl,
-        store_type: storeType,
-        user_id: storeType === 'user' ? req.user.userId : null,
-        store_id: finalStoreId,
-        payment_method: payment_method || null,
-        payment_url: payment_url || null,
-        sku_id: sku_id || null,
-        is_in_trash: 0,
-      })
-      .returning('id')
-      .executeTakeFirstOrThrow();
+       .insertInto('MainHubUpgradeV001ForProducts')
+       .values({
+         name,
+         subtitle: subtitle || null,
+         description: description || null,
+         price: price ? parseFloat(price) : null,
+         image_url: imageUrl,
+         store_type: storeType,
+         user_id: storeType === 'user' ? req.user.userId : null,
+         store_id: finalStoreId,
+         payment_method: payment_method || null,
+         payment_url: payment_url || null,
+         sku_id: sku_id || null,
+         user_store_id: user_store_id ? parseInt(user_store_id) : null,
+         is_in_trash: 0,
+       })
+       .returning('id')
+       .executeTakeFirstOrThrow();
 
-    console.log(`[PRODUCTS] Product created: ID=${product.id}, type=${storeType}, store_id=${finalStoreId}, sku=${sku_id || 'none'}`);
+    console.log(`[PRODUCTS] Product created: ID=${product.id}, type=${storeType}, store_id=${finalStoreId}, user_store_id=${user_store_id || 'none'}, sku=${sku_id || 'none'}`);
 
     res.status(201).json({
       message: 'Product created successfully',
