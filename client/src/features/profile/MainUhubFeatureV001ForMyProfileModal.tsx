@@ -1074,38 +1074,10 @@ useEffect(() => {
   useEffect(() => {
     const fetchUserStores = async () => {
       try {
-        // Fetch from the new endpoint that includes products
         const res = await fetch('/api/products/stores/all/with-products');
         const data = await res.json();
-        
-        // Transform the data to include products parsed from the array
-        const transformedData = data.map((store: any) => {
-          let productsArray: any[] = [];
-          
-          if (store.ProductsFrom_MainHubUpgradeV001ForProducts) {
-            try {
-              const productIds = JSON.parse(store.ProductsFrom_MainHubUpgradeV001ForProducts);
-              if (Array.isArray(productIds)) {
-                // Fetch actual product objects by ID
-                productsArray = productIds.map((id: number) => ({
-                  id: id,
-                  // Products will be fetched separately or from the endpoint
-                }));
-              }
-            } catch (e) {
-              console.log('[USER STORES] Failed to parse products for store', store.id);
-              productsArray = [];
-            }
-          }
-          
-          return {
-            ...store,
-            products: store.products || productsArray // Use products from endpoint if available
-          };
-        });
-        
-        setUserStoresData(Array.isArray(transformedData) ? transformedData : []);
-        console.log(`[USER STORES] Loaded ${transformedData.length} user stores with products`);
+        setUserStoresData(Array.isArray(data) ? data : []);
+        console.log(`[USER STORES] Loaded ${data.length} user stores with products`);
       } catch (error) {
         console.error('Error fetching user stores:', error);
         setUserStoresData([]);
