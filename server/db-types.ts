@@ -117,6 +117,7 @@ export interface UserStores {
   subtitle: string | null;
   description: string | null;
   created_at: Generated<string | null>;
+  product_ids: string | null; // JSON array of product IDs
 }
 
 export interface Messages {
@@ -175,6 +176,7 @@ export interface UserStores {
   subtitle: string | null;
   description: string | null;
   created_at: Generated<string | null>;
+  product_ids: string | null; // JSON array of product IDs
 }
 
 export interface DB {
