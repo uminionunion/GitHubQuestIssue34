@@ -1043,6 +1043,79 @@ router.get('/user/:userId/stores', authenticate, async (req, res) => {
   }
 });
 
+// POST - Create a new user store (for regular users adding from Add Product modal)
+router.post('/user/:userId/stores', authenticate, async (req, res) => {
+  const { userId } = req.params;
+  const parsedUserId = parseInt(userId);
 
+  // Verify the user is creating stores for themselves only
+  if (parsedUserId !== req.user?.userId) {
+    console.log(`[PRODUCTS] User ${req.user?.userId} tried to create store for user ${parsedUserId}`);
+    res.status(403).json({ message: 'You can only create stores for yourself' });
+    return;
+  }
+
+  const { name, subtitle, description } = req.body;
+
+  // Validate required field
+  if (!name || !name.trim()) {
+    console.log('[PRODUCTS] Store creation failed: name is required');
+    res.status(400).json({ message: 'Store name is required' });
+    return;
+  }
+
+  try {
+    console.log(`[PRODUCTS] Creating new store for user ${parsedUserId}: "${name}"`);
+
+    // Check if user exists and is not blocked
+    const user = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', parsedUserId)
+      .executeTakeFirst();
+
+    if (!user) {
+      console.log(`[PRODUCTS] User ${parsedUserId} not found`);
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    if (user.is_blocked) {
+      console.log(`[PRODUCTS] User ${parsedUserId} is blocked, cannot create store`);
+      res.status(403).json({ message: 'Your account is blocked' });
+      return;
+    }
+
+    // Create the user store
+    const newStore = await db
+      .insertInto('user_stores')
+      .values({
+        user_id: parsedUserId,
+        name: name.trim(),
+        subtitle: subtitle && subtitle.trim() ? subtitle.trim() : null,
+        description: description && description.trim() ? description.trim() : null,
+      })
+      .returning(['id', 'user_id', 'name', 'subtitle', 'description', 'created_at'])
+      .executeTakeFirstOrThrow();
+
+    console.log(`[PRODUCTS] ✅ Store created successfully: ID=${newStore.id}, name="${newStore.name}", user=${parsedUserId}`);
+    
+    res.status(201).json({
+      id: newStore.id,
+      user_id: newStore.user_id,
+      name: newStore.name,
+      subtitle: newStore.subtitle,
+      description: newStore.description,
+      created_at: newStore.created_at,
+      message: 'Store created successfully',
+    });
+  } catch (error) {
+    console.error('[PRODUCTS] ❌ Error creating store:', error);
+    res.status(500).json({ 
+      message: 'Failed to create store', 
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
 export default router;
