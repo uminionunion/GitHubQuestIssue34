@@ -1091,13 +1091,17 @@ useEffect(() => {
 
 
 
-
-// Fetch user's custom stores when modal opens
+// Fetch user's custom stores when modal opens (for logged-in users)
 useEffect(() => {
   if (user && isOpen) {
     setIsLoadingUserStores(true);
     fetch(`/api/products/user/${user.id}/stores`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then(data => {
         console.log('[PROFILE MODAL] Fetched user stores:', data);
         setUserStores(Array.isArray(data) ? data : []);
@@ -1109,8 +1113,6 @@ useEffect(() => {
       .finally(() => setIsLoadingUserStores(false));
   }
 }, [user, isOpen]);
-
-
 
 
 
