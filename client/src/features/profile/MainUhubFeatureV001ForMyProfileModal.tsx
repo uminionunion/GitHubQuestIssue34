@@ -716,8 +716,23 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   </div>
 )}
 
-        {currentPage === 10 && (
+       {currentPage === 10 && (
   <div className="grid grid-cols-2 gap-4 h-[70vh]">
+    <style>{`
+      .user-store-scrollable::-webkit-scrollbar {
+        width: 10px;
+      }
+      .user-store-scrollable::-webkit-scrollbar-track {
+        background: #1f2937;
+      }
+      .user-store-scrollable::-webkit-scrollbar-thumb {
+        background: #06b6d4;
+        border-radius: 5px;
+      }
+      .user-store-scrollable::-webkit-scrollbar-thumb:hover {
+        background: #0891b2;
+      }
+    `}</style>
     {userStoresData && userStoresData.length > 0 ? (
       userStoresData.slice(0, 4).map((userStore) => (
         <div key={userStore.id} className="border rounded-lg p-4 flex flex-col h-full">
@@ -735,7 +750,12 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
             <p className="text-xs text-gray-500 mb-3 line-clamp-2">{userStore.description}</p>
           )}
 
-          <div className="flex-1 overflow-y-auto">
+          <div 
+            className="user-store-scrollable flex-1 overflow-y-auto"
+            style={{
+              maxHeight: '380px'
+            }}
+          >
             {userStore.products && userStore.products.length > 0 ? (
               <div className="grid grid-cols-2 gap-2">
                 {userStore.products.map((product) => (
