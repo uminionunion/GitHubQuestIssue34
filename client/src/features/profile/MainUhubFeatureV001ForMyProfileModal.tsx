@@ -623,7 +623,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
           </div>
         )}
 
-        {/* PAGES 2-10 REMAIN THE SAME */}
+        {/* PAGES 2-10 REMAIN THE SAME IN REPRESENTING UNION STORES 1-30 */}
        {currentPage > 1 && currentPage <= 9 && (
   <div className="grid grid-cols-2 gap-4 h-[70vh]">
     {storePages[currentPage - 1].map((store) => (
