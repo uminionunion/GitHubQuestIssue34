@@ -23,9 +23,22 @@ interface Product {
   payment_url?: string | null;
   sku_id?: string | null;
   store_id?: number | null;
+  user_store_id?: number | null;
 }
 
-const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddProductModalProps> = ({ isOpen, onClose, onProductAdded, editingProduct = null }) => {
+interface UserStore {
+  id: number;
+  name: string;
+  subtitle?: string | null;
+  description?: string | null;
+}
+
+const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddProductModalProps> = ({
+  isOpen,
+  onClose,
+  onProductAdded,
+  editingProduct = null,
+}) => {
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
@@ -42,18 +55,20 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [isEditMode] = useState(!!editingProduct);
-  
-  // NEW: User Stores State
+
+  // User Store State
+  const [userStores, setUserStores] = useState<UserStore[]>([]);
+  const [isLoadingUserStores, setIsLoadingUserStores] = useState(false);
   const [addToUserStore, setAddToUserStore] = useState(false);
-  const [userStores, setUserStores] = useState<any[]>([]);
   const [selectedUserStoreId, setSelectedUserStoreId] = useState<string>('');
+  const [showCreateNewStore, setShowCreateNewStore] = useState(false);
   const [newStoreName, setNewStoreName] = useState('');
   const [newStoreSubtitle, setNewStoreSubtitle] = useState('');
   const [newStoreDescription, setNewStoreDescription] = useState('');
-  const [showCreateNewStore, setShowCreateNewStore] = useState(false);
+  const [isCreatingStore, setIsCreatingStore] = useState(false);
 
   // Pre-fill form when editing
-  React.useEffect(() => {
+  useEffect(() => {
     if (editingProduct) {
       setTitle(editingProduct.name || '');
       setSubtitle(editingProduct.subtitle || '');
@@ -79,29 +94,88 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
     }
   }, [editingProduct, isOpen]);
 
-  // NEW: Fetch user stores when modal opens
+  // Fetch user stores when modal opens (regular users only)
   useEffect(() => {
     if (isOpen && user && !isHighHighHighAdmin && !isHighHighAdmin) {
       fetchUserStores();
     }
   }, [isOpen, user]);
 
-  // NEW: Fetch user stores from backend
-  const fetchUserStores = async () => {
-    try {
-      const res = await fetch(`/api/products/user/${user.id}/stores`);
-      const data = await res.json();
-      setUserStores(Array.isArray(data) ? data : []);
-      setShowCreateNewStore(data.length === 0);
-    } catch (error) {
-      console.error('Error fetching user stores:', error);
-    }
-  };
-
   if (!isOpen || !user) return null;
 
   const isHighHighHighAdmin = user.is_high_high_high_admin === 1;
   const isHighHighAdmin = user.is_high_high_admin === 1;
+  const isRegularUser = !isHighHighHighAdmin && !isHighHighAdmin;
+
+  // Fetch user stores from backend
+  const fetchUserStores = async () => {
+    setIsLoadingUserStores(true);
+    try {
+      const res = await fetch(`/api/products/user/${user.id}/stores`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch user stores');
+      }
+      const data = await res.json();
+      console.log('[ADD PRODUCT MODAL] Fetched user stores:', data);
+      setUserStores(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('[ADD PRODUCT MODAL] Error fetching user stores:', error);
+      setUserStores([]);
+    } finally {
+      setIsLoadingUserStores(false);
+    }
+  };
+
+  // Create a new user store
+  const handleCreateNewUserStore = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newStoreName.trim()) {
+      setError('Store name is required');
+      return;
+    }
+
+    setIsCreatingStore(true);
+    setError('');
+
+    try {
+      console.log('[ADD PRODUCT MODAL] Creating new user store:', newStoreName);
+      const response = await fetch(`/api/products/user/${user.id}/stores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newStoreName.trim(),
+          subtitle: newStoreSubtitle.trim() || undefined,
+          description: newStoreDescription.trim() || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create store');
+      }
+
+      const newStore = await response.json();
+      console.log('[ADD PRODUCT MODAL] ✅ New store created:', newStore);
+
+      // Refresh the stores list
+      await fetchUserStores();
+
+      // Auto-select the newly created store
+      setSelectedUserStoreId(String(newStore.id));
+
+      // Reset the create store form
+      setShowCreateNewStore(false);
+      setNewStoreName('');
+      setNewStoreSubtitle('');
+      setNewStoreDescription('');
+    } catch (err) {
+      console.error('[ADD PRODUCT MODAL] Error creating store:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create store');
+    } finally {
+      setIsCreatingStore(false);
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -144,6 +218,12 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
       return;
     }
 
+    // For regular users: ensure they selected or created a store
+    if (isRegularUser && !selectedUserStoreId) {
+      setError('Please select or create a store for your product');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -156,10 +236,17 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
       formData.append('payment_url', websiteUrl);
       formData.append('sku_id', wooSku);
 
+      // For admins: add store_id
       if ((isHighHighHighAdmin || isHighHighAdmin) && storeId) {
         formData.append('store_id', storeId);
       }
 
+      // For regular users: add user_store_id
+      if (isRegularUser && selectedUserStoreId) {
+        formData.append('user_store_id', selectedUserStoreId);
+      }
+
+      // Add image files
       if (image) {
         formData.append('image', image);
       }
@@ -168,8 +255,17 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
         formData.append('qr_code_image', qrCodeImage);
       }
 
+      // Create or update product
       const url = isEditMode ? `/api/products/${editingProduct.id}` : '/api/products';
       const method = isEditMode ? 'PATCH' : 'POST';
+
+      console.log('[ADD PRODUCT MODAL] Submitting product:', {
+        method,
+        url,
+        isEditMode,
+        isRegularUser,
+        selectedUserStoreId,
+      });
 
       const response = await fetch(url, {
         method: method,
@@ -179,63 +275,30 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
       if (!response.ok) {
         const data = await response.json();
         setError(data.message || `Failed to ${isEditMode ? 'update' : 'create'} product`);
+        console.error('[ADD PRODUCT MODAL] Error response:', data);
         return;
       }
 
       const responseData = await response.json();
+      console.log('[ADD PRODUCT MODAL] ✅ Product created/updated successfully:', responseData);
 
-      // NEW: Handle user store assignment (for regular users only)
-      if (!isHighHighHighAdmin && !isHighHighAdmin && addToUserStore) {
-        let storeId = selectedUserStoreId;
-
-        // Create new store if needed
-        if (!storeId && showCreateNewStore) {
-          if (!newStoreName.trim()) {
-            setError('Store name is required');
-            setIsSubmitting(false);
-            return;
-          }
-
-          try {
-            const storeRes = await fetch(`/api/products/user/${user.id}/stores`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                name: newStoreName,
-                subtitle: newStoreSubtitle || null,
-                description: newStoreDescription || null,
-              }),
-            });
-
-            if (!storeRes.ok) {
-              const errorData = await storeRes.json();
-              setError(errorData.error || 'Failed to create store');
-              setIsSubmitting(false);
-              return;
-            }
-
-            const storeData = await storeRes.json();
-            storeId = storeData.id;
-          } catch (error) {
-            setError('Failed to create store');
-            setIsSubmitting(false);
-            return;
-          }
-        }
-
-        // Assign product to user store
-        if (storeId) {
-          try {
-            await fetch(`/api/products/${responseData.product_id}/user-store`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userStoreId: parseInt(storeId) }),
-            });
-          } catch (error) {
-            console.error('Error assigning product to store:', error);
-          }
-        }
-      }
+      // Reset form
+      setTitle('');
+      setSubtitle('');
+      setDescription('');
+      setPrice('');
+      setPaymentMethod('');
+      setQrCodeImage(null);
+      setWebsiteUrl('');
+      setWooSku('');
+      setStoreId('');
+      setImage(null);
+      setAddToUserStore(false);
+      setSelectedUserStoreId('');
+      setShowCreateNewStore(false);
+      setNewStoreName('');
+      setNewStoreSubtitle('');
+      setNewStoreDescription('');
 
       if (onProductAdded) {
         onProductAdded();
@@ -243,7 +306,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
 
       onClose();
     } catch (error) {
-      console.error('Error submitting product:', error);
+      console.error('[ADD PRODUCT MODAL] Error submitting product:', error);
       setError('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -323,29 +386,17 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
             </div>
           )}
 
-          {(isHighHighHighAdmin || isHighHighAdmin) && (
-            <div>
-              <label className="block font-semibold mb-2">Store Number (required)</label>
-              <select
-                value={storeId}
-                onChange={(e) => setStoreId(e.target.value)}
-                className="w-full border rounded px-3 py-2 bg-background"
-                required
-              >
-                <option value="">Select a store...</option>
-                <option value="0">Show in Union Store</option>
-                {Array.from({ length: 30 }, (_, i) => (
-                  <option key={i + 1} value={String(i + 1)}>
-                    Store #{String(i + 1).padStart(2, '0')}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <div>
             <label className="block font-semibold mb-2">
-              Payment Method: <span style={{ color: "#ffcc00", marginLeft: "4px", fontSize: "0.85em", verticalAlign: "baseline" }}>
+              Payment Method:{' '}
+              <span
+                style={{
+                  color: '#ffcc00',
+                  marginLeft: '4px',
+                  fontSize: '0.85em',
+                  verticalAlign: 'baseline',
+                }}
+              >
                 (How would you like your customers to pay/buy your product?)
               </span>
             </label>
@@ -360,8 +411,16 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   className="w-4 h-4"
                 />
                 <span>
-                  With Cash <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}>
-                    (primarily for local pickup (similar to Craigslist/FB‑Marketplace, you message one another to make a sale & go from there))
+                  With Cash{' '}
+                  <span
+                    style={{
+                      color: '#00e5ff',
+                      fontSize: '0.85em',
+                      marginLeft: '4px',
+                      verticalAlign: 'baseline',
+                    }}
+                  >
+                    (primarily for local pickup similar to Craigslist/FB-Marketplace)
                   </span>
                 </span>
               </label>
@@ -376,38 +435,19 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   className="w-4 h-4"
                 />
                 <span>
-                  (Preferred:) Have Customers Purchase your Item/Service/Product through your own Website. <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}>
-                    (You provide a link to where the product can be purchased; we advertise it in our union's "Everything Store.")
+                  (Preferred:) Have Customers Purchase through your own Website.{' '}
+                  <span
+                    style={{
+                      color: '#00e5ff',
+                      fontSize: '0.85em',
+                      marginLeft: '4px',
+                      verticalAlign: 'baseline',
+                    }}
+                  >
+                    (You provide a link; we advertise it in the "Everything Store".)
                   </span>
                 </span>
               </label>
-
-              {paymentMethod === 'through_site' && (
-                <div>
-                  <label className="block font-semibold mb-2">Website URL</label>
-                  <Input
-                    value={websiteUrl}
-                    onChange={(e) => setWebsiteUrl(e.target.value)}
-                    placeholder="https://example.com/product"
-                  />
-                  <div className="mt-1">
-                    <sub style={{ color: "#ffcc00" }}>
-                      Want to learn how to create a website with step‑by‑step instructions? <br />
-                      We provide free lessons over at:
-                      (
-                      <a
-                        href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: "#00e5ff", textDecoration: "underline" }}
-                      >
-                        uminion's Lesson003
-                      </a>
-                      ) off our GitHub.
-                    </sub>
-                  </div>
-                </div>
-              )}
 
               <label className="flex items-center gap-2 cursor-pointer opacity-50">
                 <input
@@ -430,8 +470,16 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   className="w-4 h-4"
                 />
                 <span>
-                  (Other:) Venmo/CashApp/Crypto/OtherApp <span style={{ color: "#00e5ff", fontSize: "0.85em", marginLeft: "4px", verticalAlign: "baseline" }}>
-                    (Customer messages you and yall go from there.)
+                  (Other:) Venmo/CashApp/Crypto/OtherApp{' '}
+                  <span
+                    style={{
+                      color: '#00e5ff',
+                      fontSize: '0.85em',
+                      marginLeft: '4px',
+                      verticalAlign: 'baseline',
+                    }}
+                  >
+                    (Customer messages you and you go from there.)
                   </span>
                 </span>
               </label>
@@ -444,7 +492,11 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
               <div className="border-2 border-dashed border-border rounded p-4 text-center mb-3">
                 {qrCodeImage ? (
                   <div className="flex flex-col items-center gap-2">
-                    <img src={URL.createObjectURL(qrCodeImage)} alt="QR Code Preview" className="max-h-32 max-w-full" />
+                    <img
+                      src={URL.createObjectURL(qrCodeImage)}
+                      alt="QR Code Preview"
+                      className="max-h-32 max-w-full"
+                    />
                     <button
                       type="button"
                       onClick={() => setQrCodeImage(null)}
@@ -457,11 +509,34 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                   <p className="text-muted-foreground">No QR code selected</p>
                 )}
               </div>
+              <Input type="file" accept="image/*" onChange={handleQrCodeChange} />
+            </div>
+          )}
+
+          {paymentMethod === 'through_site' && (
+            <div>
+              <label className="block font-semibold mb-2">Website URL</label>
               <Input
-                type="file"
-                accept="image/*"
-                onChange={handleQrCodeChange}
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                placeholder="https://example.com/product"
               />
+              <div className="mt-1">
+                <sub style={{ color: '#ffcc00' }}>
+                  Want to learn how to create a website with step-by-step instructions? <br />
+                  We provide free lessons over at:
+                  (
+                  <a
+                    href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#00e5ff', textDecoration: 'underline' }}
+                  >
+                    uminion's Lesson003
+                  </a>
+                  ) off our GitHub.
+                </sub>
+              </div>
             </div>
           )}
 
@@ -483,138 +558,158 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                 <p className="text-muted-foreground">Upload a product image</p>
               )}
             </div>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
+            <Input type="file" accept="image/*" onChange={handleImageChange} />
           </div>
 
-          {/* NEW: User Store Section - Only for regular users */}
-          {!isHighHighHighAdmin && !isHighHighAdmin && (
-            <div className="border-t pt-4 mt-4">
-              <label className="flex items-center gap-2 mb-4">
-                <input
-                  type="checkbox"
-                  checked={addToUserStore}
-                  onChange={(e) => {
-                    setAddToUserStore(e.target.checked);
-                    if (!e.target.checked) {
-                      setShowCreateNewStore(false);
-                      setSelectedUserStoreId('');
-                      setNewStoreName('');
-                      setNewStoreSubtitle('');
-                      setNewStoreDescription('');
-                    }
-                  }}
-                  className="w-4 h-4 rounded"
-                />
-                <span className="text-sm font-semibold">Add to a uStore / Create a uStore?</span>
-              </label>
+          {/* ADMINS: Store Number Selection #01-#30 */}
+          {(isHighHighHighAdmin || isHighHighAdmin) && (
+            <div>
+              <label className="block font-semibold mb-2">Store Number (required)</label>
+              <select
+                value={storeId}
+                onChange={(e) => setStoreId(e.target.value)}
+                className="w-full border rounded px-3 py-2 bg-background"
+                required
+              >
+                <option value="">Select store #01-#30</option>
+                {Array.from({ length: 30 }, (_, i) => (
+                  <option key={i + 1} value={String(i + 1)}>
+                    Store #{String(i + 1).padStart(2, '0')}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
-              {addToUserStore && (
-                <div className="ml-4 space-y-4">
+          {/* REGULAR USERS: Custom Store Selection/Creation */}
+          {isRegularUser && (
+            <div className="border rounded-lg p-4 bg-gray-900">
+              <label className="block font-semibold mb-3">Add to Your Store</label>
+
+              {isLoadingUserStores ? (
+                <div className="text-sm text-muted-foreground py-2">Loading your stores...</div>
+              ) : userStores.length > 0 && !showCreateNewStore ? (
+                <>
+                  <select
+                    value={selectedUserStoreId}
+                    onChange={(e) => setSelectedUserStoreId(e.target.value)}
+                    className="w-full border rounded px-3 py-2 bg-gray-800 text-white border-gray-600 text-sm mb-3"
+                  >
+                    <option value="">Select one of your stores...</option>
+                    {userStores.map((store) => (
+                      <option key={store.id} value={String(store.id)}>
+                        {store.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCreateNewStore(true)}
+                    className="w-full text-sm"
+                  >
+                    + Create New Store
+                  </Button>
+                </>
+              ) : (
+                <>
                   {userStores.length > 0 && !showCreateNewStore && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-semibold mb-2">Select Existing Store</label>
-                        <select
-                          value={selectedUserStoreId}
-                          onChange={(e) => {
-                            setSelectedUserStoreId(e.target.value);
-                            if (e.target.value) setShowCreateNewStore(false);
-                          }}
-                          className="w-full px-3 py-2 border border-gray-600 rounded bg-gray-800 text-white"
-                        >
-                          <option value="">Choose a store...</option>
-                          {userStores.map((store) => (
-                            <option key={store.id} value={store.id}>
-                              {store.name} {store.subtitle ? `- ${store.subtitle}` : ''}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setShowCreateNewStore(true)}
-                        className="text-sm text-orange-400 hover:underline"
-                      >
-                        + Create New Store Instead
-                      </button>
-                    </>
+                    <div className="text-sm text-muted-foreground py-2 mb-3">
+                      You don't have any custom stores yet. Create one below to add products.
+                    </div>
                   )}
 
-                  {showCreateNewStore && (
-                    <>
+                  {!showCreateNewStore ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCreateNewStore(true)}
+                      className="w-full text-sm"
+                    >
+                      + Create New Store
+                    </Button>
+                  ) : (
+                    <div className="border rounded p-3 bg-gray-800 space-y-2">
                       <div>
-                        <label className="block text-sm font-semibold mb-2">
-                          Store Name <span className="text-red-500">*</span>
-                        </label>
+                        <label className="block text-xs font-semibold mb-1">Store Name (required)</label>
                         <Input
-                          type="text"
                           value={newStoreName}
-                          onChange={(e) => setNewStoreName(e.target.value.slice(0, 250))}
-                          placeholder="e.g., PostersByZeena"
-                          maxLength={250}
+                          onChange={(e) => setNewStoreName(e.target.value)}
+                          placeholder="e.g., Abdou's Digitals"
+                          className="text-sm"
                         />
-                        <p className="text-xs text-gray-400 mt-1">{newStoreName.length}/250 characters</p>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold mb-2">Store Subtitle (Optional)</label>
+                        <label className="block text-xs font-semibold mb-1">Subtitle (optional)</label>
                         <Input
-                          type="text"
                           value={newStoreSubtitle}
-                          onChange={(e) => setNewStoreSubtitle(e.target.value.slice(0, 250))}
-                          placeholder="e.g., Handmade Art Posters"
-                          maxLength={250}
+                          onChange={(e) => setNewStoreSubtitle(e.target.value)}
+                          placeholder="e.g., Digital Products & Services"
+                          className="text-sm"
                         />
-                        <p className="text-xs text-gray-400 mt-1">{newStoreSubtitle.length}/250 characters</p>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold mb-2">Store Description (Optional)</label>
+                        <label className="block text-xs font-semibold mb-1">Description (optional)</label>
                         <Textarea
                           value={newStoreDescription}
-                          onChange={(e) => setNewStoreDescription(e.target.value.slice(0, 1000))}
+                          onChange={(e) => setNewStoreDescription(e.target.value)}
                           placeholder="Describe your store..."
-                          maxLength={1000}
-                          rows={4}
+                          rows={2}
+                          className="text-sm"
                         />
-                        <p className="text-xs text-gray-400 mt-1">{newStoreDescription.length}/1000 characters</p>
                       </div>
 
-                      {userStores.length > 0 && (
-                        <button
+                      <div className="flex gap-2 pt-2">
+                        <Button
                           type="button"
+                          onClick={handleCreateNewUserStore}
+                          disabled={isCreatingStore || !newStoreName.trim()}
+                          className="flex-1 bg-orange-400 hover:bg-orange-500 text-white text-xs h-8"
+                        >
+                          {isCreatingStore ? 'Creating...' : 'Create Store'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={() => {
                             setShowCreateNewStore(false);
                             setNewStoreName('');
                             setNewStoreSubtitle('');
                             setNewStoreDescription('');
                           }}
-                          className="text-sm text-orange-400 hover:underline"
+                          className="text-xs h-8"
                         >
-                          ← Select Existing Store Instead
-                        </button>
-                      )}
-                    </>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           )}
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" className="w-full bg-orange-400 hover:bg-orange-500 text-white" disabled={isSubmitting}>
-              {isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Product' : 'Add Product')}
-            </Button>
             <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
+              type="submit"
+              disabled={
+                isSubmitting ||
+                !title ||
+                price === '' ||
+                !paymentMethod ||
+                (isRegularUser && !selectedUserStoreId)
+              }
+              className="flex-1 bg-orange-400 hover:bg-orange-500 text-white"
             >
+              {isSubmitting ? (isEditMode ? 'Updating...' : 'Adding...') : isEditMode ? 'Update Product' : 'Add Product'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
           </div>
