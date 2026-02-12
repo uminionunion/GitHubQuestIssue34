@@ -14,6 +14,7 @@ import AdminProductsList from './AdminProductsList';
 import EverythingProductsList from './EverythingProductsList';
 import ProductSearchDropdown from './ProductSearchDropdown';
 import MainUhubFeatureV001ForEditProductModal from './MainUhubFeatureV001ForEditProductModal';
+import UserStoresQuadrantView from './UserStoresQuadrantView';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -954,6 +955,8 @@ const [editingProduct, setEditingProduct] = useState<any>(null);
 const [isEditProductModalOpen, setEditProductModalOpen] = useState(false);
 const [userStores, setUserStores] = useState<any[]>([]);
 const [isLoadingUserStores, setIsLoadingUserStores] = useState(false);
+
+const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
@@ -1067,16 +1070,45 @@ useEffect(() => {
 // }, [isOpen]);
 
 
-  // NEW: Fetch user stores data
+  // NEW: Fetch user stores data with their products
   useEffect(() => {
     const fetchUserStores = async () => {
       try {
-        const res = await fetch('/api/products/user-stores/all');
+        // Fetch from the new endpoint that includes products
+        const res = await fetch('/api/products/stores/all/with-products');
         const data = await res.json();
-        setUserStoresData(Array.isArray(data) ? data : []);
-        console.log(`[USER STORES] Loaded ${data.length} user stores`);
+        
+        // Transform the data to include products parsed from the array
+        const transformedData = data.map((store: any) => {
+          let productsArray: any[] = [];
+          
+          if (store.ProductsFrom_MainHubUpgradeV001ForProducts) {
+            try {
+              const productIds = JSON.parse(store.ProductsFrom_MainHubUpgradeV001ForProducts);
+              if (Array.isArray(productIds)) {
+                // Fetch actual product objects by ID
+                productsArray = productIds.map((id: number) => ({
+                  id: id,
+                  // Products will be fetched separately or from the endpoint
+                }));
+              }
+            } catch (e) {
+              console.log('[USER STORES] Failed to parse products for store', store.id);
+              productsArray = [];
+            }
+          }
+          
+          return {
+            ...store,
+            products: store.products || productsArray // Use products from endpoint if available
+          };
+        });
+        
+        setUserStoresData(Array.isArray(transformedData) ? transformedData : []);
+        console.log(`[USER STORES] Loaded ${transformedData.length} user stores with products`);
       } catch (error) {
         console.error('Error fetching user stores:', error);
+        setUserStoresData([]);
       }
     };
 
