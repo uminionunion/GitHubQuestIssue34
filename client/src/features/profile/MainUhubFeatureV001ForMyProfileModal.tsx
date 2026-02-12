@@ -716,88 +716,80 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   </div>
 )}
 
-        {currentPage >= 10 && currentPage <= 10 + userStorePages && (
+        {currentPage === 10 && (
   <div className="grid grid-cols-2 gap-4 h-[70vh]">
-    {storePages[currentPage - 1] ? (
-      storePages[currentPage - 1].map((userStore, idx) => {
-        if (!userStore || !userStore.id) {
-          return (
-            <div key={`empty-${idx}`} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground">
-              Coming Soon
-            </div>
-          );
-        }
-
-        return (
-          <div key={userStore.id} className="border rounded-lg p-4 flex flex-col h-full">
-            <div className="flex justify-between items-center mb-3">
-              <div>
-                <h3 className="font-bold text-sm">{userStore.name}</h3>
-                {userStore.subtitle && (
-                  <p className="text-xs text-gray-400">{userStore.subtitle}</p>
-                )}
-                {userStore.store_owner_username && (
-                  <p className="text-xs text-gray-500">by {userStore.store_owner_username}</p>
-                )}
-              </div>
-            </div>
-
-            {userStore.description && (
-              <p className="text-xs text-gray-500 mb-3 line-clamp-2">{userStore.description}</p>
+    {userStoresData && userStoresData.length > 0 ? (
+      userStoresData.slice(0, 4).map((userStore) => (
+        <div key={userStore.id} className="border rounded-lg p-4 flex flex-col h-full">
+          <div className="mb-3">
+            <h3 className="font-bold text-sm">{userStore.name}</h3>
+            {userStore.subtitle && (
+              <p className="text-xs text-gray-400">{userStore.subtitle}</p>
             )}
+            {userStore.store_owner_username && (
+              <p className="text-xs text-gray-500">by {userStore.store_owner_username}</p>
+            )}
+          </div>
 
-            <div className="flex-1 overflow-y-auto">
-              {userStore.products && userStore.products.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2">
-                  {userStore.products.map((product) => (
-                    <div
-                      key={product.id}
-                      className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
-                      style={{
-                        backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                      }}
-                      onClick={() => {
+          {userStore.description && (
+            <p className="text-xs text-gray-500 mb-3 line-clamp-2">{userStore.description}</p>
+          )}
+
+          <div className="flex-1 overflow-y-auto">
+            {userStore.products && userStore.products.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2">
+                {userStore.products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
+                    style={{
+                      backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setProductDetailModalOpen(true);
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
+                    <div className="relative z-10 text-xs font-semibold text-white truncate">
+                      {product.name}
+                    </div>
+                    {product.price && (
+                      <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
+                        ${product.price.toFixed(2)}
+                      </div>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedProduct(product);
                         setProductDetailModalOpen(true);
                       }}
+                      className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
                     >
-                      <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
-                      <div className="relative z-10 text-xs font-semibold text-white truncate">
-                        {product.name}
-                      </div>
-                      {product.price && (
-                        <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
-                          ${product.price.toFixed(2)}
-                        </div>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedProduct(product);
-                          setProductDetailModalOpen(true);
-                        }}
-                        className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
-                      >
-                        <Eye className="h-3 w-3 text-white" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground text-sm py-8">
-                  No products in this store yet
-                </div>
-              )}
-            </div>
+                      <Eye className="h-3 w-3 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground text-sm py-8">
+                No products in this store yet
+              </div>
+            )}
           </div>
-        );
-      })
+        </div>
+      ))
     ) : (
-      <div className="col-span-2 text-center text-muted-foreground py-8">
-        No user stores available
-      </div>
+      <>
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground">
+            Coming Soon
+          </div>
+        ))}
+      </>
     )}
   </div>
 )}
