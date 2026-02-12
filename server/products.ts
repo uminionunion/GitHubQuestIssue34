@@ -1012,4 +1012,35 @@ router.get('/stores/all/with-products', async (req, res) => {
 
 
 
+// GET - Get user's custom stores (for logged-in users)
+router.get('/user/:userId/stores', authenticate, async (req, res) => {
+  const { userId } = req.params;
+  const parsedUserId = parseInt(userId);
+
+  // Verify the user is requesting their own stores or is an admin
+  if (parsedUserId !== req.user?.userId) {
+    res.status(403).json({ message: 'You can only view your own stores' });
+    return;
+  }
+
+  try {
+    console.log(`[PRODUCTS] Fetching stores for user ${parsedUserId}`);
+
+    const stores = await db
+      .selectFrom('user_stores')
+      .select(['id', 'user_id', 'name', 'subtitle', 'description', 'created_at'])
+      .where('user_id', '=', parsedUserId)
+      .orderBy('created_at', 'desc')
+      .execute();
+
+    console.log(`[PRODUCTS] ✅ Fetched ${stores.length} stores for user ${parsedUserId}`);
+    res.json(stores);
+  } catch (error) {
+    console.error('[PRODUCTS] ❌ Error fetching user stores:', error);
+    res.status(500).json({ message: 'Failed to fetch user stores' });
+  }
+});
+
+
+
 export default router;
