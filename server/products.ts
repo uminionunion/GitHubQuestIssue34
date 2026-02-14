@@ -1103,6 +1103,29 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
       return;
     }
 
+    // NEW: Check uStore limit for NEW users (is_new_user = 1)
+    if (user.is_new_user === 1) {
+      const storeCount = await db
+        .selectFrom('user_stores')
+        .select(db.fn.count('id').as('count'))
+        .where('user_id', '=', parsedUserId)
+        .executeTakeFirst();
+
+      const currentCount = (storeCount?.count as number) || 0;
+      const MAX_STORES_FOR_NEW_USERS = 7;
+
+      if (currentCount >= MAX_STORES_FOR_NEW_USERS) {
+        console.log(`[PRODUCTS] NEW USER ${parsedUserId} has reached max uStore limit (${MAX_STORES_FOR_NEW_USERS})`);
+        res.status(403).json({ 
+          message: `New users can only create a maximum of ${MAX_STORES_FOR_NEW_USERS} stores. You have reached the limit.`,
+          current: currentCount,
+          max: MAX_STORES_FOR_NEW_USERS
+        });
+        return;
+      }
+      console.log(`[PRODUCTS] NEW USER ${parsedUserId} store count: ${currentCount}/${MAX_STORES_FOR_NEW_USERS}`);
+    }
+
     // Create the user store
     const newStore = await db
       .insertInto('user_stores')
@@ -1138,6 +1161,7 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
 
 
 // GET - Get friends' products for Friends' Stores quadrant
+// NEW: Restructured to show uStore hierarchy (friend → uStore → products)
 router.get('/friends/stores/all', authenticate, async (req, res) => {
   if (!req.user) {
     res.status(401).json({ message: 'Unauthorized' });
@@ -1145,7 +1169,7 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
   }
 
   try {
-    console.log(`[FRIENDS STORES] Fetching friends' products for user ${req.user.userId}`);
+    console.log(`[FRIENDS STORES] Fetching friends' uStores and products for user ${req.user.userId}`);
 
     // Get all friends of the logged-in user
     const friendships = await db
@@ -1171,63 +1195,86 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
       return;
     }
 
-    // Get friends' user info and their products
-    const friendsWithProducts = await db
-      .selectFrom('users as u')
+    // NEW: Query uStores and their products separately
+    const friendsUStoresData = await db
+      .selectFrom('user_stores as us')
       .leftJoin(
         'MainHubUpgradeV001ForProducts as p',
-        'u.id',
-        'p.user_id'
+        'us.id',
+        'p.user_store_id'
       )
       .leftJoin(
-        'user_stores as us',
-        'p.user_store_id',
-        'us.id'
+        'users as u',
+        'us.user_id',
+        'u.id'
       )
       .select([
         'u.id as friend_id',
         'u.username as friend_username',
         'u.profile_image_url as friend_profile_image_url',
+        'us.id as user_store_id',
+        'us.name as user_store_name',
         'p.id as product_id',
         'p.name as product_name',
         'p.price as product_price',
         'p.image_url as product_image_url',
-        'us.id as user_store_id',
-        'us.name as user_store_name',
+        'p.description as product_description',
       ])
-      .where('u.id', 'in', friendIds)
+      .where('us.user_id', 'in', friendIds)
       .where('p.is_in_trash', '=', 0)
       .orderBy('u.username')
+      .orderBy('us.created_at', 'desc')
       .orderBy('p.created_at', 'desc')
       .execute();
 
-    console.log(`[FRIENDS STORES] Fetched ${friendsWithProducts.length} friend-product records`);
+    console.log(`[FRIENDS STORES] Fetched ${friendsUStoresData.length} records from friends' uStores`);
 
-    // Transform flat results into nested structure
-    const friendsMap = new Map();
-    friendsWithProducts.forEach(row => {
+    // Transform flat results into hierarchical structure: friend → uStore → products
+    const friendsMap = new Map<number, any>();
+    
+    friendsUStoresData.forEach(row => {
+      // Create friend entry if not exists
       if (!friendsMap.has(row.friend_id)) {
         friendsMap.set(row.friend_id, {
           friend_id: row.friend_id,
           friend_username: row.friend_username,
           friend_profile_image_url: row.friend_profile_image_url,
+          uStores: new Map<number, any>(),  // uStore ID → uStore data
+        });
+      }
+
+      const friend = friendsMap.get(row.friend_id)!;
+
+      // Create uStore entry if not exists
+      if (!friend.uStores.has(row.user_store_id)) {
+        friend.uStores.set(row.user_store_id, {
+          id: row.user_store_id,
+          name: row.user_store_name,
           products: [],
         });
       }
+
+      // Add product to uStore
       if (row.product_id) {
-        friendsMap.get(row.friend_id).products.push({
+        friend.uStores.get(row.user_store_id)!.products.push({
           id: row.product_id,
           name: row.product_name,
           price: row.product_price,
           image_url: row.product_image_url,
-          user_store_id: row.user_store_id,
-          user_store_name: row.user_store_name,
+          description: row.product_description,
         });
       }
     });
 
-    const result = Array.from(friendsMap.values());
-    console.log(`[FRIENDS STORES] ✅ Fetched ${result.length} friends with products`);
+    // Convert Maps to arrays for JSON response
+    const result = Array.from(friendsMap.values()).map(friend => ({
+      friend_id: friend.friend_id,
+      friend_username: friend.friend_username,
+      friend_profile_image_url: friend.friend_profile_image_url,
+      uStores: Array.from(friend.uStores.values()),
+    }));
+
+    console.log(`[FRIENDS STORES] ✅ Fetched ${result.length} friends with hierarchical uStore structure`);
     res.json(result);
   } catch (error) {
     console.error('[FRIENDS STORES] ❌ Error fetching friends products:', error);
