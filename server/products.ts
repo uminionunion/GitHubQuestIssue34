@@ -1135,4 +1135,104 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
   }
 });
 
+
+
+// GET - Get friends' products for Friends' Stores quadrant
+router.get('/friends/stores/all', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    console.log(`[FRIENDS STORES] Fetching friends' products for user ${req.user.userId}`);
+
+    // Get all friends of the logged-in user
+    const friendships = await db
+      .selectFrom('friends')
+      .selectAll()
+      .where((eb) => eb.or([
+        eb('user_id1', '=', req.user.userId),
+        eb('user_id2', '=', req.user.userId)
+      ]))
+      .where('status', '=', 'accepted')
+      .execute();
+
+    console.log(`[FRIENDS STORES] Found ${friendships.length} friendships`);
+
+    // Extract friend IDs
+    const friendIds = friendships.map(f => 
+      f.user_id1 === req.user.userId ? f.user_id2 : f.user_id1
+    );
+
+    if (friendIds.length === 0) {
+      console.log(`[FRIENDS STORES] No friends found`);
+      res.json([]);
+      return;
+    }
+
+    // Get friends' user info and their products
+    const friendsWithProducts = await db
+      .selectFrom('users as u')
+      .leftJoin(
+        'MainHubUpgradeV001ForProducts as p',
+        'u.id',
+        'p.user_id'
+      )
+      .leftJoin(
+        'user_stores as us',
+        'p.user_store_id',
+        'us.id'
+      )
+      .select([
+        'u.id as friend_id',
+        'u.username as friend_username',
+        'u.profile_image_url as friend_profile_image_url',
+        'p.id as product_id',
+        'p.name as product_name',
+        'p.price as product_price',
+        'p.image_url as product_image_url',
+        'us.id as user_store_id',
+        'us.name as user_store_name',
+      ])
+      .where('u.id', 'in', friendIds)
+      .where('p.is_in_trash', '=', 0)
+      .orderBy('u.username')
+      .orderBy('p.created_at', 'desc')
+      .execute();
+
+    console.log(`[FRIENDS STORES] Fetched ${friendsWithProducts.length} friend-product records`);
+
+    // Transform flat results into nested structure
+    const friendsMap = new Map();
+    friendsWithProducts.forEach(row => {
+      if (!friendsMap.has(row.friend_id)) {
+        friendsMap.set(row.friend_id, {
+          friend_id: row.friend_id,
+          friend_username: row.friend_username,
+          friend_profile_image_url: row.friend_profile_image_url,
+          products: [],
+        });
+      }
+      if (row.product_id) {
+        friendsMap.get(row.friend_id).products.push({
+          id: row.product_id,
+          name: row.product_name,
+          price: row.product_price,
+          image_url: row.product_image_url,
+          user_store_id: row.user_store_id,
+          user_store_name: row.user_store_name,
+        });
+      }
+    });
+
+    const result = Array.from(friendsMap.values());
+    console.log(`[FRIENDS STORES] ✅ Fetched ${result.length} friends with products`);
+    res.json(result);
+  } catch (error) {
+    console.error('[FRIENDS STORES] ❌ Error fetching friends products:', error);
+    res.status(500).json({ message: 'Failed to fetch friends products' });
+  }
+});
+
 export default router;
