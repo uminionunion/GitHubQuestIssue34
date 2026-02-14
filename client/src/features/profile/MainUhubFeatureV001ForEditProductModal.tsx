@@ -105,7 +105,7 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
 };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[30000]">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100001]">
       <div className="bg-background border rounded-lg p-6 max-w-2xl w-[90%] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Edit Product</h2>
