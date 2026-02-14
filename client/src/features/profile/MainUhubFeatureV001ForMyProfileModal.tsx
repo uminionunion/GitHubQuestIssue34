@@ -235,6 +235,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
+
+  const [friendsStoresData, setFriendsStoresData] = useState<any[]>([]);
+  const [isLoadingFriendsStores, setIsLoadingFriendsStores] = useState(false);
   
   // Calculate total pages needed
 const userStoresCount = userStoresData.length;
@@ -373,11 +376,99 @@ const storePages = buildStorePages();
   </div>
 </div>
 
-            {/* TOP RIGHT: Friends Stores */}
+          {/* TOP RIGHT: Friends Stores */}
             <div className="border rounded-lg p-4 flex flex-col h-full">
               <h3 className="font-bold mb-3 sticky top-0 bg-background">Friends' Stores</h3>
-              <div className="flex-1 bg-muted rounded-md flex items-center justify-center text-muted-foreground">
-                (Friends' products)
+              <div 
+                className="flex-1 overflow-y-auto"
+                style={{
+                  scrollbarColor: '#f97316 #1f2937',
+                  scrollbarWidth: 'thin'
+                }}
+              >
+                <style>{`
+                  div[style*="scrollbarColor: #f97316"]::-webkit-scrollbar {
+                    width: 8px;
+                  }
+                  div[style*="scrollbarColor: #f97316"]::-webkit-scrollbar-track {
+                    background: #1f2937;
+                  }
+                  div[style*="scrollbarColor: #f97316"]::-webkit-scrollbar-thumb {
+                    background: #f97316;
+                    border-radius: 4px;
+                  }
+                  div[style*="scrollbarColor: #f97316"]::-webkit-scrollbar-thumb:hover {
+                    background: #ea580c;
+                  }
+                `}</style>
+                {isLoadingFriendsStores ? (
+                  <div className="text-center text-muted-foreground py-4">Loading friends' products...</div>
+                ) : friendsStoresData.length > 0 ? (
+                  <div className="space-y-3">
+                    {friendsStoresData.map((friendData) => (
+                      <div key={friendData.friend_id} className="border rounded-lg p-3 bg-gray-900/50">
+                        {/* Friend Header */}
+                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-700">
+                          <Avatar className="h-8 w-8 flex-shrink-0">
+                            <AvatarImage src={friendData.friend_profile_image_url} />
+                            <AvatarFallback>{friendData.friend_username.charAt(1).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-semibold text-sm">{friendData.friend_username}</span>
+                        </div>
+
+                        {/* Friend's Products (Indented) */}
+                        <div className="ml-2 space-y-2">
+                          {friendData.products.length > 0 ? (
+                            friendData.products.map((product) => (
+                              <div
+                                key={product.id}
+                                className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer bg-gray-800/30"
+                                onClick={() => onProductView(product)}
+                              >
+                                {product.image_url && (
+                                  <img
+                                    src={product.image_url}
+                                    alt={product.name}
+                                    className="w-6 h-6 rounded object-cover flex-shrink-0"
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold truncate">{product.name}</p>
+                                  <div className="text-xs text-gray-400 space-y-0.5">
+                                    {product.user_store_name && (
+                                      <p className="truncate">Store: {product.user_store_name}</p>
+                                    )}
+                                    {product.price && (
+                                      <p className="text-orange-400">${product.price.toFixed(2)}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5 text-white hover:text-orange-400 flex-shrink-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onProductView(product);
+                                  }}
+                                  title="View product details"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-xs text-gray-500 italic">No products yet</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-4 text-sm">
+                    {user ? "No friends or friend products yet" : "Log in to see friends' products"}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1179,6 +1270,28 @@ useEffect(() => {
 
 
 
+
+// Fetch friends' stores and products when modal opens
+useEffect(() => {
+  if (isOpen && user) {
+    setIsLoadingFriendsStores(true);
+    fetch('/api/products/friends/stores/all')
+      .then(res => res.json())
+      .then(data => {
+        setFriendsStoresData(Array.isArray(data) ? data : []);
+        console.log(`[QUADRANTS] Loaded ${data.length} friends with products`);
+      })
+      .catch(error => {
+        console.error('[QUADRANTS] Error fetching friends stores:', error);
+        setFriendsStoresData([]);
+      })
+      .finally(() => setIsLoadingFriendsStores(false));
+  }
+}, [isOpen, user]);
+
+
+
+  
 
   
 
