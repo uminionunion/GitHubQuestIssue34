@@ -104,6 +104,8 @@ interface Product {
   location?: string;
   store_id?: number;
   sku_id?: string;
+  user_store_id?: number;
+  user_store_name?: string;
 }
 
 const ProductBox = ({ product, onMagnify, onAddToCart }) => {
@@ -443,14 +445,16 @@ const storePages = buildStorePages();
                           )}
                         </div>
 
-                        {/* Product Info */}
-                        <div className="flex-grow min-w-0">
-                          <p className="font-semibold text-sm truncate">{p.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
-                            {p.creator_username && <span>by {p.creator_username}</span>}
-                          </div>
-                        </div>
+                      {/* Product Info */}
+<div className="flex-grow min-w-0">
+  <p className="font-semibold text-sm truncate">{p.name}</p>
+  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
+    {p.user_store_id && <span>Store #{p.user_store_id}</span>}
+    {p.user_store_name && <span className="truncate">{p.user_store_name}</span>}
+    {p.creator_username && <span>by {p.creator_username}</span>}
+  </div>
+</div>
 
                         {/* Action Buttons */}
                         <div className="flex gap-1 flex-shrink-0">
@@ -534,12 +538,14 @@ const storePages = buildStorePages();
                         </div>
 
                         {/* Product Info */}
-                        <div className="flex-grow min-w-0">
-                          <p className="font-semibold text-sm truncate">{p.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
-                          </div>
-                        </div>
+<div className="flex-grow min-w-0">
+  <p className="font-semibold text-sm truncate">{p.name}</p>
+  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <span>${p.price ? p.price.toFixed(2) : '0.00'}</span>
+    {p.user_store_id && <span>Store #{p.user_store_id}</span>}
+    {p.user_store_name && <span className="truncate">{p.user_store_name}</span>}
+  </div>
+</div>
 
                         {/* Action Buttons */}
                         <div className="flex gap-1 flex-shrink-0">
