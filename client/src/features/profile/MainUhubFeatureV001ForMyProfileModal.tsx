@@ -381,7 +381,7 @@ const storePages = buildStorePages();
   </div>
 </div>
 
-          {/* TOP RIGHT: Friends Stores */}
+         {/* TOP RIGHT: Friends Stores */}
 <div className="border rounded-lg p-4 flex flex-col h-full">
   <h3 className="font-bold mb-3 sticky top-0 bg-background">Friends' Stores</h3>
   <div 
@@ -406,6 +406,21 @@ const storePages = buildStorePages();
       div[style*="scrollbarColor: #a855f7"]::-webkit-scrollbar-thumb:hover {
         background: #9333ea;
       }
+      
+      /* NEW: Light turquoise scrollbar for uStore products (when 5+ items) */
+      .ustore-products-scrollable::-webkit-scrollbar {
+        width: 8px;
+      }
+      .ustore-products-scrollable::-webkit-scrollbar-track {
+        background: #1f2937;
+      }
+      .ustore-products-scrollable::-webkit-scrollbar-thumb {
+        background: #14b8a6;
+        border-radius: 4px;
+      }
+      .ustore-products-scrollable::-webkit-scrollbar-thumb:hover {
+        background: #0d9488;
+      }
     `}</style>
                 {isLoadingFriendsStores ? (
                   <div className="text-center text-muted-foreground py-4">Loading friends' products...</div>
@@ -413,7 +428,7 @@ const storePages = buildStorePages();
                   <div className="space-y-3">
                     {friendsStoresData.map((friendData) => (
                       <div key={friendData.friend_id} className="border rounded-lg p-3 bg-gray-900/50">
-                        {/* Friend Header */}
+                        {/* Friend Header (First Level) */}
                         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-700">
                           <Avatar className="h-8 w-8 flex-shrink-0">
                             <AvatarImage src={friendData.friend_profile_image_url} />
@@ -422,49 +437,66 @@ const storePages = buildStorePages();
                           <span className="font-semibold text-sm">{friendData.friend_username}</span>
                         </div>
 
-                        {/* Friend's Products (Indented) */}
+                        {/* uStores (First Indent) */}
                         <div className="ml-2 space-y-2">
-                          {friendData.products.length > 0 ? (
-                            friendData.products.map((product) => (
-                              <div
-                                key={product.id}
-                                className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer bg-gray-800/30"
-                                onClick={() => onProductView(product)}
-                              >
-                                {product.image_url && (
-                                  <img
-                                    src={product.image_url}
-                                    alt={product.name}
-                                    className="w-6 h-6 rounded object-cover flex-shrink-0"
-                                  />
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold truncate">{product.name}</p>
-                                  <div className="text-xs text-gray-400 space-y-0.5">
-                                    {product.user_store_name && (
-                                      <p className="truncate">Store: {product.user_store_name}</p>
-                                    )}
-                                    {product.price && (
-                                      <p className="text-orange-400">${product.price.toFixed(2)}</p>
-                                    )}
-                                  </div>
+                          {friendData.uStores && friendData.uStores.length > 0 ? (
+                            friendData.uStores.map((uStore) => (
+                              <div key={uStore.id} className="space-y-1">
+                                {/* uStore Name (First Indent) */}
+                                <div className="font-semibold text-xs text-cyan-400 py-1">
+                                  {uStore.name}
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5 text-white hover:text-orange-400 flex-shrink-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onProductView(product);
-                                  }}
-                                  title="View product details"
+
+                                {/* Products within uStore (Second Indent) */}
+                                <div 
+                                  className={`ml-2 space-y-1 ${
+                                    uStore.products.length >= 5 
+                                      ? 'max-h-48 overflow-y-auto ustore-products-scrollable' 
+                                      : ''
+                                  }`}
                                 >
-                                  <Eye className="h-3 w-3" />
-                                </Button>
+                                  {uStore.products.length > 0 ? (
+                                    uStore.products.map((product) => (
+                                      <div
+                                        key={product.id}
+                                        className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer bg-gray-800/30"
+                                        onClick={() => onProductView(product)}
+                                      >
+                                        {product.image_url && (
+                                          <img
+                                            src={product.image_url}
+                                            alt={product.name}
+                                            className="w-5 h-5 rounded object-cover flex-shrink-0"
+                                          />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-semibold truncate text-xs">{product.name}</p>
+                                          {product.price && (
+                                            <p className="text-orange-400 text-xs">${product.price.toFixed(2)}</p>
+                                          )}
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5 text-white hover:text-orange-400 flex-shrink-0"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            onProductView(product);
+                                          }}
+                                          title="View product details"
+                                        >
+                                          <Eye className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-xs text-gray-500 italic ml-2">No products in this store</p>
+                                  )}
+                                </div>
                               </div>
                             ))
                           ) : (
-                            <p className="text-xs text-gray-500 italic">No products yet</p>
+                            <p className="text-xs text-gray-500 italic">No stores yet</p>
                           )}
                         </div>
                       </div>
