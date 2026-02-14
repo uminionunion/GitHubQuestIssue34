@@ -235,37 +235,50 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
   
   // Calculate total pages needed
-  const userStoresCount = userStoresData.length;
-  const userStoresPerPage = 4;
-  const userStorePages = Math.ceil(userStoresCount / userStoresPerPage);
-  const totalPages = 9 + userStorePages; // Pages 1-9 + user store pages
+const userStoresCount = userStoresData.length;
+const userStoresPerPage = 4;
+const userStorePages = Math.ceil(Math.max(1, userStoresCount) / userStoresPerPage); // Always at least 1 page
+const totalPages = 10 + (userStoresCount > 0 ? userStorePages - 1 : 0); // Pages 1-10, then additional pages for user stores
 
-  // Build dynamic pages array
-  const buildStorePages = () => {
-    const pages = [
-      [], // Page 0 (not used)
-      [stores[1], stores[2], stores[3], stores[4]],
-      [stores[5], stores[6], stores[7], stores[8]],
-      [stores[9], stores[10], stores[11], stores[12]],
-      [stores[13], stores[14], stores[15], stores[16]],
-      [stores[17], stores[18], stores[19], stores[20]],
-      [stores[21], stores[22], stores[23], stores[24]],
-      [stores[25], stores[26], stores[27], stores[28]],
-      [stores[29], stores[30], null, null],
-      [null, null, null, null], // Page 9 - coming soon
-    ];
+// Build dynamic pages array
+const buildStorePages = () => {
+  const pages = [
+    [], // Page 0 (not used)
+    [stores[1], stores[2], stores[3], stores[4]],  // Page 1
+    [stores[5], stores[6], stores[7], stores[8]],  // Page 2
+    [stores[9], stores[10], stores[11], stores[12]],  // Page 3
+    [stores[13], stores[14], stores[15], stores[16]],  // Page 4
+    [stores[17], stores[18], stores[19], stores[20]],  // Page 5
+    [stores[21], stores[22], stores[23], stores[24]],  // Page 6
+    [stores[25], stores[26], stores[27], stores[28]],  // Page 7
+    [stores[29], stores[30], null, null],  // Page 8
+    [null, null, null, null], // Page 9 - coming soon
+  ];
 
-    // Add user store pages starting from page 10
+  // Add user store pages starting from page 10
+  // Page 10: stores 1-4, Page 11: stores 5-8, Page 12: stores 9-12, etc.
+  if (userStoresCount > 0) {
     for (let i = 0; i < userStorePages; i++) {
       const start = i * userStoresPerPage;
       const end = start + userStoresPerPage;
-      pages.push(userStoresData.slice(start, end));
+      const pageStores = userStoresData.slice(start, end);
+      
+      // Pad with nulls if needed to maintain 4-quadrant layout
+      while (pageStores.length < 4) {
+        pageStores.push(null);
+      }
+      
+      pages.push(pageStores);
     }
+  } else {
+    // If no user stores, add empty page 10
+    pages.push([null, null, null, null]);
+  }
 
-    return pages;
-  };
+  return pages;
+};
 
-  const storePages = buildStorePages();
+const storePages = buildStorePages();
 
   // Check if user is logged in (to be able see the 'add product' button; yes?' -12:18am on 2/3/26
   const canAddProducts = !!user;
@@ -626,13 +639,28 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         {/* PAGES 2-10 REMAIN THE SAME IN REPRESENTING UNION STORES 1-30 */}
        {currentPage > 1 && currentPage <= 9 && (
   <div className="grid grid-cols-2 gap-4 h-[70vh]">
+    <style>{`
+      .store-products-scrollable::-webkit-scrollbar {
+        width: 10px;
+      }
+      .store-products-scrollable::-webkit-scrollbar-track {
+        background: #1f2937;
+      }
+      .store-products-scrollable::-webkit-scrollbar-thumb {
+        background: #10b981;
+        border-radius: 5px;
+      }
+      .store-products-scrollable::-webkit-scrollbar-thumb:hover {
+        background: #059669;
+      }
+    `}</style>
     {storePages[currentPage - 1].map((store) => (
       <div key={store?.id || Math.random()} className="border rounded-lg p-4 flex flex-col h-full">
         <h3 className="font-bold mb-3">{store?.displayName || 'Coming Soon'}</h3>
         {store ? (
           <div className="flex-1 flex flex-col">
            {/* Store Products Grid */}
-            <div className="flex-1 overflow-y-auto mb-3">
+            <div className="store-products-scrollable flex-1 overflow-y-auto mb-3" style={{ maxHeight: '380px' }}>
               <div className="grid grid-cols-2 gap-2">
                 {storeProducts[store.number] && storeProducts[store.number].length > 0 ? (
                   storeProducts[store.number].map((product) => (
@@ -716,7 +744,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   </div>
 )}
 
-       {currentPage === 10 && (
+     {currentPage > 9 && (
   <div className="grid grid-cols-2 gap-4 h-[70vh]">
     <style>{`
       .user-store-scrollable::-webkit-scrollbar {
@@ -733,8 +761,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
         background: #0891b2;
       }
     `}</style>
-    {userStoresData && userStoresData.length > 0 ? (
-      userStoresData.slice(0, 4).map((userStore) => (
+    {storePages[currentPage - 1] && storePages[currentPage - 1].length > 0 ? (
+      storePages[currentPage - 1].map((userStore, idx) => (
         <div key={userStore.id} className="border rounded-lg p-4 flex flex-col h-full">
           <div className="mb-3">
             <h3 className="font-bold text-sm">{userStore.name}</h3>
@@ -805,7 +833,7 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     ) : (
       <>
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground">
+          <div key={i} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground h-full">
             Coming Soon
           </div>
         ))}
@@ -813,7 +841,6 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
     )}
   </div>
 )}
-
       
       </div>
     </div>
