@@ -737,7 +737,7 @@ const storePages = buildStorePages();
   </div>
 )}
 
-     {currentPage > 9 && (
+   {currentPage > 9 && (
   <div className="grid grid-cols-2 gap-4 h-[70vh]">
     <style>{`
       .user-store-scrollable::-webkit-scrollbar {
@@ -754,9 +754,9 @@ const storePages = buildStorePages();
         background: #0891b2;
       }
     `}</style>
-    {storePages.length > currentPage - 1 ? (
-      storePages[currentPage - 1] && storePages[currentPage - 1].length > 0 ? (
-        storePages[currentPage - 1].map((userStore, idx) => userStore ? (
+    {storePages && storePages[currentPage - 1] && storePages[currentPage - 1].length > 0 ? (
+      storePages[currentPage - 1].map((userStore, idx) => (
+        userStore ? (
           <div key={userStore.id} className="border rounded-lg p-4 flex flex-col h-full">
             <div className="mb-3">
               <h3 className="font-bold text-sm">{userStore.name}</h3>
@@ -806,8 +806,7 @@ const storePages = buildStorePages();
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedProduct(product);
-                          setProductDetailModalOpen(true);
+                          onProductView(product);
                         }}
                         className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
                         title="View product details"
@@ -825,19 +824,11 @@ const storePages = buildStorePages();
             </div>
           </div>
         ) : (
-          <div key={idx} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground h-full">
+          <div key={`empty-${idx}`} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground h-full">
             Coming Soon
           </div>
-        ))
-      ) : (
-        <>
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground h-full">
-              Coming Soon
-            </div>
-          ))}
-        </>
-      )
+        )
+      ))
     ) : (
       <>
         {[1, 2, 3, 4].map((i) => (
