@@ -237,35 +237,36 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   // Calculate total pages needed
 const userStoresCount = userStoresData.length;
 const userStoresPerPage = 4;
-const userStorePages = userStoresCount > 0 ? Math.ceil(userStoresCount / userStoresPerPage) : 0;
-const totalPages = 9 + userStorePages; // Pages 1-9 for union stores, then user store pages
+const userStorePages = userStoresCount > 0 ? Math.ceil(userStoresCount / userStoresPerPage) : 1; // Always at least 1 page
+const totalPages = 10 + userStorePages; // Pages 1-10 for everything, then user store pages
 
 // Build dynamic pages array
 const buildStorePages = () => {
   const pages = [
-    [], // Page 0 (not used)
-    [stores[1], stores[2], stores[3], stores[4]],  // Page 1
-    [stores[5], stores[6], stores[7], stores[8]],  // Page 2
-    [stores[9], stores[10], stores[11], stores[12]],  // Page 3
-    [stores[13], stores[14], stores[15], stores[16]],  // Page 4
-    [stores[17], stores[18], stores[19], stores[20]],  // Page 5
-    [stores[21], stores[22], stores[23], stores[24]],  // Page 6
-    [stores[25], stores[26], stores[27], stores[28]],  // Page 7
-    [stores[29], stores[30], null, null],  // Page 8
-    [null, null, null, null], // Page 9 - coming soon
+    [], // Page 0 (not used - dummy entry for alignment)
+    [stores[1], stores[2], stores[3], stores[4]],   // Page 1
+    [stores[5], stores[6], stores[7], stores[8]],   // Page 2
+    [stores[9], stores[10], stores[11], stores[12]], // Page 3
+    [stores[13], stores[14], stores[15], stores[16]], // Page 4
+    [stores[17], stores[18], stores[19], stores[20]], // Page 5
+    [stores[21], stores[22], stores[23], stores[24]], // Page 6
+    [stores[25], stores[26], stores[27], stores[28]], // Page 7
+    [stores[29], stores[30], null, null],            // Page 8
+    [null, null, null, null],                        // Page 9 - coming soon
+    [],                                              // Page 10 - will be populated with user stores
   ];
 
   // Add user store pages starting from page 10
-  // Page 10: stores 1-4, Page 11: stores 5-8, Page 12: stores 9-12, etc.
   if (userStoresCount > 0) {
-    for (let i = 0; i < userStorePages; i++) {
+    // Replace the empty page 10 with the first chunk of user stores
+    pages[10] = userStoresData.slice(0, userStoresPerPage);
+    
+    // Add remaining user store pages
+    for (let i = 1; i < userStorePages; i++) {
       const start = i * userStoresPerPage;
       const end = start + userStoresPerPage;
-      pages.push(userStoresData.slice(start, end)); // NO PADDING - let the renderer handle empty quadrants
+      pages.push(userStoresData.slice(start, end));
     }
-  } else {
-    // If no user stores, add empty page 10
-    pages.push([]);
   }
 
   return pages;
@@ -781,40 +782,48 @@ const storePages = buildStorePages();
               {userStore.products && userStore.products.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2">
                   {userStore.products.map((product) => (
-                    <div
-                      key={product.id}
-                      className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
-                      style={{
-                        backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                      }}
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setProductDetailModalOpen(true);
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
-                      <div className="relative z-10 text-xs font-semibold text-white truncate">
-                        {product.name}
-                      </div>
-                      {product.price && (
-                        <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
-                          ${product.price.toFixed(2)}
-                        </div>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onProductView(product);
-                        }}
-                        className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
-                        title="View product details"
-                      >
-                        <Eye className="h-3 w-3 text-white" />
-                      </button>
-                    </div>
-                  ))}
+  <div
+    key={product.id}
+    className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
+    style={{
+      backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center'
+    }}
+  >
+    {/* Clickable Overlay - Catches All Clicks Except Eye Button */}
+    <div 
+      className="absolute inset-0 bg-black bg-opacity-40 rounded-md cursor-pointer"
+      onClick={() => {
+        onProductView(product);
+      }}
+    ></div>
+
+    {/* Product Name */}
+    <div className="relative z-10 text-xs font-semibold text-white truncate pointer-events-none">
+      {product.name}
+    </div>
+
+    {/* Price Badge */}
+    {product.price && (
+      <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded pointer-events-none">
+        ${product.price.toFixed(2)}
+      </div>
+    )}
+
+    {/* Eye Button */}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onProductView(product);
+      }}
+      className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+      title="View product details"
+    >
+      <Eye className="h-3 w-3 text-white" />
+    </button>
+  </div>
+))}
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground text-sm py-8">
