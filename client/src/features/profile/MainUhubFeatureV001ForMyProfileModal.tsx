@@ -237,8 +237,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   // Calculate total pages needed
 const userStoresCount = userStoresData.length;
 const userStoresPerPage = 4;
-const userStorePages = userStoresCount > 0 ? Math.ceil(userStoresCount / userStoresPerPage) : 1; // Always at least 1 page
-const totalPages = 10 + userStorePages; // Pages 1-10 for everything, then user store pages
+const userStorePages = userStoresCount > 0 ? Math.ceil(userStoresCount / userStoresPerPage) : 0; // 0 if no stores
+const totalPages = 10 + userStorePages; // Pages 1-10 for union stores, then user store pages
 
 // Build dynamic pages array
 const buildStorePages = () => {
@@ -253,16 +253,11 @@ const buildStorePages = () => {
     [stores[25], stores[26], stores[27], stores[28]], // Page 7
     [stores[29], stores[30], null, null],            // Page 8
     [null, null, null, null],                        // Page 9 - coming soon
-    [],                                              // Page 10 - will be populated with user stores
   ];
 
   // Add user store pages starting from page 10
   if (userStoresCount > 0) {
-    // Replace the empty page 10 with the first chunk of user stores
-    pages[10] = userStoresData.slice(0, userStoresPerPage);
-    
-    // Add remaining user store pages
-    for (let i = 1; i < userStorePages; i++) {
+    for (let i = 0; i < userStorePages; i++) {
       const start = i * userStoresPerPage;
       const end = start + userStoresPerPage;
       pages.push(userStoresData.slice(start, end));
@@ -657,49 +652,54 @@ const storePages = buildStorePages();
             <div className="store-products-scrollable flex-1 overflow-y-auto mb-3" style={{ maxHeight: '380px' }}>
               <div className="grid grid-cols-2 gap-2">
                 {storeProducts[store.number] && storeProducts[store.number].length > 0 ? (
-                  storeProducts[store.number].map((product) => (
-                    <div
-                      key={product.id}
-                      className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition"
-                      style={{
-                        backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                      }}
-                    >
-                      {/* Overlay */}
-                      <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
+  storeProducts[store.number].map((product) => (
+    <div
+      key={product.id}
+      className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
+      style={{
+        backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
+      {/* Clickable Overlay - Catches All Clicks Except Eye Button */}
+      <div 
+        className="absolute inset-0 bg-black bg-opacity-40 rounded-md cursor-pointer"
+        onClick={() => {
+          onProductView(product);
+        }}
+      ></div>
 
-                      {/* Product Name */}
-                      <div className="relative z-10 text-xs font-semibold text-white truncate">
-                        {product.name}
-                      </div>
+      {/* Product Name */}
+      <div className="relative z-10 text-xs font-semibold text-white truncate pointer-events-none">
+        {product.name}
+      </div>
 
-                      {/* Eye Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onProductView(product);
-                        }}
-                        className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
-                        title="View product details"
-                      >
-                        <Eye className="h-3 w-3 text-white" />
-                      </button>
+      {/* Eye Button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onProductView(product);
+        }}
+        className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+        title="View product details"
+      >
+        <Eye className="h-3 w-3 text-white" />
+      </button>
 
-                      {/* Price */}
-                      {product.price && (
-                        <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded">
-                          ${product.price.toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-2 text-center text-muted-foreground py-4 text-sm">
-                    No products yet
-                  </div>
-                )}
+      {/* Price */}
+      {product.price && (
+        <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded pointer-events-none">
+          ${product.price.toFixed(2)}
+        </div>
+      )}
+    </div>
+  ))
+) : (
+  <div className="col-span-2 text-center text-muted-foreground py-4 text-sm">
+    No products yet
+  </div>
+)}
               </div>
             </div>
 
