@@ -190,6 +190,10 @@ interface QuadrantsModalProps {
   onClose: () => void;
   stores: typeof ALL_STORES;
   userStoresData?: any[];
+  friendsStoresData?: any[];
+  setFriendsStoresData?: (data: any[]) => void;
+  isLoadingFriendsStores?: boolean;
+  setIsLoadingFriendsStores?: (loading: boolean) => void;
   onSelectStore: (store: any) => void;
   user: any;
   mainStoreProducts: Product[];
@@ -215,6 +219,10 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   onClose, 
   stores, 
   userStoresData = [],
+  friendsStoresData = [],
+  setFriendsStoresData,
+  isLoadingFriendsStores = false,
+  setIsLoadingFriendsStores,
   onSelectStore, 
   user, 
   mainStoreProducts = [], 
@@ -235,9 +243,6 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
-
-  const [friendsStoresData, setFriendsStoresData] = useState<any[]>([]);
-  const [isLoadingFriendsStores, setIsLoadingFriendsStores] = useState(false);
   
   // Calculate total pages needed
 const userStoresCount = userStoresData.length;
@@ -1108,6 +1113,8 @@ const [editingProduct, setEditingProduct] = useState<any>(null);
 const [isEditProductModalOpen, setEditProductModalOpen] = useState(false);
 const [userStores, setUserStores] = useState<any[]>([]);
 const [isLoadingUserStores, setIsLoadingUserStores] = useState(false);
+const [friendsStoresData, setFriendsStoresData] = useState<any[]>([]);
+const [isLoadingFriendsStores, setIsLoadingFriendsStores] = useState(false);
 
 const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   
@@ -1988,11 +1995,15 @@ default:
 
       
         
-       <QuadrantsModal 
+      <QuadrantsModal 
   isOpen={isQuadrantsModalOpen}
   onClose={() => setIsQuadrantsModalOpen(false)}
   stores={ALL_STORES}
   userStoresData={userStoresData}
+  friendsStoresData={friendsStoresData}
+  setFriendsStoresData={setFriendsStoresData}
+  isLoadingFriendsStores={isLoadingFriendsStores}
+  setIsLoadingFriendsStores={setIsLoadingFriendsStores}
   onSelectStore={(store) => setCenterRightView(store)}
   user={user}
   mainStoreProducts={mainStoreProducts}
