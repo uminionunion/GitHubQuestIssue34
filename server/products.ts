@@ -160,11 +160,28 @@ router.get('/user/:userId', async (req, res) => {
 
   try {
     const products = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('user_id', '=', parseInt(userId))
-      .where('is_in_trash', '=', 0)
-      .orderBy('created_at', 'desc')
+      .selectFrom('MainHubUpgradeV001ForProducts as p')
+      .leftJoin('user_stores as us', 'p.user_store_id', 'us.id')
+      .select([
+        'p.id',
+        'p.name',
+        'p.price',
+        'p.image_url',
+        'p.store_type',
+        'p.user_id',
+        'p.store_id',
+        'p.payment_method',
+        'p.payment_url',
+        'p.sku_id',
+        'p.created_at',
+        'p.subtitle',
+        'p.description',
+        'us.id as user_store_id',
+        'us.name as user_store_name',
+      ])
+      .where('p.user_id', '=', parseInt(userId))
+      .where('p.is_in_trash', '=', 0)
+      .orderBy('p.id', 'desc')
       .execute();
 
     res.json(products);
