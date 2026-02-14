@@ -13,6 +13,13 @@ interface MainUhubFeatureV001ForEditProductModalProps {
   onProductUpdated?: () => void;
 }
 
+interface UserStore {
+  id: number;
+  name: string;
+  subtitle?: string | null;
+  description?: string | null;
+}
+
 const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEditProductModalProps> = ({
   isOpen,
   onClose,
@@ -21,91 +28,140 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
   onProductUpdated,
 }) => {
   const { user } = useAuth();
+  
+  // Form State
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [selectedUserStore, setSelectedUserStore] = useState<number | null>(null);
+  const [image, setImage] = useState<File | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [qrCodeImage, setQrCodeImage] = useState<File | null>(null);
+  const [existingQrImageUrl, setExistingQrImageUrl] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [wooSku, setWooSku] = useState('');
+  const [selectedUserStoreId, setSelectedUserStoreId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Pre-fill form when product loads or modal opens
   useEffect(() => {
     if (product && isOpen) {
       setTitle(product.name || '');
       setSubtitle(product.subtitle || '');
       setDescription(product.description || '');
-      setPrice(product.price ? String(product.price) : '');
-      setSelectedUserStore(product.user_store_id || null);
+      setPrice((product.price || '').toString());
+      setExistingImageUrl(product.image_url || '');
+      setPaymentMethod(product.payment_method || '');
+      setExistingQrImageUrl('');
+      setWebsiteUrl(product.payment_url || '');
+      setWooSku(product.sku_id || '');
+      setSelectedUserStoreId(product.user_store_id ? String(product.user_store_id) : '');
+      setImage(null);
+      setQrCodeImage(null);
       setError('');
     }
   }, [product, isOpen]);
 
   if (!isOpen || !product || !user) return null;
 
-  const handleAssignToUserStore = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  if (!selectedUserStore) {
-    setError('Please select a user store');
-    return;
-  }
-
-  if (!product || !product.id) {
-    setError('Product data is missing');
-    return;
-  }
-
-  setIsSubmitting(true);
-  setError('');
-  
-  try {
-    console.log(`[EDIT PRODUCT] Assigning product ${product.id} to user store ${selectedUserStore}`);
-    
-    const response = await fetch(`/api/products/${product.id}/user-store`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userStoreId: selectedUserStore }),
-    });
-
-    console.log(`[EDIT PRODUCT] Response status: ${response.status}`);
-
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type');
-      let errorMessage = `Server error: ${response.status} ${response.statusText}`;
-      
-      if (contentType?.includes('application/json')) {
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (parseError) {
-          console.error('[EDIT PRODUCT] Failed to parse error response:', parseError);
-        }
-      }
-      
-      console.error('[EDIT PRODUCT] Request failed:', errorMessage);
-      throw new Error(errorMessage);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setImage(e.target.files[0]);
     }
+  };
 
-    const data = await response.json();
-    console.log(`[EDIT PRODUCT] ✅ Success:`, data);
-    
+  const handleQrCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setQrCodeImage(e.target.files[0]);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
-    if (onProductUpdated) {
-      onProductUpdated();
+
+    if (!title || price === '') {
+      setError('Title and price are required');
+      return;
     }
-    
-    onClose();
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Failed to assign product to store';
-    console.error('[EDIT PRODUCT] ❌ Error assigning product to store:', errorMsg);
-    setError(errorMsg);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+
+    if (!paymentMethod) {
+      setError('Payment method is required');
+      return;
+    }
+
+    if (paymentMethod === 'venmo_cashapp' && !qrCodeImage && !existingQrImageUrl) {
+      setError('QR code image is required for Venmo/CashApp option');
+      return;
+    }
+
+    if (paymentMethod === 'through_site' && !websiteUrl) {
+      setError('Website URL is required for "Through Site" option');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('name', title);
+      formData.append('subtitle', subtitle);
+      formData.append('description', description);
+      formData.append('price', price);
+      formData.append('payment_method', paymentMethod);
+      formData.append('payment_url', websiteUrl);
+      formData.append('sku_id', wooSku);
+
+      // Add user store assignment if selected
+      if (selectedUserStoreId) {
+        formData.append('user_store_id', selectedUserStoreId);
+      }
+
+      // Add new image if user selected one
+      if (image) {
+        formData.append('image', image);
+      }
+
+      // Add QR code if user selected one
+      if (qrCodeImage) {
+        formData.append('qr_code_image', qrCodeImage);
+      }
+
+      console.log('[EDIT PRODUCT MODAL] Submitting product update for product ID:', product.id);
+
+      const response = await fetch(`/api/products/${product.id}`, {
+        method: 'PATCH',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message || 'Failed to update product');
+        console.error('[EDIT PRODUCT MODAL] Error response:', data);
+        return;
+      }
+
+      const responseData = await response.json();
+      console.log('[EDIT PRODUCT MODAL] ✅ Product updated successfully:', responseData);
+
+      setError('');
+      if (onProductUpdated) {
+        onProductUpdated();
+      }
+
+      onClose();
+    } catch (err) {
+      console.error('[EDIT PRODUCT MODAL] Error updating product:', err);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100001]">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[30000]">
       <div className="bg-background border rounded-lg p-6 max-w-2xl w-[90%] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Edit Product</h2>
@@ -120,70 +176,281 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
           </div>
         )}
 
-        <form onSubmit={handleAssignToUserStore} className="space-y-4">
-          {/* Display-only fields */}
-          <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-            <h3 className="font-semibold text-sm mb-3">Current Product Details (Read-only)</h3>
-            
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs text-gray-400">Name</label>
-                <p className="font-semibold text-white">{title}</p>
-              </div>
-              <div>
-                <label className="text-xs text-gray-400">Subtitle</label>
-                <p className="text-gray-200">{subtitle || 'No subtitle'}</p>
-              </div>
-              <div>
-                <label className="text-xs text-gray-400">Description</label>
-                <p className="text-gray-200 text-sm">{description || 'No description'}</p>
-              </div>
-              <div>
-                <label className="text-xs text-gray-400">Price</label>
-                <p className="font-semibold text-orange-400">${Number(price).toFixed(2)}</p>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block font-semibold mb-2">Product Name (required)</label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={100}
+              placeholder="e.g., Vintage Leather Jacket"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2">Subtitle</label>
+            <Input
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              maxLength={300}
+              placeholder="e.g., High quality, authentic"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2">Description</label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={1000}
+              rows={4}
+              placeholder="Describe your product in detail..."
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2">Price (required)</label>
+            <Input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold mb-2">
+              Payment Method:{' '}
+              <span
+                style={{
+                  color: '#ffcc00',
+                  marginLeft: '4px',
+                  fontSize: '0.85em',
+                  verticalAlign: 'baseline',
+                }}
+              >
+                (How would you like your customers to pay/buy your product?)
+              </span>
+            </label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="cash"
+                  checked={paymentMethod === 'cash'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <span>
+                  With Cash{' '}
+                  <span
+                    style={{
+                      color: '#00e5ff',
+                      fontSize: '0.85em',
+                      marginLeft: '4px',
+                      verticalAlign: 'baseline',
+                    }}
+                  >
+                    (primarily for local pickup similar to Craigslist/FB-Marketplace)
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="through_site"
+                  checked={paymentMethod === 'through_site'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <span>
+                  (Preferred:) Have Customers Purchase through your own Website.{' '}
+                  <span
+                    style={{
+                      color: '#00e5ff',
+                      fontSize: '0.85em',
+                      marginLeft: '4px',
+                      verticalAlign: 'baseline',
+                    }}
+                  >
+                    (You provide a link; we advertise it in the "Everything Store".)
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer opacity-50">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="through_union"
+                  disabled
+                  className="w-4 h-4"
+                />
+                <span>Through the Union (Coming Soon)</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="venmo_cashapp"
+                  checked={paymentMethod === 'venmo_cashapp'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <span>
+                  (Other:) Venmo/CashApp/Crypto/OtherApp{' '}
+                  <span
+                    style={{
+                      color: '#00e5ff',
+                      fontSize: '0.85em',
+                      marginLeft: '4px',
+                      verticalAlign: 'baseline',
+                    }}
+                  >
+                    (Customer messages you and you go from there.)
+                  </span>
+                </span>
+              </label>
             </div>
           </div>
 
-          {/* User Store Selection */}
-          <div>
-            <label className="block font-semibold mb-2">Add to Your Store</label>
-            <p className="text-xs text-gray-400 mb-2">Select which of your custom stores to add this product to:</p>
-            
-            {userStores.length === 0 ? (
-              <div className="p-3 bg-gray-800 rounded border border-gray-700 text-gray-300 text-sm">
-                You haven't created any custom stores yet. Create one in the Settings or Home section.
+          {paymentMethod === 'venmo_cashapp' && (
+            <div>
+              <label className="block font-semibold mb-2">Venmo/CashApp QR Code</label>
+              <div className="border-2 border-dashed border-border rounded p-4 text-center mb-3">
+                {qrCodeImage ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <img
+                      src={URL.createObjectURL(qrCodeImage)}
+                      alt="QR Code Preview"
+                      className="max-h-32 max-w-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setQrCodeImage(null)}
+                      className="text-xs text-orange-400 hover:underline"
+                    >
+                      Remove QR code
+                    </button>
+                  </div>
+                ) : existingQrImageUrl ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <img
+                      src={existingQrImageUrl}
+                      alt="Current QR Code"
+                      className="max-h-32 max-w-full"
+                    />
+                    <p className="text-xs text-gray-400">Current QR Code</p>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No QR code selected</p>
+                )}
               </div>
-            ) : (
+              <Input type="file" accept="image/*" onChange={handleQrCodeChange} />
+            </div>
+          )}
+
+          {paymentMethod === 'through_site' && (
+            <div>
+              <label className="block font-semibold mb-2">Website URL</label>
+              <Input
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                placeholder="https://example.com/product"
+              />
+              <div className="mt-1">
+                <sub style={{ color: '#ffcc00' }}>
+                  Want to learn how to create a website with step-by-step instructions? <br />
+                  We provide free lessons over at:
+                  (
+                  <a
+                    href="https://github.com/uminionunion/UminionsWebsite/discussions/14"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#00e5ff', textDecoration: 'underline' }}
+                  >
+                    uminion's Lesson003
+                  </a>
+                  ) off our GitHub.
+                </sub>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block font-semibold mb-2">Product Image</label>
+            <div className="border-2 border-dashed border-border rounded p-4 text-center mb-3">
+              {image ? (
+                <div className="flex flex-col items-center gap-2">
+                  <img src={URL.createObjectURL(image)} alt="Preview" className="max-h-32 max-w-full" />
+                  <button
+                    type="button"
+                    onClick={() => setImage(null)}
+                    className="text-xs text-orange-400 hover:underline"
+                  >
+                    Remove image
+                  </button>
+                </div>
+              ) : existingImageUrl ? (
+                <div className="flex flex-col items-center gap-2">
+                  <img
+                    src={existingImageUrl}
+                    alt="Current Product"
+                    className="max-h-32 max-w-full"
+                  />
+                  <p className="text-xs text-gray-400">Current Image</p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Upload a product image</p>
+              )}
+            </div>
+            <Input type="file" accept="image/*" onChange={handleImageChange} />
+          </div>
+
+          {/* User Store Selection */}
+          {userStores.length > 0 && (
+            <div>
+              <label className="block font-semibold mb-2">Your Store</label>
               <select
-                value={selectedUserStore || ''}
-                onChange={(e) => setSelectedUserStore(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full border rounded px-3 py-2 bg-gray-900 border-gray-700 text-white"
+                value={selectedUserStoreId}
+                onChange={(e) => setSelectedUserStoreId(e.target.value)}
+                className="w-full border rounded px-3 py-2 bg-gray-900 border-gray-700 text-white text-sm"
               >
                 <option value="">-- Select a store --</option>
                 {userStores.map((store) => (
-                  <option key={store.id} value={store.id}>
+                  <option key={store.id} value={String(store.id)}>
                     {store.name}
                   </option>
                 ))}
               </select>
-            )}
-          </div>
-
-          {/* Current Assignment */}
-          {product.user_store_id && (
-            <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded text-blue-300 text-sm">
-              Currently assigned to: <strong>{userStores.find(s => s.id === product.user_store_id)?.name || 'Unknown Store'}</strong>
+              {selectedUserStoreId && (
+                <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded text-blue-300 text-sm mt-2">
+                  Selected store: <strong>{userStores.find(s => s.id === parseInt(selectedUserStoreId))?.name}</strong>
+                </div>
+              )}
             </div>
           )}
 
           <div className="flex gap-3 pt-4">
             <Button
               type="submit"
-              disabled={isSubmitting || !selectedUserStore}
-              className="bg-orange-400 hover:bg-orange-500 flex-1"
+              disabled={
+                isSubmitting ||
+                !title ||
+                price === '' ||
+                !paymentMethod
+              }
+              className="flex-1 bg-orange-400 hover:bg-orange-500 text-white"
             >
-              {isSubmitting ? 'Assigning...' : 'Assign to Store'}
+              {isSubmitting ? 'Updating...' : 'Update Product'}
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
