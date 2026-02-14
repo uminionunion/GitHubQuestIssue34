@@ -382,30 +382,31 @@ const storePages = buildStorePages();
 </div>
 
           {/* TOP RIGHT: Friends Stores */}
-            <div className="border rounded-lg p-4 flex flex-col h-full">
-              <h3 className="font-bold mb-3 sticky top-0 bg-background">Friends' Stores</h3>
-              <div 
-                className="flex-1 overflow-y-auto"
-                style={{
-                  scrollbarColor: '#f97316 #1f2937',
-                  scrollbarWidth: 'thin'
-                }}
-              >
-                <style>{`
-                  div[style*="scrollbarColor: #f97316"]::-webkit-scrollbar {
-                    width: 8px;
-                  }
-                  div[style*="scrollbarColor: #f97316"]::-webkit-scrollbar-track {
-                    background: #1f2937;
-                  }
-                  div[style*="scrollbarColor: #f97316"]::-webkit-scrollbar-thumb {
-                    background: #f97316;
-                    border-radius: 4px;
-                  }
-                  div[style*="scrollbarColor: #f97316"]::-webkit-scrollbar-thumb:hover {
-                    background: #ea580c;
-                  }
-                `}</style>
+<div className="border rounded-lg p-4 flex flex-col h-full">
+  <h3 className="font-bold mb-3 sticky top-0 bg-background">Friends' Stores</h3>
+  <div 
+    className="flex-1 overflow-y-auto"
+    style={{
+      maxHeight: '380px',
+      scrollbarColor: '#a855f7 #1f2937',
+      scrollbarWidth: 'thin'
+    }}
+  >
+    <style>{`
+      div[style*="scrollbarColor: #a855f7"]::-webkit-scrollbar {
+        width: 8px;
+      }
+      div[style*="scrollbarColor: #a855f7"]::-webkit-scrollbar-track {
+        background: #1f2937;
+      }
+      div[style*="scrollbarColor: #a855f7"]::-webkit-scrollbar-thumb {
+        background: #a855f7;
+        border-radius: 4px;
+      }
+      div[style*="scrollbarColor: #a855f7"]::-webkit-scrollbar-thumb:hover {
+        background: #9333ea;
+      }
+    `}</style>
                 {isLoadingFriendsStores ? (
                   <div className="text-center text-muted-foreground py-4">Loading friends' products...</div>
                 ) : friendsStoresData.length > 0 ? (
