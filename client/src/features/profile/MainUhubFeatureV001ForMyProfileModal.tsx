@@ -231,14 +231,14 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   setEditingProduct,
   setEditProductModalOpen
 }) => {
- const [currentPage, setCurrentPage] = useState(1);
-const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
-
-// Calculate total pages needed
+  const [currentPage, setCurrentPage] = useState(1);
+  const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
+  
+  // Calculate total pages needed
 const userStoresCount = userStoresData.length;
 const userStoresPerPage = 4;
-const userStorePages = userStoresCount > 0 ? Math.ceil(userStoresCount / userStoresPerPage) : 0;
-const totalPages = 9 + userStorePages; // Pages 1-9 for union stores, then user store pages
+const userStorePages = userStoresCount > 0 ? Math.ceil(userStoresCount / userStoresPerPage) : 0; // 0 if no stores
+const totalPages = 10 + userStorePages; // Pages 1-10 for union stores, then user store pages
 
 // Build dynamic pages array
 const buildStorePages = () => {
@@ -269,8 +269,8 @@ const buildStorePages = () => {
 
 const storePages = buildStorePages();
 
-// Check if user is logged in
-const canAddProducts = !!user;
+  // Check if user is logged in (to be able see the 'add product' button; yes?' -12:18am on 2/3/26
+  const canAddProducts = !!user;
 
   if (!isOpen) return null;
 
@@ -706,27 +706,25 @@ const canAddProducts = !!user;
             {/* Page Navigation */}
             <div className="border-t pt-2 mt-auto">
               <div className="flex justify-between items-center mb-2">
-              
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => prev === 1 ? totalPages : prev - 1)}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
                   className="text-xs"
-                  disabled={false}
                 >
-  <ChevronLeft className="h-4 w-4 mr-2" /> ← Previous
-</Button>
+                  ← Previous
+                </Button>
                 <span className="text-xs font-semibold">Page {currentPage} of 10</span>
-                
                 <Button
-  variant="outline"
+                  variant="outline"
                   size="sm"
-  onClick={() => setCurrentPage(prev => prev === totalPages ? 1 : prev + 1)}
-  disabled={false}
+                  onClick={() => setCurrentPage(prev => Math.min(10, prev + 1))}
+                  disabled={currentPage === 10}
                   className="text-xs"
->
-  Next → <ChevronRight className="h-4 w-4 ml-2" />
-</Button>
+                >
+                  Next →
+                </Button>
               </div>
             </div>
           </div>
