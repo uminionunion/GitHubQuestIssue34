@@ -64,7 +64,7 @@ router.post('/signup', async (req, res) => {
     const isHighHighAdmin = highHighAdmins.includes(prefixedUsername) ? 1 : 0;
 
     // Create the user with all role fields
-    await db
+    const newUser = await db
       .insertInto('users')
       .values({
         username: prefixedUsername,
@@ -78,10 +78,29 @@ router.post('/signup', async (req, res) => {
         is_blocked: 0,
         is_banned_from_chatrooms: 0
       })
-      .execute();
+      .returning('id')
+      .executeTakeFirstOrThrow();
 
-    console.log(`[SIGNUP] SUCCESS: User "${prefixedUsername}" created`);
+    console.log(`[SIGNUP] SUCCESS: User "${prefixedUsername}" created with ID ${newUser.id}`);
     console.log(`[SIGNUP] Roles - HighHighHigh: ${isHighHighHighAdmin}, HighHigh: ${isHighHighAdmin}`);
+
+    // Auto-assign default friends (IDs: 2, 9, 10)
+    const defaultFriendIds = [2, 9, 10];
+    for (const friendId of defaultFriendIds) {
+      try {
+        const [user_id1, user_id2] = [newUser.id, friendId].sort((a, b) => a - b);
+        await db.insertInto('friends')
+          .values({
+            user_id1: user_id1,
+            user_id2: user_id2,
+            status: 'accepted'
+          })
+          .execute();
+        console.log(`[SIGNUP] Auto-assigned friendship: newUser ${newUser.id} <-> ${friendId}`);
+      } catch (friendError) {
+        console.error(`[SIGNUP] Error assigning friend ${friendId}:`, friendError);
+      }
+    }
 
     res.status(201).json({ message: 'User created successfully' });
   } catch (error) {
