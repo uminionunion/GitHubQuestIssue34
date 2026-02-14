@@ -1118,19 +1118,28 @@ const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
-  useEffect(() => {
+useEffect(() => {
     if (user && isOpen) {
       fetch('/api/friends/requests/pending')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            console.log('[PROFILE MODAL] Friend requests fetch failed, likely not authenticated yet');
+            return;
+          }
+          return res.json();
+        })
         .then(data => {
           if (Array.isArray(data)) {
             setPendingFriendRequests(data);
           }
+        })
+        .catch(error => {
+          console.log('[PROFILE MODAL] Friend requests error (expected during initial load):', error);
         });
     }
   }, [user, isOpen]);
 
-  // Fetch database products for all stores
+ // Fetch database products for all stores
 useEffect(() => {
   const fetchAllProducts = async () => {
     setIsLoadingProducts(true);
@@ -1141,11 +1150,21 @@ useEffect(() => {
       setMainStoreProducts(Array.isArray(mainData) ? mainData : []);
 
       // Fetch current user's products if logged in
-      if (user) {
-        const userRes = await fetch(`/api/products/user/${user.id}`);
-        const userData = await userRes.json();
-        setUserStoreProducts(Array.isArray(userData) ? userData : []);
-
+      if (user && user.id) {
+        try {
+          const userRes = await fetch(`/api/products/user/${user.id}`);
+          if (!userRes.ok) {
+            console.log('[PRODUCTS] User products fetch failed, likely not authenticated yet');
+            setUserStoreProducts([]);
+          } else {
+            const userData = await userRes.json();
+            setUserStoreProducts(Array.isArray(userData) ? userData : []);
+          }
+        } catch (error) {
+          console.error('[PRODUCTS] Error fetching user products:', error);
+          setUserStoreProducts([]);
+        }
+        
         // If HIGH-HIGH-HIGH admin, fetch all products
         if (user.is_high_high_high_admin === 1) {
           try {
@@ -1223,22 +1242,27 @@ useEffect(() => {
 // }, [isOpen]);
 
 
-  // NEW: Fetch user stores data with their products
+// Fetch user stores data (all user stores with products)
   useEffect(() => {
-    const fetchUserStores = async () => {
+    const fetchUserStoresData = async () => {
       try {
         const res = await fetch('/api/products/stores/all/with-products');
+        if (!res.ok) {
+          console.log('[PRODUCTS] User stores fetch failed, status:', res.status);
+          setUserStoresData([]);
+          return;
+        }
         const data = await res.json();
         setUserStoresData(Array.isArray(data) ? data : []);
-        console.log(`[USER STORES] Loaded ${data.length} user stores with products`);
+        console.log(`[PRODUCTS] Fetched ${data.length} user stores with products`);
       } catch (error) {
-        console.error('Error fetching user stores:', error);
+        console.error('[PRODUCTS] Error fetching user stores:', error);
         setUserStoresData([]);
       }
     };
 
     if (isOpen) {
-      fetchUserStores();
+      fetchUserStoresData();
     }
   }, [isOpen]);
 
