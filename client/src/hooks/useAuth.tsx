@@ -5,6 +5,10 @@ interface User {
   id: number;
   username: string;
   profile_image_url?: string;
+  is_high_high_high_admin?: number;
+  is_high_high_admin?: number;
+  is_high_admin?: number;
+  is_new_user?: number;
 }
 
 interface AuthContextType {
