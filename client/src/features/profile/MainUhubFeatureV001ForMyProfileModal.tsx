@@ -212,6 +212,8 @@ interface QuadrantsModalProps {
   everythingProducts?: Product[];
   setEditingProduct: (product: any) => void;
   setEditProductModalOpen: (open: boolean) => void;
+  setSelectedFriendForModal?: (friend: any) => void;
+  setIsFriendProfileModalOpen?: (open: boolean) => void;
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -239,7 +241,9 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   setAddProductModalOpen,
   everythingProducts = [],
   setEditingProduct,
-  setEditProductModalOpen
+  setEditProductModalOpen,
+  setSelectedFriendForModal,
+  setIsFriendProfileModalOpen
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -2092,6 +2096,8 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
   mainStoreProducts={mainStoreProducts}
   userStoreProducts={userStoreProducts}
   isLoadingProducts={isLoadingProducts}
+  setSelectedFriendForModal={setSelectedFriendForModal}
+  setIsFriendProfileModalOpen={setIsFriendProfileModalOpen}
   onAddProductClick={() => {
     setIsQuadrantsModalOpen(false);
     setAddProductModalOpen(true);
