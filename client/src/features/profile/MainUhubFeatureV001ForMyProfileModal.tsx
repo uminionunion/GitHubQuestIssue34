@@ -431,9 +431,9 @@ const storePages = buildStorePages();
                         {/* Friend Header (First Level) */}
                         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-700">
                           <Avatar className="h-8 w-8 flex-shrink-0">
-                            <AvatarImage src={friendData.friend_profile_image_url} />
-                            <AvatarFallback>{friendData.friend_username.charAt(1).toUpperCase()}</AvatarFallback>
-                          </Avatar>
+  <AvatarImage src={friendData.friend_profile_image_url} alt={friendData.friend_username} />
+  <AvatarFallback className="bg-purple-600 text-white text-xs font-bold">{friendData.friend_username.charAt(0).toUpperCase()}</AvatarFallback>
+</Avatar>
                           <span className="font-semibold text-sm">{friendData.friend_username}</span>
                         </div>
 
