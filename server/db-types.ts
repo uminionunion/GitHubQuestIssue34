@@ -167,17 +167,9 @@ export interface Users {
   is_special_special_special_user: Boolean;
   is_blocked: Boolean;
   is_banned_from_chatrooms: Boolean;
+  is_new_user: Boolean;  // NEW: Track if user is new (0=existing, 1=new user subject to 7 uStore limit)
 }
 
-export interface UserStores {
-  id: Generated<number>;
-  user_id: number;
-  name: string;
-  subtitle: string | null;
-  description: string | null;
-  created_at: Generated<string | null>;
-  product_ids: string | null; // JSON array of product IDs
-}
 
 export interface DB {
   blocked_users: BlockedUsers;
