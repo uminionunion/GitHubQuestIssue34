@@ -428,14 +428,25 @@ const storePages = buildStorePages();
                   <div className="space-y-3">
                     {friendsStoresData.map((friendData) => (
                       <div key={friendData.friend_id} className="border rounded-lg p-3 bg-gray-900/50">
-                        {/* Friend Header (First Level) */}
-                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-700">
-                          <Avatar className="h-8 w-8 flex-shrink-0">
-  <AvatarImage src={friendData.friend_profile_image_url} alt={friendData.friend_username} />
-  <AvatarFallback className="bg-purple-600 text-white text-xs font-bold">{friendData.friend_username.charAt(0).toUpperCase()}</AvatarFallback>
-</Avatar>
-                          <span className="font-semibold text-sm">{friendData.friend_username}</span>
-                        </div>
+                      {/* Friend Header (First Level) */}
+<div 
+  className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-700 cursor-pointer hover:bg-gray-800 transition rounded px-2 py-1"
+  onClick={() => {
+    setSelectedFriendForModal({
+      id: friendData.friend_id,
+      username: friendData.friend_username,
+      profile_image_url: friendData.friend_profile_image_url,
+      cover_photo_url: friendData.friend_cover_photo_url || null,
+    });
+    setIsFriendProfileModalOpen(true);
+  }}
+>
+  <Avatar className="h-8 w-8 flex-shrink-0">
+    <AvatarImage src={friendData.friend_profile_image_url} alt={friendData.friend_username} />
+    <AvatarFallback className="bg-purple-600 text-white text-xs font-bold">{friendData.friend_username.charAt(0).toUpperCase()}</AvatarFallback>
+  </Avatar>
+  <span className="font-semibold text-sm">{friendData.friend_username}</span>
+</div>
 
                         {/* uStores (First Indent) */}
                         <div className="ml-2 space-y-2">
@@ -1130,34 +1141,32 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isDraggingRight, setIsDraggingRight] = useState(false);
   const [isQuadrantsModalOpen, setIsQuadrantsModalOpen] = useState(false);
   const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
-
   //i have an error. trying to find the error. is this whats causing the error? part000002 of X ***Update:> I think error is solved; cause this might be a repeat of a working code. aka i think safe maybe to delete as of 2/10/26+maybe yes
   // const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
-
-  
   const [allProductsForAdmin, setAllProductsForAdmin] = useState<Product[]>([]);
-  
   const [everythingProducts, setEverythingProducts] = useState<Product[]>([]);
-  
-  const [userStoresData, setUserStoresData] = useState<any[]>([]);
-
-  
-const [editingProduct, setEditingProduct] = useState<any>(null);
-const [isEditProductModalOpen, setEditProductModalOpen] = useState(false);
-const [userStores, setUserStores] = useState<any[]>([]);
-const [isLoadingUserStores, setIsLoadingUserStores] = useState(false);
-const [friendsStoresData, setFriendsStoresData] = useState<any[]>([]);
-const [isLoadingFriendsStores, setIsLoadingFriendsStores] = useState(false);
-
-const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
-  
+  const [userStoresData, setUserStoresData] = useState<any[]>([]); 
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [isEditProductModalOpen, setEditProductModalOpen] = useState(false);
+  const [userStores, setUserStores] = useState<any[]>([]);
+  const [isLoadingUserStores, setIsLoadingUserStores] = useState(false);
+  const [friendsStoresData, setFriendsStoresData] = useState<any[]>([]);
+  const [isLoadingFriendsStores, setIsLoadingFriendsStores] = useState(false);  
+  const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
       'UnionNews#14': { title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
+  const [selectedFriendForModal, setSelectedFriendForModal] = useState<any>(null);
+  const [isFriendProfileModalOpen, setIsFriendProfileModalOpen] = useState(false);
 
+
+
+
+
+  
 useEffect(() => {
     if (user && user.id && isOpen) {
       fetch('/api/friends/requests/pending')
@@ -2112,6 +2121,24 @@ default:
 
 
 
+
+
+
+
+
+
+
+
+      {isFriendProfileModalOpen && selectedFriendForModal && (
+  <MainUhubFeatureV001ForUserProfileModal
+    isOpen={isFriendProfileModalOpen}
+    onClose={() => {
+      setIsFriendProfileModalOpen(false);
+      setSelectedFriendForModal(null);
+    }}
+    user={selectedFriendForModal}
+  />
+)}
 
 
 
