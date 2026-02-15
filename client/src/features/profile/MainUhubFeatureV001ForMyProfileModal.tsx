@@ -2198,6 +2198,7 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
             formData.append('profileImage', file);
             
             try {
+              console.log('[PROFILE] Uploading profile image...');
               const response = await fetch('/api/auth/profile-image', {
                 method: 'POST',
                 body: formData,
@@ -2205,17 +2206,21 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
               
               if (response.ok) {
                 const data = await response.json();
-                // Update user in local state if needed
+                console.log('[PROFILE] Upload successful:', data);
                 alert('Profile picture updated successfully!');
                 setIsEditingProfileImage(false);
-                // Optionally refresh page to see changes
-                window.location.reload();
+                // Reload to show updated profile image
+                setTimeout(() => {
+                  window.location.reload();
+                }, 500);
               } else {
-                alert('Failed to upload profile picture');
+                const errorData = await response.json();
+                console.error('[PROFILE] Upload failed:', errorData);
+                alert(`Failed to upload: ${errorData.error || 'Unknown error'}`);
               }
             } catch (error) {
-              console.error('Error uploading profile picture:', error);
-              alert('Error uploading profile picture');
+              console.error('[PROFILE] Error uploading profile picture:', error);
+              alert('Error uploading profile picture: ' + error);
             }
           }}
           className="w-full p-2 border rounded bg-gray-800 text-white"
