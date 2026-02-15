@@ -64,20 +64,21 @@ router.post('/signup', async (req, res) => {
     const isHighHighAdmin = highHighAdmins.includes(prefixedUsername) ? 1 : 0;
 
     // Create the user with all role fields
-    const newUser = await db
-      .insertInto('users')
-      .values({
-        username: prefixedUsername,
-        password: hashedPassword,
-        is_high_high_high_admin: isHighHighHighAdmin,
-        is_high_admin: 0,  // Only assign via database/admin panel
-        is_high_high_admin: isHighHighAdmin,
-        is_special_user: 0,
-        is_special_special_user: 0,
-        is_special_special_special_user: 0,
-        is_blocked: 0,
-        is_banned_from_chatrooms: 0
-      })
+   const newUser = await db
+  .insertInto('users')
+  .values({
+    username: prefixedUsername,
+    password: hashedPassword,
+    is_high_high_high_admin: isHighHighHighAdmin,
+    is_high_admin: 0,  // Only assign via database/admin panel
+    is_high_high_admin: isHighHighAdmin,
+    is_special_user: 0,
+    is_special_special_user: 0,
+    is_special_special_special_user: 0,
+    is_blocked: 0,
+    is_banned_from_chatrooms: 0,
+    is_new_user: 1  // NEW: Mark all new signups as new users
+  })
       .returning('id')
       .executeTakeFirstOrThrow();
 
@@ -200,7 +201,8 @@ router.post('/login', async (req, res) => {
       is_special_special_user: user.is_special_special_user,
       is_special_special_special_user: user.is_special_special_special_user,
       is_blocked: user.is_blocked,
-      is_banned_from_chatrooms: user.is_banned_from_chatrooms
+      is_banned_from_chatrooms: user.is_banned_from_chatrooms,
+      is_new_user: user.is_new_user || 0
     });
   } catch (error) {
     console.error('[LOGIN] Error:', error);
@@ -265,7 +267,8 @@ router.get('/me', async (req, res) => {
       is_special_special_user: user.is_special_special_user,
       is_special_special_special_user: user.is_special_special_special_user,
       is_blocked: user.is_blocked,
-      is_banned_from_chatrooms: user.is_banned_from_chatrooms
+      is_banned_from_chatrooms: user.is_banned_from_chatrooms,
+      is_new_user: user.is_new_user || 0
     });
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });
