@@ -14,6 +14,7 @@ import AdminProductsList from './AdminProductsList';
 import EverythingProductsList from './EverythingProductsList';
 import ProductSearchDropdown from './ProductSearchDropdown';
 import MainUhubFeatureV001ForEditProductModal from './MainUhubFeatureV001ForEditProductModal';
+import MainUhubFeatureV001ForUserProfileModal from './MainUhubFeatureV001ForUserProfileModal';
 import UserStoresQuadrantView from './UserStoresQuadrantView';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
