@@ -1161,6 +1161,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
   const [selectedFriendForModal, setSelectedFriendForModal] = useState<any>(null);
   const [isFriendProfileModalOpen, setIsFriendProfileModalOpen] = useState(false);
+  const [isEditingProfileImage, setIsEditingProfileImage] = useState(false);
 
 
 
@@ -1751,11 +1752,23 @@ default:
   };
 
   const handleProfileImageClick = () => {
-    if (!user) {
-      onClose();
-      onOpenAuthModal('login');
-    }
-  };
+  if (!user) {
+    onClose();
+    onOpenAuthModal('login');
+  } else {
+    // For own profile, open the edit image modal
+    setIsEditingProfileImage(true);
+  }
+};
+
+const handleEditProfileImageClick = (e: React.MouseEvent) => {
+  e.stopPropagation();
+  if (!user) {
+    alert('You must be logged in to edit your profile.');
+    return;
+  }
+  setIsEditingProfileImage(true);
+};
 
   const isMobile = window.innerWidth < 768;
   const itemsPerPage = isMobile ? 1 : 6;
@@ -1849,20 +1862,28 @@ default:
               </div>
             </div>
 
-           {/* Avatar */}
-           <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
-             <div onClick={handleProfileImageClick} className="cursor-pointer">
-               <Avatar className="h-24 w-24 md:h-32 md:w-32">
-                 <AvatarImage src={user?.profile_image_url || "https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg"} alt="Profile" />
-                 <AvatarFallback>U</AvatarFallback>
-               </Avatar>
-             </div>
-             {user && <Button size="sm" className="absolute top-0 right-0">Edit</Button>}
-             <div className="absolute bottom-0 right-0 flex items-center gap-2">
-                 <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                 <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
-             </div>
-           </div>
+          {/* Avatar */}
+<div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
+  <div onClick={handleProfileImageClick} className="cursor-pointer relative group">
+    <Avatar className="h-24 w-24 md:h-32 md:w-32 border-2 border-orange-400 group-hover:border-orange-600 transition">
+      <AvatarImage src={user?.profile_image_url || "https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg"} alt="Profile" />
+      <AvatarFallback>U</AvatarFallback>
+    </Avatar>
+    {user && (
+      <button 
+        onClick={handleEditProfileImageClick}
+        className="absolute bottom-1 right-1 bg-orange-400 hover:bg-orange-500 text-white rounded-full p-2 transition shadow-lg"
+        title="Edit profile picture"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
+    )}
+  </div>
+  <div className="absolute bottom-0 right-0 flex items-center gap-2">
+      <div className={`w-3 h-3 rounded-full ${user ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+      <span className="text-xs text-muted-foreground">{user ? 'Online' : 'Not Logged In'}</span>
+  </div>
+</div>
          </div>
 
          {/* Mobile Top Row */}
@@ -2142,6 +2163,64 @@ default:
 
 
 
+
+
+
+{isEditingProfileImage && (
+  <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100001]">
+    <div className="bg-background border rounded-lg p-6 max-w-md w-[90%]">
+      <h2 className="text-xl font-bold mb-4">Change Profile Picture</h2>
+      <div className="mb-4">
+        <input 
+          type="file" 
+          accept="image/*"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('profileImage', file);
+            
+            try {
+              const response = await fetch('/api/auth/profile-image', {
+                method: 'POST',
+                body: formData,
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                // Update user in local state if needed
+                alert('Profile picture updated successfully!');
+                setIsEditingProfileImage(false);
+                // Optionally refresh page to see changes
+                window.location.reload();
+              } else {
+                alert('Failed to upload profile picture');
+              }
+            } catch (error) {
+              console.error('Error uploading profile picture:', error);
+              alert('Error uploading profile picture');
+            }
+          }}
+          className="w-full p-2 border rounded bg-gray-800 text-white"
+        />
+      </div>
+      <Button 
+        variant="outline" 
+        className="w-full"
+        onClick={() => setIsEditingProfileImage(false)}
+      >
+        Cancel
+      </Button>
+    </div>
+  </div>
+)}
+
+
+
+
+
+      
       
         <HomeModal 
           isOpen={isHomeModalOpen}
