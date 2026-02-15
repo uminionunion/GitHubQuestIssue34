@@ -2,6 +2,8 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from './db.js';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
 
@@ -199,19 +201,20 @@ router.post('/login', async (req, res) => {
     });
     
     // IMPORTANT: Return admin fields so frontend knows user is admin
-    res.status(200).json({ 
-      id: user.id, 
-      username: user.username,
-      is_high_high_high_admin: user.is_high_high_high_admin || 0,
-      is_high_high_admin: user.is_high_high_admin || 0,
-      is_high_admin: user.is_high_admin || 0,
-      is_special_user: user.is_special_user,
-      is_special_special_user: user.is_special_special_user,
-      is_special_special_special_user: user.is_special_special_special_user,
-      is_blocked: user.is_blocked,
-      is_banned_from_chatrooms: user.is_banned_from_chatrooms,
-      is_new_user: user.is_new_user || 0
-    });
+   res.status(200).json({ 
+  id: user.id, 
+  username: user.username,
+  profile_image_url: user.profile_image_url,
+  is_high_high_high_admin: user.is_high_high_high_admin || 0,
+  is_high_high_admin: user.is_high_high_admin || 0,
+  is_high_admin: user.is_high_admin || 0,
+  is_special_user: user.is_special_user,
+  is_special_special_user: user.is_special_special_user,
+  is_special_special_special_user: user.is_special_special_special_user,
+  is_blocked: user.is_blocked,
+  is_banned_from_chatrooms: user.is_banned_from_chatrooms,
+  is_new_user: user.is_new_user || 0
+});
   } catch (error) {
     console.error('[LOGIN] Error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -265,22 +268,93 @@ router.get('/me', async (req, res) => {
     }
 
     // IMPORTANT: Return admin fields
-    res.status(200).json({ 
-      id: user.id, 
-      username: user.username,
-      is_high_high_high_admin: user.is_high_high_high_admin || 0,
-      is_high_high_admin: user.is_high_high_admin || 0,
-      is_high_admin: user.is_high_admin || 0,
-      is_special_user: user.is_special_user,
-      is_special_special_user: user.is_special_special_user,
-      is_special_special_special_user: user.is_special_special_special_user,
-      is_blocked: user.is_blocked,
-      is_banned_from_chatrooms: user.is_banned_from_chatrooms,
-      is_new_user: user.is_new_user || 0
-    });
+   res.status(200).json({ 
+  id: user.id, 
+  username: user.username,
+  profile_image_url: user.profile_image_url,
+  is_high_high_high_admin: user.is_high_high_high_admin || 0,
+  is_high_high_admin: user.is_high_high_admin || 0,
+  is_high_admin: user.is_high_admin || 0,
+  is_special_user: user.is_special_user,
+  is_special_special_user: user.is_special_special_user,
+  is_special_special_special_user: user.is_special_special_special_user,
+  is_blocked: user.is_blocked,
+  is_banned_from_chatrooms: user.is_banned_from_chatrooms,
+  is_new_user: user.is_new_user || 0
+});
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });
   }
 });
+
+
+
+// POST /api/auth/profile-image - Upload user profile picture
+router.post('/profile-image', async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    res.status(401).json({ error: 'Not authenticated' });
+    return;
+  }
+
+  try {
+    // Verify token and get user ID
+    const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
+    
+    // Check if file was uploaded
+    if (!req.files || !req.files.profileImage) {
+      res.status(400).json({ error: 'No file uploaded' });
+      return;
+    }
+
+    const file = Array.isArray(req.files.profileImage) 
+      ? req.files.profileImage[0] 
+      : req.files.profileImage;
+
+    // Validate file type
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      res.status(400).json({ error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP allowed' });
+      return;
+    }
+
+    // Create upload directory if it doesn't exist
+    const uploadDir = path.join(process.env.DATA_DIRECTORY || '/home/app/data', 'uploads', 'profiles');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const filename = `profile_${payload.userId}_${timestamp}.${file.name.split('.').pop()}`;
+    const filepath = path.join(uploadDir, filename);
+
+    // Save file
+    await file.mv(filepath);
+    console.log(`[PROFILE] Profile image uploaded for user ${payload.userId}: ${filename}`);
+
+    // Update user's profile_image_url in database
+    const publicUrl = `/uploads/profiles/${filename}`;
+    await db
+      .updateTable('users')
+      .set({ profile_image_url: publicUrl })
+      .where('id', '=', payload.userId)
+      .execute();
+
+    console.log(`[PROFILE] Database updated for user ${payload.userId} with URL: ${publicUrl}`);
+
+    res.status(200).json({ 
+      message: 'Profile image uploaded successfully',
+      profile_image_url: publicUrl
+    });
+  } catch (error) {
+    console.error('[PROFILE] Error uploading profile image:', error);
+    res.status(500).json({ error: 'Failed to upload profile image' });
+  }
+});
+
+
+
 
 export default router;
