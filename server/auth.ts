@@ -287,9 +287,13 @@ router.get('/me', async (req, res) => {
   }
 });
 
-
-
-// POST /api/auth/profile-image - Upload user profile picture
+/**
+ * POST /api/auth/profile-image
+ * Upload and update user's profile image
+ * 
+ * Body: multipart/form-data with 'profileImage' file
+ * Response: { success: true, profile_image_url: string }
+ */
 router.post('/profile-image', async (req, res) => {
   const token = req.cookies.token;
 
@@ -299,62 +303,57 @@ router.post('/profile-image', async (req, res) => {
   }
 
   try {
-    // Verify token and get user ID
     const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
-    
+
     // Check if file was uploaded
-    if (!req.files || !req.files.profileImage) {
+    if (!req.file) {
       res.status(400).json({ error: 'No file uploaded' });
       return;
     }
 
-    const file = Array.isArray(req.files.profileImage) 
-      ? req.files.profileImage[0] 
-      : req.files.profileImage;
+    // File is stored in memory or disk by multer middleware
+    // We'll save the file path/URL to the database
+    const fileBuffer = req.file.buffer;
+    const fileName = `profile-${payload.userId}-${Date.now()}.jpg`;
+    const filePath = `/data/profile-images/${fileName}`;
 
-    // Validate file type
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedMimes.includes(file.mimetype)) {
-      res.status(400).json({ error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP allowed' });
+    // Create profile-images directory if it doesn't exist
+    const fs = require('fs');
+    const path = require('path');
+    const profileImagesDir = path.join(process.cwd(), 'data', 'profile-images');
+    
+    if (!fs.existsSync(profileImagesDir)) {
+      fs.mkdirSync(profileImagesDir, { recursive: true });
+    }
+
+    // Save file to disk
+    fs.writeFileSync(path.join(profileImagesDir, fileName), fileBuffer);
+
+    // Update user's profile_image_url in database
+    const imageUrl = `https://${req.get('host')}${filePath}`;
+    
+    const user = await db
+      .updateTable('users')
+      .set({ profile_image_url: imageUrl })
+      .where('id', '=', payload.userId)
+      .returning('profile_image_url')
+      .executeTakeFirst();
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    // Create upload directory if it doesn't exist
-    const uploadDir = path.join(process.env.DATA_DIRECTORY || '/home/app/data', 'uploads', 'profiles');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const filename = `profile_${payload.userId}_${timestamp}.${file.name.split('.').pop()}`;
-    const filepath = path.join(uploadDir, filename);
-
-    // Save file
-    await file.mv(filepath);
-    console.log(`[PROFILE] Profile image uploaded for user ${payload.userId}: ${filename}`);
-
-    // Update user's profile_image_url in database
-    const publicUrl = `/uploads/profiles/${filename}`;
-    await db
-      .updateTable('users')
-      .set({ profile_image_url: publicUrl })
-      .where('id', '=', payload.userId)
-      .execute();
-
-    console.log(`[PROFILE] Database updated for user ${payload.userId} with URL: ${publicUrl}`);
-
+    console.log(`[AUTH] Profile image updated for user ${payload.userId}`);
+    
     res.status(200).json({ 
-      message: 'Profile image uploaded successfully',
-      profile_image_url: publicUrl
+      success: true, 
+      profile_image_url: user.profile_image_url 
     });
   } catch (error) {
-    console.error('[PROFILE] Error uploading profile image:', error);
+    console.error('[AUTH] Error uploading profile image:', error);
     res.status(500).json({ error: 'Failed to upload profile image' });
   }
 });
-
-
-
 
 export default router;
