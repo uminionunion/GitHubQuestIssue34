@@ -82,28 +82,36 @@ router.post('/signup', async (req, res) => {
       .returning('id')
       .executeTakeFirstOrThrow();
 
-    console.log(`[SIGNUP] SUCCESS: User "${prefixedUsername}" created with ID ${newUser.id}`);
-    console.log(`[SIGNUP] Roles - HighHighHigh: ${isHighHighHighAdmin}, HighHigh: ${isHighHighAdmin}`);
+    console.log(`[SIGNUP] SUCCESS: User \"${prefixedUsername}\" created with ID ${newUser.id}`);
+      console.log(`[SIGNUP] Roles - HighHighHigh: ${isHighHighHighAdmin}, HighHigh: ${isHighHighAdmin}`);
 
-    // Auto-assign default friends (IDs: 2, 9, 10)
-    const defaultFriendIds = [2, 9, 10];
-    for (const friendId of defaultFriendIds) {
-      try {
-        const [user_id1, user_id2] = [newUser.id, friendId].sort((a, b) => a - b);
-        await db.insertInto('friends')
-          .values({
-            user_id1: user_id1,
-            user_id2: user_id2,
-            status: 'accepted'
-          })
-          .execute();
-        console.log(`[SIGNUP] Auto-assigned friendship: newUser ${newUser.id} <-> ${friendId}`);
-      } catch (friendError) {
-        console.error(`[SIGNUP] Error assigning friend ${friendId}:`, friendError);
+      // Auto-assign default friends (IDs: 2, 9, 10)
+      const defaultFriendIds = [2, 9, 10];
+      let friendshipsCreated = 0;
+      for (const friendId of defaultFriendIds) {
+        try {
+          const [user_id1, user_id2] = [newUser.id, friendId].sort((a, b) => a - b);
+          await db.insertInto('friends')
+            .values({
+              user_id1: user_id1,
+              user_id2: user_id2,
+              status: 'accepted'
+            })
+            .execute();
+          friendshipsCreated++;
+          console.log(`[SIGNUP] ✅ Auto-assigned friendship: newUser ${newUser.id} <-> ${friendId}`);
+        } catch (friendError) {
+          console.error(`[SIGNUP] ❌ Error assigning friend ${friendId}:`, friendError);
+        }
       }
-    }
 
-    res.status(201).json({ message: 'User created successfully' });
+      console.log(`[SIGNUP] ✅ User \"${prefixedUsername}\" created with ID ${newUser.id} and ${friendshipsCreated}/3 default friendships`);
+
+      res.status(201).json({ 
+        message: 'User created successfully',
+        userId: newUser.id,
+        friendshipsCreated: friendshipsCreated
+      });
   } catch (error) {
     console.error('[SIGNUP] Error:', error);
     res.status(500).json({ error: 'Internal server error' });
