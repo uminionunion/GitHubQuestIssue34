@@ -1159,22 +1159,25 @@ const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
 
 useEffect(() => {
-    if (user && isOpen) {
+    if (user && user.id && isOpen) {
       fetch('/api/friends/requests/pending')
         .then(res => {
           if (!res.ok) {
-            console.log('[PROFILE MODAL] Friend requests fetch failed, likely not authenticated yet');
-            return;
+            if (res.status === 401) {
+              console.log('[PROFILE MODAL] Not authenticated, skipping pending friend requests');
+            }
+            return Promise.resolve([]);
           }
           return res.json();
         })
         .then(data => {
           if (Array.isArray(data)) {
+            console.log(`[PROFILE MODAL] ✅ Loaded ${data.length} pending friend requests`);
             setPendingFriendRequests(data);
           }
         })
         .catch(error => {
-          console.log('[PROFILE MODAL] Friend requests error (expected during initial load):', error);
+          console.error('[PROFILE MODAL] ❌ Error fetching friend requests:', error);
         });
     }
   }, [user, isOpen]);
@@ -1310,21 +1313,28 @@ useEffect(() => {
 
 // Fetch user's custom stores when modal opens (for logged-in users)
 useEffect(() => {
-  if (user && isOpen) {
+  if (user && user.id && isOpen) {
     setIsLoadingUserStores(true);
     fetch(`/api/products/user/${user.id}/stores`)
       .then(res => {
         if (!res.ok) {
+          if (res.status === 401) {
+            console.log('[PROFILE MODAL] Not authenticated, skipping user stores fetch');
+            setUserStores([]);
+            return Promise.resolve([]);
+          }
           throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         }
         return res.json();
       })
       .then(data => {
-        console.log('[PROFILE MODAL] Fetched user stores:', data);
-        setUserStores(Array.isArray(data) ? data : []);
+        if (Array.isArray(data)) {
+          console.log(`[PROFILE MODAL] ✅ Fetched ${data.length} user stores`);
+          setUserStores(data);
+        }
       })
       .catch(error => {
-        console.error('[PROFILE MODAL] Error fetching user stores:', error);
+        console.error('[PROFILE MODAL] ❌ Error fetching user stores:', error);
         setUserStores([]);
       })
       .finally(() => setIsLoadingUserStores(false));
@@ -1337,16 +1347,26 @@ useEffect(() => {
 
 // Fetch friends' stores and products when modal opens
 useEffect(() => {
-  if (isOpen && user) {
+  if (isOpen && user && user.id) {
     setIsLoadingFriendsStores(true);
     fetch('/api/products/friends/stores/all')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          if (res.status === 401) {
+            console.log('[QUADRANTS] Not authenticated, skipping friends stores fetch');
+            setFriendsStoresData([]);
+            return Promise.resolve([]);
+          }
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then(data => {
         setFriendsStoresData(Array.isArray(data) ? data : []);
-        console.log(`[QUADRANTS] Loaded ${data.length} friends with products`);
+        console.log(`[QUADRANTS] ✅ Loaded ${Array.isArray(data) ? data.length : 0} friends with products`);
       })
       .catch(error => {
-        console.error('[QUADRANTS] Error fetching friends stores:', error);
+        console.error('[QUADRANTS] ❌ Error fetching friends stores:', error);
         setFriendsStoresData([]);
       })
       .finally(() => setIsLoadingFriendsStores(false));
