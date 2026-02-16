@@ -1019,7 +1019,6 @@ router.get('/stores/all/with-products', async (req, res) => {
         });
       }
     });
-
     const result = Array.from(storesMap.values());
     console.log(`[PRODUCTS] ✅ Fetched ${result.length} user stores with products`);
     res.json(result);
