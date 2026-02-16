@@ -415,84 +415,6 @@ router.post('/:productId/restore', authenticate, async (req, res) => {
 
 
 
-// PATCH - Update product
-router.patch('/:productId', authenticate, async (req, res) => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Unauthorized' });
-    return;
-  }
-
-  const { productId } = req.params;
-
-  try {
-    const product = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .selectAll()
-      .where('id', '=', parseInt(productId))
-      .executeTakeFirst();
-
-    if (!product) {
-      res.status(404).json({ message: 'Product not found' });
-      return;
-    }
-
-    // Check if user owns the product OR is HIGH-HIGH-HIGH admin
-    const user = await db
-      .selectFrom('users')
-      .selectAll()
-      .where('id', '=', req.user.userId)
-      .executeTakeFirst();
-
-    const isAdmin = user && user.is_high_high_high_admin === 1;
-    const isOwner = product.user_id === req.user.userId;
-
-    if (!isOwner && !isAdmin) {
-      res.status(403).json({ message: 'You do not have permission to edit this product' });
-      return;
-    }
-
-    // Prepare update data
-    const updateData: any = {};
-    
-    if (req.body.name) updateData.name = req.body.name;
-    if (req.body.subtitle !== undefined) updateData.subtitle = req.body.subtitle || null;
-    if (req.body.description !== undefined) updateData.description = req.body.description || null;
-    if (req.body.price !== undefined) updateData.price = req.body.price ? parseFloat(req.body.price) : null;
-    if (req.body.payment_method) updateData.payment_method = req.body.payment_method;
-    if (req.body.payment_url !== undefined) updateData.payment_url = req.body.payment_url || null;
-    if (req.body.sku_id !== undefined) updateData.sku_id = req.body.sku_id || null;
-    if (req.body.store_id !== undefined) updateData.store_id = parseInt(req.body.store_id) || null;
-
-    // Handle image upload if provided
-    if ((req as any).files && (req as any).files.image) {
-      await ensureUploadDir();
-      const uploadedFile = (req as any).files.image;
-      const uploadDir = path.join(process.cwd(), 'data', 'uploads');
-      const filename = `${Date.now()}-${uploadedFile.name}`;
-      const filepath = path.join(uploadDir, filename);
-
-      await uploadedFile.mv(filepath);
-      updateData.image_url = `/api/uploads/${filename}`;
-    }
-
-    // Update the product
-    await db
-      .updateTable('MainHubUpgradeV001ForProducts')
-      .set(updateData)
-      .where('id', '=', parseInt(productId))
-      .execute();
-
-    console.log(`[PRODUCTS] Product ${productId} updated by user ${req.user.userId}`);
-
-    res.json({ message: 'Product updated successfully', productId: parseInt(productId) });
-  } catch (error) {
-    console.error('[PRODUCTS] Error updating product:', error);
-    res.status(500).json({ message: 'Failed to update product' });
-  }
-});
-
-
-
 
 
 // POST - Add item to internal cart
@@ -807,8 +729,7 @@ router.get('/high-high-admin/:userId', authenticate, async (req, res) => {
   }
 });
 
-  
-});
+
 
 // DELETE - Delete product as HIGH-HIGH-HIGH admin
 router.delete('/admin/:productId', authenticate, async (req, res) => {
