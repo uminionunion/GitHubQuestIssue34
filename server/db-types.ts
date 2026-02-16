@@ -116,6 +116,7 @@ export interface UserStores {
   name: string;
   subtitle: string | null;
   description: string | null;
+  badge_url: string | null;
   created_at: Generated<string | null>;
   product_ids: string | null; // JSON array of product IDs
 }
