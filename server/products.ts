@@ -1171,13 +1171,14 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
 
     // Create the user store
     const newStore = await db
-      .insertInto('user_stores')
-      .values({
-        user_id: parsedUserId,
-        name: name.trim(),
-        subtitle: subtitle && subtitle.trim() ? subtitle.trim() : null,
-        description: description && description.trim() ? description.trim() : null,
-      })
+  .insertInto('user_stores')
+  .values({
+    user_id: parsedUserId,
+    name: name.trim(),
+    subtitle: subtitle && subtitle.trim() ? subtitle.trim() : null,
+    description: description && description.trim() ? description.trim() : null,
+    badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png',
+  })
       .returning(['id', 'user_id', 'name', 'subtitle', 'description', 'created_at'])
       .executeTakeFirstOrThrow();
 
