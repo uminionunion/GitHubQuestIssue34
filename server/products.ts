@@ -696,6 +696,7 @@ router.get('/admin/all', authenticate, async (req, res) => {
     console.error('[PRODUCTS] Error fetching admin products:', error);
     res.status(500).json({ message: 'Failed to fetch products' });
   }
+});
 
 // GET - Get products by high-high admin user (different from regular user products)
 router.get('/high-high-admin/:userId', authenticate, async (req, res) => {
@@ -1019,16 +1020,14 @@ router.get('/stores/all/with-products', async (req, res) => {
         });
       }
     });
-    const result = Array.from(storesMap.values());
+  const result = Array.from(storesMap.values());
     console.log(`[PRODUCTS] ✅ Fetched ${result.length} user stores with products`);
     res.json(result);
   } catch (error) {
-    console.error('[PRODUCTS] ❌ Error fetching user stores with products:', error);
+    console.error('[PRODUCTS] ❌ Error fetching user stores:', error);
     res.status(500).json({ message: 'Failed to fetch user stores' });
   }
 });
-
-
 
 // GET - Get user's custom stores (PUBLIC - anyone can view any user's stores)
 // This is used in the Friend Profile Modal to display friend's products
@@ -1100,24 +1099,6 @@ router.get('/user/:userId/stores', async (req, res) => {
     const result = Array.from(storesMap.values());
     console.log(`[PRODUCTS] ✅ Transformed into ${result.length} user stores with products`);
     res.json(result);
-  } catch (error) {
-    console.error('[PRODUCTS] ❌ Error fetching user stores:', error);
-    res.status(500).json({ message: 'Failed to fetch user stores' });
-  }
-});
-
-  try {
-    console.log(`[PRODUCTS] Fetching stores for user ${parsedUserId}`);
-
-    const stores = await db
-      .selectFrom('user_stores')
-      .select(['id', 'user_id', 'name', 'subtitle', 'description', 'created_at'])
-      .where('user_id', '=', parsedUserId)
-      .orderBy('created_at', 'desc')
-      .execute();
-
-    console.log(`[PRODUCTS] ✅ Fetched ${stores.length} stores for user ${parsedUserId}`);
-    res.json(stores);
   } catch (error) {
     console.error('[PRODUCTS] ❌ Error fetching user stores:', error);
     res.status(500).json({ message: 'Failed to fetch user stores' });
