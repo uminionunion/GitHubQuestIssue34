@@ -1097,7 +1097,8 @@ router.get('/user/:userId/stores', async (req, res) => {
     });
 
     const result = Array.from(storesMap.values());
-    console.log(`[PRODUCTS] ✅ Transformed into ${result.length} user stores with products`);
+
+    
     res.json(result);
   } catch (error) {
     console.error('[PRODUCTS] ❌ Error fetching user stores:', error);
