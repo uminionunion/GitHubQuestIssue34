@@ -167,10 +167,13 @@ function logRegisteredRoutes() {
 export async function startServer(port: number | string) {
   try {
     if (process.env.NODE_ENV === 'production') {
-      const publicPath = resolvePublicPath();
-      console.log('Production static path resolved to:', publicPath);
+  const publicPath = resolvePublicPath();
+  console.log('Production static path resolved to:', publicPath);
 
-      app.use(express.static(publicPath, { index: false }));
+  app.use(express.static(publicPath, { index: false }));
+  
+  // CRITICAL: Serve profile images directory in development and production
+  app.use('/data/profile-images', express.static(path.join(process.cwd(), 'data', 'profile-images')));
 
       // ✅ FIXED: regex catch-all instead of "*"
       app.get(/.*/, (req, res, next) => {
