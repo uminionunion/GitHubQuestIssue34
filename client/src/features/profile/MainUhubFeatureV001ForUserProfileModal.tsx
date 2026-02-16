@@ -1,22 +1,52 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare } from 'lucide-react';
+} from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+import { MessageSquare, Eye } from 'lucide-react';
 
 interface MainUhubFeatureV001ForUserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: any;
+  onProductView?: (product: any) => void;
 }
 
-const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ isOpen, onClose, user }) => {
+const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ isOpen, onClose, user, onProductView }) => {
+  const [userStoresData, setUserStoresData] = useState<any[]>([]);
+  const [isLoadingStores, setIsLoadingStores] = useState(false);
+
+  // Fetch user's stores and products when modal opens
+  useEffect(() => {
+    if (isOpen && user && user.id) {
+      setIsLoadingStores(true);
+      fetch(`/api/products/user/${user.id}/stores`)
+        .then(res => {
+          if (!res.ok) {
+            console.log('[FRIEND PROFILE] Stores fetch failed');
+            setUserStoresData([]);
+            return Promise.resolve([]);
+          }
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data)) {
+            console.log(`[FRIEND PROFILE] ✅ Loaded ${data.length} stores for ${user.username}`);
+            setUserStoresData(data);
+          }
+        })
+        .catch(error => {
+          console.error('[FRIEND PROFILE] Error fetching stores:', error);
+          setUserStoresData([]);
+        })
+        .finally(() => setIsLoadingStores(false));
+    }
+  }, [isOpen, user]);
+
   if (!user) return null;
 
   return (
@@ -38,7 +68,7 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
             <div className="w-1/5 flex justify-end items-start pl-4">
               <Avatar className="h-32 w-32">
                 <AvatarImage src={user.profile_image_url || 'https://uminion.com/wp-content/uploads/2025/02/iArt06532.png'} alt={user.username} />
-                <AvatarFallback>{user.username.charAt(1).toUpperCase()}</AvatarFallback>
+                <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </div>
           </div>
@@ -46,7 +76,67 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
           <div className="flex-grow flex overflow-hidden">
             <div className="w-[33%] p-4 border-r overflow-y-auto">
               <h3 className="font-bold mb-4">Products for Sale</h3>
-              <div className="text-center text-muted-foreground">No products yet.</div>
+              {isLoadingStores ? (
+                <div className="text-center text-muted-foreground">Loading stores...</div>
+              ) : userStoresData.length > 0 ? (
+                <div className="space-y-3">
+                  {userStoresData.map((uStore) => (
+                    <div key={uStore.id} className="space-y-1">
+                      {/* uStore Name */}
+                      <div className="font-semibold text-xs text-cyan-400 py-1">
+                        {uStore.name}
+                      </div>
+
+                      {/* Products within uStore */}
+                      <div className={`ml-2 space-y-1 ${
+                        uStore.products && uStore.products.length >= 5 
+                          ? 'max-h-48 overflow-y-auto' 
+                          : ''
+                      }`}>
+                        {uStore.products && uStore.products.length > 0 ? (
+                          uStore.products.map((product: any) => (
+                            <div
+                              key={product.id}
+                              className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer bg-gray-800/30"
+                              onClick={() => onProductView && onProductView(product)}
+                            >
+                              {product.image_url && (
+                                <img
+                                  src={product.image_url}
+                                  alt={product.name}
+                                  className="w-5 h-5 rounded object-cover flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold truncate text-xs">{product.name}</p>
+                                {product.price && (
+                                  <p className="text-orange-400 text-xs">${product.price.toFixed(2)}</p>
+                                )}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 text-white hover:text-orange-400 flex-shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onProductView && onProductView(product);
+                                }}
+                                title="View product details"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-gray-500 italic ml-2">No products in this store</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground">No stores yet.</div>
+              )}
             </div>
             <div className="w-[34%] p-4 overflow-y-auto">
               <h3 className="font-bold mb-4">Hosted Broadcasts</h3>
