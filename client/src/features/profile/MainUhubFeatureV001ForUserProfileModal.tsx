@@ -24,10 +24,12 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
   useEffect(() => {
     if (isOpen && user && user.id) {
       setIsLoadingStores(true);
+      console.log(`[FRIEND PROFILE] Fetching stores for user ${user.id} (${user.username})`);
+      
       fetch(`/api/products/user/${user.id}/stores`)
         .then(res => {
           if (!res.ok) {
-            console.log('[FRIEND PROFILE] Stores fetch failed');
+            console.log(`[FRIEND PROFILE] Stores fetch failed with status ${res.status}`);
             setUserStoresData([]);
             return Promise.resolve([]);
           }
@@ -35,8 +37,11 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
         })
         .then(data => {
           if (Array.isArray(data)) {
-            console.log(`[FRIEND PROFILE] ✅ Loaded ${data.length} stores for ${user.username}`);
+            console.log(`[FRIEND PROFILE] ✅ Loaded ${data.length} stores for ${user.username}`, data);
             setUserStoresData(data);
+          } else {
+            console.log('[FRIEND PROFILE] Response was not an array:', data);
+            setUserStoresData([]);
           }
         })
         .catch(error => {
@@ -78,7 +83,7 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
               <h3 className="font-bold mb-4">Products for Sale</h3>
               {isLoadingStores ? (
                 <div className="text-center text-muted-foreground">Loading stores...</div>
-              ) : userStoresData.length > 0 ? (
+              ) : userStoresData && userStoresData.length > 0 ? (
                 <div className="space-y-3">
                   {userStoresData.map((uStore) => (
                     <div key={uStore.id} className="space-y-1">
