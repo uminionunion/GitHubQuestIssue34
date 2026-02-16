@@ -836,6 +836,7 @@ router.get('/user-stores/all', async (req, res) => {
           name: row.name,
           subtitle: row.subtitle,
           description: row.description,
+          badge_url: row.badge_url,
           user_id: row.user_id,
           products: [],
         });
@@ -1000,6 +1001,7 @@ router.get('/stores/all/with-products', async (req, res) => {
           name: row.name,
           subtitle: row.subtitle,
           description: row.description,
+          badge_url: row.badge_url,
           user_id: row.user_id,
           store_owner_username: row.store_owner_username,
           created_at: row.store_created_at,
@@ -1037,20 +1039,21 @@ router.get('/user/:userId/stores', async (req, res) => {
 
     // Fetch stores for ANY user (public endpoint - no authentication required)
     const stores = await db
-      .selectFrom('user_stores as us')
-      .leftJoin(
-        'MainHubUpgradeV001ForProducts as p',
-        'us.id',
-        'p.user_store_id'
-      )
-      .select([
-        'us.id',
-        'us.user_id',
-        'us.name',
-        'us.subtitle',
-        'us.description',
-        'us.created_at',
-        'p.id as product_id',
+  .selectFrom('user_stores as us')
+  .leftJoin(
+    'MainHubUpgradeV001ForProducts as p',
+    'us.id',
+    'p.user_store_id'
+  )
+  .select([
+    'us.id',
+    'us.user_id',
+    'us.name',
+    'us.subtitle',
+    'us.description',
+    'us.badge_url',
+    'us.created_at',
+    'p.id as product_id',
         'p.name as product_name',
         'p.price as product_price',
         'p.image_url as product_image_url',
@@ -1076,6 +1079,7 @@ router.get('/user/:userId/stores', async (req, res) => {
           name: row.name,
           subtitle: row.subtitle,
           description: row.description,
+          badge_url: row.badge_url,
           created_at: row.created_at,
           products: [],
         });
