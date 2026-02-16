@@ -297,23 +297,25 @@ router.post('/profile-image', async (req, res) => {
   const token = req.cookies.token;
 
   if (!token) {
+    console.log('[AUTH] Profile image upload: No token provided');
     res.status(401).json({ error: 'Not authenticated' });
     return;
   }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
+    console.log(`[AUTH] Uploading profile image for user ${payload.userId}`);
 
     // Check if file was uploaded (express-fileupload uses req.files)
     const files = req.files as any;
     if (!files || !files.profileImage) {
+      console.log('[AUTH] No file uploaded in request');
       res.status(400).json({ error: 'No file uploaded' });
       return;
     }
 
     const uploadedFile = files.profileImage as any;
-    const fs = require('fs');
-    const path = require('path');
+    console.log(`[AUTH] File received: ${uploadedFile.name}, size: ${uploadedFile.size} bytes`);
 
     // Create profile-images directory if it doesn't exist
     const profileImagesDir = path.join(process.cwd(), 'data', 'profile-images');
@@ -322,15 +324,15 @@ router.post('/profile-image', async (req, res) => {
       console.log(`[AUTH] Created profile-images directory: ${profileImagesDir}`);
     }
 
-    // Generate filename
+    // Generate filename - use .jpg extension for consistency
     const fileName = `profile-${payload.userId}-${Date.now()}.jpg`;
     const filePath = path.join(profileImagesDir, fileName);
 
     // Save file to disk
     await uploadedFile.mv(filePath);
-    console.log(`[AUTH] Profile image saved: ${filePath}`);
+    console.log(`[AUTH] Profile image saved to disk: ${filePath}`);
 
-    // Build the URL (relative path for serving)
+    // Build the URL (relative path for serving from static files)
     const imageUrl = `/data/profile-images/${fileName}`;
 
     // Update user's profile_image_url in database
@@ -338,22 +340,23 @@ router.post('/profile-image', async (req, res) => {
       .updateTable('users')
       .set({ profile_image_url: imageUrl })
       .where('id', '=', payload.userId)
-      .returning('profile_image_url')
+      .returning(['id', 'profile_image_url'])
       .executeTakeFirst();
 
     if (!user) {
+      console.log(`[AUTH] User not found for ID: ${payload.userId}`);
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    console.log(`[AUTH] Profile image updated for user ${payload.userId}: ${imageUrl}`);
+    console.log(`[AUTH] ✅ Profile image updated for user ${payload.userId}: ${imageUrl}`);
     
     res.status(200).json({ 
       success: true, 
       profile_image_url: user.profile_image_url 
     });
   } catch (error) {
-    console.error('[AUTH] Error uploading profile image:', error);
+    console.error('[AUTH] ❌ Error uploading profile image:', error);
     res.status(500).json({ error: 'Failed to upload profile image' });
   }
 });
