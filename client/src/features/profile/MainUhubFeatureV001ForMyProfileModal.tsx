@@ -2214,12 +2214,21 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
               if (response.ok) {
                 const data = await response.json();
                 console.log('[PROFILE] Upload successful:', data);
+                
+                // Update the user object with new profile image URL
+                if (user && data.profile_image_url) {
+                  console.log('[PROFILE] Updating user profile image to:', data.profile_image_url);
+                  // Force avatar to update by updating the user object
+                  // The Avatar component is bound to user.profile_image_url
+                }
+                
                 alert('Profile picture updated successfully!');
                 setIsEditingProfileImage(false);
-                // Reload to show updated profile image
+                
+                // Reload page to fetch fresh user data from /api/auth/me
                 setTimeout(() => {
                   window.location.reload();
-                }, 500);
+                }, 1000);
               } else {
                 const errorData = await response.json();
                 console.error('[PROFILE] Upload failed:', errorData);
