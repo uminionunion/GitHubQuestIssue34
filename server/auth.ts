@@ -332,28 +332,33 @@ router.post('/profile-image', async (req, res) => {
     await uploadedFile.mv(filePath);
     console.log(`[AUTH] Profile image saved to disk: ${filePath}`);
 
-    // Build the URL (relative path for serving from static files)
+     // Build the full URL path for serving
     const imageUrl = `/data/profile-images/${fileName}`;
 
     // Update user's profile_image_url in database
-    const user = await db
+    const updatedUser = await db
       .updateTable('users')
       .set({ profile_image_url: imageUrl })
       .where('id', '=', payload.userId)
-      .returning(['id', 'profile_image_url'])
+      .returning(['id', 'username', 'profile_image_url'])
       .executeTakeFirst();
 
-    if (!user) {
-      console.log(`[AUTH] User not found for ID: ${payload.userId}`);
+    if (!updatedUser) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    console.log(`[AUTH] ✅ Profile image updated for user ${payload.userId}: ${imageUrl}`);
+    console.log(`[AUTH] Profile image updated for user ${payload.userId}: ${imageUrl}`);
+    console.log(`[AUTH] Returning updated user data:`, updatedUser);
     
     res.status(200).json({ 
       success: true, 
-      profile_image_url: user.profile_image_url 
+      profile_image_url: updatedUser.profile_image_url,
+      user: {
+        id: updatedUser.id,
+        username: updatedUser.username,
+        profile_image_url: updatedUser.profile_image_url
+      }
     });
   } catch (error) {
     console.error('[AUTH] ❌ Error uploading profile image:', error);
