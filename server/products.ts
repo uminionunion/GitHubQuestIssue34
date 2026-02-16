@@ -1031,16 +1031,81 @@ router.get('/stores/all/with-products', async (req, res) => {
 
 
 
-// GET - Get user's custom stores (for logged-in users)
-router.get('/user/:userId/stores', authenticate, async (req, res) => {
+// GET - Get user's custom stores (PUBLIC - anyone can view any user's stores)
+// This is used in the Friend Profile Modal to display friend's products
+router.get('/user/:userId/stores', async (req, res) => {
   const { userId } = req.params;
   const parsedUserId = parseInt(userId);
 
-  // Verify the user is requesting their own stores or is an admin
-  if (parsedUserId !== req.user?.userId) {
-    res.status(403).json({ message: 'You can only view your own stores' });
-    return;
+  try {
+    console.log(`[PRODUCTS] Fetching stores for user ${parsedUserId} (PUBLIC endpoint)`);
+
+    // Fetch stores for ANY user (public endpoint - no authentication required)
+    const stores = await db
+      .selectFrom('user_stores as us')
+      .leftJoin(
+        'MainHubUpgradeV001ForProducts as p',
+        'us.id',
+        'p.user_store_id'
+      )
+      .select([
+        'us.id',
+        'us.user_id',
+        'us.name',
+        'us.subtitle',
+        'us.description',
+        'us.created_at',
+        'p.id as product_id',
+        'p.name as product_name',
+        'p.price as product_price',
+        'p.image_url as product_image_url',
+        'p.description as product_description',
+        'p.subtitle as product_subtitle',
+      ])
+      .where('us.user_id', '=', parsedUserId)
+      .where('p.is_in_trash', '=', 0)
+      .orderBy('us.created_at', 'desc')
+      .orderBy('p.created_at', 'desc')
+      .execute();
+
+    console.log(`[PRODUCTS] ✅ Fetched ${stores.length} records for user ${parsedUserId}`);
+
+    // Transform flat results into nested structure: uStore → products
+    const storesMap = new Map<number, any>();
+    
+    stores.forEach(row => {
+      if (!storesMap.has(row.id)) {
+        storesMap.set(row.id, {
+          id: row.id,
+          user_id: row.user_id,
+          name: row.name,
+          subtitle: row.subtitle,
+          description: row.description,
+          created_at: row.created_at,
+          products: [],
+        });
+      }
+      
+      if (row.product_id) {
+        storesMap.get(row.id)!.products.push({
+          id: row.product_id,
+          name: row.product_name,
+          price: row.product_price,
+          image_url: row.product_image_url,
+          description: row.product_description,
+          subtitle: row.product_subtitle,
+        });
+      }
+    });
+
+    const result = Array.from(storesMap.values());
+    console.log(`[PRODUCTS] ✅ Transformed into ${result.length} user stores with products`);
+    res.json(result);
+  } catch (error) {
+    console.error('[PRODUCTS] ❌ Error fetching user stores:', error);
+    res.status(500).json({ message: 'Failed to fetch user stores' });
   }
+});
 
   try {
     console.log(`[PRODUCTS] Fetching stores for user ${parsedUserId}`);
