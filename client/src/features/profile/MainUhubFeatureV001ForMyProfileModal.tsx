@@ -1770,8 +1770,14 @@ default:
     onClose();
     onOpenAuthModal('login');
   } else {
-    // For own profile, open the edit image modal
-    setIsEditingProfileImage(true);
+    // For own profile, show own profile modal
+    setSelectedFriendForModal({
+      id: user.id,
+      username: user.username,
+      profile_image_url: user.profile_image_url,
+      cover_photo_url: null,
+    });
+    setIsFriendProfileModalOpen(true);
   }
 };
 
@@ -2164,9 +2170,7 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
 
 
 
-
-
-      {isFriendProfileModalOpen && selectedFriendForModal && (
+{isFriendProfileModalOpen && selectedFriendForModal && (
   <MainUhubFeatureV001ForUserProfileModal
     isOpen={isFriendProfileModalOpen}
     onClose={() => {
@@ -2174,9 +2178,12 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
       setSelectedFriendForModal(null);
     }}
     user={selectedFriendForModal}
+    onProductView={(product) => {
+      setSelectedProduct(product);
+      setProductDetailModalOpen(true);
+    }}
   />
 )}
-
 
 
 
