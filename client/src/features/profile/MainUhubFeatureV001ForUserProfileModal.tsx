@@ -57,9 +57,12 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl h-[90vh] flex flex-col p-0">
-        <DialogHeader>
-          <DialogTitle>{user.username}'s Profile</DialogTitle>
-        </DialogHeader>
+       <DialogHeader className="flex items-center justify-between pr-4">
+  <div className="flex items-center gap-2">
+    <DialogTitle>{user.username}'s Profile</DialogTitle>
+    <span className="text-xs text-gray-500 ml-2">#{user.id}</span>
+  </div>
+</DialogHeader>
         <div className="flex-grow flex flex-col overflow-hidden">
           <div className="flex p-4 border-b">
             <div className="w-1/5 pr-4 space-y-2">
