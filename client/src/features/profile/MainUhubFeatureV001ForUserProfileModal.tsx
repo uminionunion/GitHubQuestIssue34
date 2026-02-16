@@ -89,11 +89,18 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
               ) : userStoresData && userStoresData.length > 0 ? (
                 <div className="space-y-3">
                   {userStoresData.map((uStore) => (
-                    <div key={uStore.id} className="space-y-1">
-                      {/* uStore Name */}
-                      <div className="font-semibold text-xs text-cyan-400 py-1">
-                        {uStore.name}
-                      </div>
+  <div key={uStore.id} className="space-y-1">
+    {/* uStore Name with Badge */}
+    <div className="font-semibold text-xs text-cyan-400 py-1 flex items-center gap-2">
+      {uStore.badge_url && (
+        <img
+          src={uStore.badge_url}
+          alt={`${uStore.name} badge`}
+          className="w-5 h-5 rounded-sm object-cover flex-shrink-0"
+        />
+      )}
+      <span>{uStore.name}</span>
+    </div>
 
                       {/* Products within uStore */}
                       <div className={`ml-2 space-y-1 ${
