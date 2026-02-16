@@ -171,9 +171,12 @@ export async function startServer(port: number | string) {
   console.log('Production static path resolved to:', publicPath);
 
   app.use(express.static(publicPath, { index: false }));
+
+      // Serve data directory (for profile images and uploads)
+    app.use('/data', express.static(path.join(process.cwd(), 'data')));
   
   // CRITICAL: Serve profile images directory in development and production
-  app.use('/data/profile-images', express.static(path.join(process.cwd(), 'data', 'profile-images')));
+//DOOOO I WANT THIS COMMENTED OUT??? -1:37pm on 2/16/26 (profile image aint showing up when updated with new profile image is what im trying to work on right now.) >>>>>>>  app.use('/data/profile-images', express.static(path.join(process.cwd(), 'data', 'profile-images')));
 
       // ✅ FIXED: regex catch-all instead of "*"
       app.get(/.*/, (req, res, next) => {
