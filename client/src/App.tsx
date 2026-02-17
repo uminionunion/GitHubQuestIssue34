@@ -6,23 +6,44 @@ import { AuthProvider, useAuth } from './hooks/useAuth.tsx';
 import AuthModal from './features/auth/AuthModal';
 import MainUhubFeatureV001ForMyProfileModal from '@/features/profile/MainUhubFeatureV001ForMyProfileModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import MainUhubFeatureV001ForUserProfileModal from './features/profile/MainUhubFeatureV001ForUserProfileModal';
 
 const MainUhubFeatureV001Layout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user, logout, isLoading: isAuthLoading } = useAuth();
   const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'signup' }>({ isOpen: false, mode: 'login' });
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
+  const [sharedProfileUser, setSharedProfileUser] = useState<any>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [autoLaunch, setAutoLaunch] = useState(true);
 
-  useEffect(() => {
-    const savedAutoLaunch = localStorage.getItem('uHubAutoLaunch');
-    if (savedAutoLaunch !== null) {
-      setAutoLaunch(JSON.parse(savedAutoLaunch));
+// Check for shared profile link in URL
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const openProfileId = params.get('openProfile');
+  
+  if (openProfileId) {
+    const userId = parseInt(openProfileId);
+    if (!isNaN(userId)) {
+      console.log(`[SHARED PROFILE] Opening profile for user ${userId}`);
+      
+      // Fetch the user data
+      fetch(`/api/auth/user/${userId}`)
+        .then(res => res.json())
+        .then(userData => {
+          setSharedProfileUser(userData);
+          setProfileModalOpen(true);
+          // Remove the query param from URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+        })
+        .catch(err => {
+          console.error('[SHARED PROFILE] Error fetching user:', err);
+        });
     }
-  }, []);
-
+  }
+}, []);
+  
   useEffect(() => {
     if (autoLaunch) {
       handleAutoLaunch();
@@ -123,14 +144,25 @@ const MainUhubFeatureV001Layout = () => {
         </Routes>
 
         {isProfileModalOpen && (
-          <div className="absolute inset-0 z-40 bg-black/50">
-            <MainUhubFeatureV001ForMyProfileModal
-              isOpen={isProfileModalOpen}
-              onClose={() => setProfileModalOpen(false)}
-              onOpenAuthModal={handleOpenAuthModal}
-            />
-          </div>
-        )}
+  <div className="absolute inset-0 z-40 bg-black/50">
+    {sharedProfileUser ? (
+      <MainUhubFeatureV001ForUserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => {
+          setProfileModalOpen(false);
+          setSharedProfileUser(null);
+        }}
+        user={sharedProfileUser}
+      />
+    ) : (
+      <MainUhubFeatureV001ForMyProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        onOpenAuthModal={handleOpenAuthModal}
+      />
+    )}
+  </div>
+)}
       </main>
 
       <footer className="p-4 border-t border-border/50 shadow-lg">
