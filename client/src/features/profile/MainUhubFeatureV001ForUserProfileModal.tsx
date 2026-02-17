@@ -91,28 +91,30 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
                   {userStoresData.map((uStore) => (
   <div key={uStore.id} className="space-y-1">
     {/* uStore Header with Badge and Banner */}
-    <div className="flex items-center gap-2 py-1 border-b border-gray-700 overflow-x-auto">
-      {/* uBadge (left) */}
-      {uStore.badge_url && (
+    <div className="flex items-center gap-2 py-1 px-2 rounded border border-gray-700 bg-gray-900/50">
+      {/* uBadge (left) - Fixed size icon */}
+      {uStore.badge_url ? (
         <img
           src={uStore.badge_url}
           alt={`${uStore.name} badge`}
-          className="w-6 h-6 rounded-sm object-cover flex-shrink-0"
+          className="w-6 h-6 rounded object-cover flex-shrink-0"
         />
+      ) : (
+        <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
       )}
       
       {/* uStore Name */}
-      <span className="font-semibold text-xs text-cyan-400 flex-shrink-0">
+      <span className="font-semibold text-xs text-cyan-400 flex-shrink-0 whitespace-nowrap">
         {uStore.name}
       </span>
       
-      {/* uBanner (right) */}
+      {/* uBanner (right) - Takes remaining space */}
       {uStore.banner_url && (
         <img
           src={uStore.banner_url}
           alt={`${uStore.name} banner`}
-          className="h-6 flex-shrink-0 rounded-sm object-cover"
-          style={{ width: '120px' }}
+          className="h-6 rounded object-cover flex-grow ml-auto"
+          style={{ minWidth: '80px', maxWidth: '150px' }}
         />
       )}
     </div>
