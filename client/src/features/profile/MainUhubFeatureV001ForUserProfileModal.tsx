@@ -90,16 +90,31 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
                 <div className="space-y-3">
                   {userStoresData.map((uStore) => (
   <div key={uStore.id} className="space-y-1">
-    {/* uStore Name with Badge */}
-    <div className="font-semibold text-xs text-cyan-400 py-1 flex items-center gap-2">
+    {/* uStore Header with Badge and Banner */}
+    <div className="flex items-center gap-2 py-1 border-b border-gray-700 overflow-x-auto">
+      {/* uBadge (left) */}
       {uStore.badge_url && (
         <img
           src={uStore.badge_url}
           alt={`${uStore.name} badge`}
-          className="w-5 h-5 rounded-sm object-cover flex-shrink-0"
+          className="w-6 h-6 rounded-sm object-cover flex-shrink-0"
         />
       )}
-      <span>{uStore.name}</span>
+      
+      {/* uStore Name */}
+      <span className="font-semibold text-xs text-cyan-400 flex-shrink-0">
+        {uStore.name}
+      </span>
+      
+      {/* uBanner (right) */}
+      {uStore.banner_url && (
+        <img
+          src={uStore.banner_url}
+          alt={`${uStore.name} banner`}
+          className="h-6 flex-shrink-0 rounded-sm object-cover"
+          style={{ width: '120px' }}
+        />
+      )}
     </div>
 
                       {/* Products within uStore */}
