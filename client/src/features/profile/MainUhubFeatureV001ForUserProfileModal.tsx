@@ -8,6 +8,7 @@ import {
 import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { MessageSquare, Eye } from 'lucide-react';
+import ShareProfileButton from './ShareProfileButton';
 
 interface MainUhubFeatureV001ForUserProfileModalProps {
   isOpen: boolean;
