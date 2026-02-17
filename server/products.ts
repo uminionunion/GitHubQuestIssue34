@@ -818,6 +818,7 @@ router.get('/user-stores/all', async (req, res) => {
         'user_stores.subtitle',
         'user_stores.description',
         'user_stores.badge_url',
+        'user_stores.banner_url',
         'user_stores.user_id',
         'MainHubUpgradeV001ForProducts.id as product_id',
         'MainHubUpgradeV001ForProducts.name as product_name',
@@ -834,11 +835,13 @@ router.get('/user-stores/all', async (req, res) => {
       if (!storesMap.has(row.id)) {
         storesMap.set(row.id, {
           id: row.id,
+          user_id: row.user_id,
           name: row.name,
           subtitle: row.subtitle,
           description: row.description,
           badge_url: row.badge_url,
-          user_id: row.user_id,
+          banner_url: row.banner_url,
+          created_at: row.created_at,
           products: [],
         });
       }
@@ -1004,6 +1007,7 @@ router.get('/stores/all/with-products', async (req, res) => {
           subtitle: row.subtitle,
           description: row.description,
           badge_url: row.badge_url,
+          banner_url: row.banner_url,
           user_id: row.user_id,
           store_owner_username: row.store_owner_username,
           created_at: row.store_created_at,
@@ -1054,6 +1058,7 @@ router.get('/user/:userId/stores', async (req, res) => {
     'us.subtitle',
     'us.description',
     'us.badge_url',
+    'us.banner_url',
     'us.created_at',
     'p.id as product_id',
         'p.name as product_name',
@@ -1082,6 +1087,7 @@ router.get('/user/:userId/stores', async (req, res) => {
           subtitle: row.subtitle,
           description: row.description,
           badge_url: row.badge_url,
+          banner_url: row.banner_url,
           created_at: row.created_at,
           products: [],
         });
@@ -1176,14 +1182,15 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
     }
 
     // Create the user store
-    const newStore = await db
+   const newStore = await db
   .insertInto('user_stores')
   .values({
     user_id: parsedUserId,
     name: name.trim(),
     subtitle: subtitle && subtitle.trim() ? subtitle.trim() : null,
     description: description && description.trim() ? description.trim() : null,
-    badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png',
+    badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg',
+    banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png',
   })
       .returning(['id', 'user_id', 'name', 'subtitle', 'description', 'created_at'])
       .executeTakeFirstOrThrow();
