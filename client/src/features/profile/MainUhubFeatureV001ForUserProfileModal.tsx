@@ -62,6 +62,7 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
     <DialogTitle>{user.username}'s Profile</DialogTitle>
     <span className="text-xs text-gray-500 ml-2">#{user.id}</span>
   </div>
+  <ShareProfileButton userId={user.id} username={user.username} />
 </DialogHeader>
         <div className="flex-grow flex flex-col overflow-hidden">
           <div className="flex p-4 border-b">
