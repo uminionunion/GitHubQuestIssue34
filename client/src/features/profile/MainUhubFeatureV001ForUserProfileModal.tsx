@@ -109,22 +109,27 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
       </span>
       
       {/* uBanner (right) - Takes remaining space */}
-      {uStore.banner_url && (
+      {uStore.banner_url ? (
         <img
           src={uStore.banner_url}
           alt={`${uStore.name} banner`}
           className="h-6 rounded object-cover flex-grow ml-auto"
           style={{ minWidth: '80px', maxWidth: '150px' }}
         />
+      ) : (
+        <div 
+          className="h-6 rounded flex-grow ml-auto" 
+          style={{ minWidth: '80px', maxWidth: '150px', backgroundColor: '#4a5568' }}
+        />
       )}
     </div>
 
-                      {/* Products within uStore */}
-                      <div className={`ml-2 space-y-1 ${
-                        uStore.products && uStore.products.length >= 5 
-                          ? 'max-h-48 overflow-y-auto' 
-                          : ''
-                      }`}>
+    {/* Products within uStore */}
+    <div className={`ml-2 space-y-1 ${
+      uStore.products && uStore.products.length >= 5 
+        ? 'max-h-48 overflow-y-auto' 
+        : ''
+    }`}>
                         {uStore.products && uStore.products.length > 0 ? (
                           uStore.products.map((product: any) => (
                             <div
