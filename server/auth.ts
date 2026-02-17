@@ -366,4 +366,39 @@ router.post('/profile-image', async (req, res) => {
   }
 });
 
+
+
+
+/**
+ * GET /api/auth/user/:userId
+ * Get public user profile data (for shared profile links)
+ * No authentication required
+ * 
+ * Response: { id, username, profile_image_url, cover_photo_url }
+ */
+router.get('/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await db
+      .selectFrom('users')
+      .select(['id', 'username', 'profile_image_url', 'cover_photo_url'])
+      .where('id', '=', parseInt(userId))
+      .executeTakeFirst();
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    console.log(`[AUTH] Public user data fetched for user ${userId}`);
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('[AUTH] Error fetching user:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+
+
 export default router;
