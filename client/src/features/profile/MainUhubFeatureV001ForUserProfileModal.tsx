@@ -15,11 +15,21 @@ interface MainUhubFeatureV001ForUserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: any;
+  currentUser?: any;  // The logged-in user
   onProductView?: (product: any) => void;
   onBadgeZoom?: (badge: { url: string; name: string }) => void;  
 }
 
-const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ isOpen, onClose, user, onProductView, onBadgeZoom }) => {
+const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  user, 
+  currentUser, 
+  onProductView,
+  onBadgeZoom 
+}) => {
+  const [isEditMode, setIsEditMode] = useState(false);  
+  const isOwnProfile = currentUser && user.id === currentUser.id;  
   const [userStoresData, setUserStoresData] = useState<any[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
   
