@@ -21,26 +21,23 @@ const MainUhubFeatureV001Layout = () => {
 // Check for shared profile link in URL
 useEffect(() => {
   const params = new URLSearchParams(window.location.search);
-  const openProfileId = params.get('openProfile');
+  const openProfileUsername = params.get('openProfile');
   
-  if (openProfileId) {
-    const userId = parseInt(openProfileId);
-    if (!isNaN(userId)) {
-      console.log(`[SHARED PROFILE] Opening profile for user ${userId}`);
-      
-      // Fetch the user data
-      fetch(`/api/auth/user/${userId}`)
-        .then(res => res.json())
-        .then(userData => {
-          setSharedProfileUser(userData);
-          setProfileModalOpen(true);
-          // Remove the query param from URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-        })
-        .catch(err => {
-          console.error('[SHARED PROFILE] Error fetching user:', err);
-        });
-    }
+  if (openProfileUsername) {
+    console.log(`[SHARED PROFILE] Opening profile for user ${openProfileUsername}`);
+    
+    // Fetch the user data by username
+    fetch(`/api/auth/user/${encodeURIComponent(openProfileUsername)}`)
+      .then(res => res.json())
+      .then(userData => {
+        setSharedProfileUser(userData);
+        setProfileModalOpen(true);
+        // Remove the query param from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      })
+      .catch(err => {
+        console.error('[SHARED PROFILE] Error fetching user:', err);
+      });
   }
 }, []);
   
