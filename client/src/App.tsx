@@ -153,6 +153,7 @@ useEffect(() => {
           setSharedProfileUser(null);
         }}
         user={sharedProfileUser}
+        currentUser={user}
         onBadgeZoom={(badge) => setZoomedBadge(badge)}
       />
     ) : (
