@@ -370,28 +370,43 @@ router.post('/profile-image', async (req, res) => {
 
 
 /**
- * GET /api/auth/user/:userId
+ * GET /api/auth/user/:userIdentifier
  * Get public user profile data (for shared profile links)
+ * Supports both numeric ID and username
  * No authentication required
  * 
  * Response: { id, username, profile_image_url, cover_photo_url }
  */
-router.get('/user/:userId', async (req, res) => {
-  const { userId } = req.params;
+router.get('/user/:userIdentifier', async (req, res) => {
+  const { userIdentifier } = req.params;
 
   try {
-    const user = await db
-      .selectFrom('users')
-      .select(['id', 'username', 'profile_image_url', 'cover_photo_url'])
-      .where('id', '=', parseInt(userId))
-      .executeTakeFirst();
+    let user;
+    const numericId = parseInt(userIdentifier);
+    
+    // If it's a number, search by ID; otherwise search by username
+    if (!isNaN(numericId)) {
+      console.log(`[AUTH] Fetching user by ID: ${numericId}`);
+      user = await db
+        .selectFrom('users')
+        .select(['id', 'username', 'profile_image_url', 'cover_photo_url'])
+        .where('id', '=', numericId)
+        .executeTakeFirst();
+    } else {
+      console.log(`[AUTH] Fetching user by username: ${userIdentifier}`);
+      user = await db
+        .selectFrom('users')
+        .select(['id', 'username', 'profile_image_url', 'cover_photo_url'])
+        .where('username', '=', userIdentifier)
+        .executeTakeFirst();
+    }
 
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
 
-    console.log(`[AUTH] Public user data fetched for user ${userId}`);
+    console.log(`[AUTH] Public user data fetched for user ${userIdentifier}`);
     res.status(200).json(user);
   } catch (error) {
     console.error('[AUTH] Error fetching user:', error);
