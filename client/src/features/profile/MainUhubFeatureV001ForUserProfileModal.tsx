@@ -16,12 +16,13 @@ interface MainUhubFeatureV001ForUserProfileModalProps {
   onClose: () => void;
   user: any;
   onProductView?: (product: any) => void;
+  onBadgeZoom?: (badge: { url: string; name: string }) => void;  
 }
 
-const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ isOpen, onClose, user, onProductView }) => {
+const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ isOpen, onClose, user, onProductView, onBadgeZoom }) => {
   const [userStoresData, setUserStoresData] = useState<any[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
-  const [zoomedBadge, setZoomedBadge] = useState<{ url: string; name: string } | null>(null);
+  
 
   // Fetch user's stores and products when modal opens
   useEffect(() => {
@@ -103,7 +104,7 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
     src={uStore.badge_url}
     alt={`${uStore.name} badge`}
     className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-    onClick={() => setZoomedBadge({ url: uStore.badge_url, name: uStore.name })}
+    onClick={() => onBadgeZoom?.({ url: uStore.badge_url, name: uStore.name })}
     title="Click to zoom"
   />
 ) : (
@@ -203,13 +204,7 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
 
 
 
-{zoomedBadge && (
-  <BadgeZoomToast
-    imageUrl={zoomedBadge.url}
-    altText={`${zoomedBadge.name} badge`}
-    onClose={() => setZoomedBadge(null)}
-  />
-)}
+
 </>
     
   );
