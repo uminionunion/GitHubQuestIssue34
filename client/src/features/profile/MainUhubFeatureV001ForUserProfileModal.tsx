@@ -9,16 +9,16 @@ import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { MessageSquare, Eye } from 'lucide-react';
 import ShareProfileButton from './ShareProfileButton';
-import BadgeZoomToast from './BadgeZoomToast';
 import EditableUStoreBadgeBanner from './EditableUStoreBadgeBanner';
 
 interface MainUhubFeatureV001ForUserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: any;
-  currentUser?: any;  // The logged-in user
+  currentUser?: any;
   onProductView?: (product: any) => void;
   onBadgeZoom?: (badge: { url: string; name: string }) => void;
+  onBadgeZoomOpen?: (badge: { url: string; name: string }) => void;
 }
 
 const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ 
@@ -27,12 +27,14 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
   user, 
   currentUser, 
   onProductView,
-  onBadgeZoom 
-}) => { 
-  const [userStoresData, setUserStoresData] = useState<any[]>([]);
+  onBadgeZoom,
+  onBadgeZoomOpen 
+}) => {
+   const [userStoresData, setUserStoresData] = useState<any[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+  const [zoomedBadge, setZoomedBadge] = useState<{ url: string; name: string } | null>(null);
 
   const isOwnProfile = currentUser && user.id === currentUser.id;
 
@@ -167,7 +169,10 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
                               src={uStore.badge_url}
                               alt={`${uStore.name} badge`}
                               className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-                              onClick={() => onBadgeZoom?.({ url: uStore.badge_url, name: uStore.name })}
+                              onClick={() => {
+                                 setZoomedBadge({ url: uStore.badge_url, name: uStore.name });
+                                 onBadgeZoomOpen?.({ url: uStore.badge_url, name: uStore.name });
+                               }}
                               title="Click to zoom"
                             />
                           ) : (
