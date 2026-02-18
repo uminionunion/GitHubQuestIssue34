@@ -18,7 +18,7 @@ interface MainUhubFeatureV001ForUserProfileModalProps {
   user: any;
   currentUser?: any;  // The logged-in user
   onProductView?: (product: any) => void;
-  onBadgeZoom?: (badge: { url: string; name: string }) => void;  
+  onBadgeZoom?: (badge: { url: string; name: string }) => void;
 }
 
 const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ 
@@ -28,34 +28,28 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
   currentUser, 
   onProductView,
   onBadgeZoom 
-}) => {
-  const [isEditMode, setIsEditMode] = useState(false);  
-  const isOwnProfile = currentUser && user.id === currentUser.id;  
+}) => { 
   const [userStoresData, setUserStoresData] = useState<any[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+  const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
 
-const isOwnProfile = currentUser && user.id === currentUser.id;
-
-
+  const isOwnProfile = currentUser && user.id === currentUser.id;
 
 
-  
+
 // Handler for badge/banner updates
-const handleBadgeBannerUpdate = async (uStoreId: number, imageUrl: string, type: 'badge' | 'banner') => {
-  // Update local state to reflect new image immediately
-  setUserStoresData(prevStores =>
-    prevStores.map(store =>
-      store.id === uStoreId
-        ? { ...store, [type + '_url']: imageUrl }
-        : store
-    )
-  );
-  console.log(`[EDIT MODE] ✅ ${type} updated for uStore ${uStoreId}`);
-};
-  
-
+  const handleBadgeBannerUpdate = async (uStoreId: number, imageUrl: string, type: 'badge' | 'banner') => {
+    // Update local state to reflect new image immediately
+    setUserStoresData(prevStores =>
+      prevStores.map(store =>
+        store.id === uStoreId
+          ? { ...store, [type + '_url']: imageUrl }
+          : store
+      )
+    );
+    console.log(`[EDIT MODE] ✅ ${type} updated for uStore ${uStoreId}`);
+  };
 
 
 
@@ -109,33 +103,33 @@ const handleBadgeBannerUpdate = async (uStoreId: number, imageUrl: string, type:
           <div className="flex p-4 border-b">
             {/* AFTER - Add Edit button only for own profile */}
 <div className="w-1/5 pr-4 space-y-2">
-  <Button variant="outline" className="w-full justify-start">List of Friends</Button>
-  <Button variant="outline" className="w-full justify-start">Favorited Broadcasts</Button>
-  <Button variant="outline" className="w-full justify-start">Created Chatrooms</Button>
-  <Button variant="secondary" className="w-full justify-start"><MessageSquare className="mr-2 h-4 w-4"/>Direct Message</Button>
-  
-  {/* NEW: Edit button (only for own profile) */}
-  {isOwnProfile && !isEditMode && (
-    <Button 
-      variant="outline" 
-      className="w-full justify-start bg-cyan-600 hover:bg-cyan-700 text-white"
-      onClick={() => setIsEditMode(true)}
-    >
-      Edit?
-    </Button>
-  )}
-  
-  {/* Exit edit mode button */}
-  {isOwnProfile && isEditMode && (
-    <Button 
-      variant="outline" 
-      className="w-full justify-start bg-red-600 hover:bg-red-700 text-white"
-      onClick={() => setIsEditMode(false)}
-    >
-      Done Editing
-    </Button>
-  )}
-</div>
+              <Button variant="outline" className="w-full justify-start">List of Friends</Button>
+              <Button variant="outline" className="w-full justify-start">Favorited Broadcasts</Button>
+              <Button variant="outline" className="w-full justify-start">Created Chatrooms</Button>
+              <Button variant="secondary" className="w-full justify-start"><MessageSquare className="mr-2 h-4 w-4"/>Direct Message</Button>
+              
+              {/* NEW: Edit button (only for own profile) */}
+              {isOwnProfile && !isEditMode && (
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start bg-cyan-600 hover:bg-cyan-700 text-white"
+                  onClick={() => setIsEditMode(true)}
+                >
+                  Edit?
+                </Button>
+              )}
+              
+              {/* Exit edit mode button */}
+              {isOwnProfile && isEditMode && (
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start bg-red-600 hover:bg-red-700 text-white"
+                  onClick={() => setIsEditMode(false)}
+                >
+                  Done Editing
+                </Button>
+              )}
+            </div>
             <div className="w-3/5 h-40 bg-cover bg-center rounded-md" style={{ backgroundImage: `url(${user.cover_photo_url || 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png'})` }}>
             </div>
             <div className="w-1/5 flex justify-end items-start pl-4">
@@ -158,61 +152,61 @@ const handleBadgeBannerUpdate = async (uStoreId: number, imageUrl: string, type:
     {/* uStore Header with Badge and Banner */}
     <div className="flex items-center gap-2 py-1 px-2 rounded border border-gray-700 bg-gray-900/50">
       {/* uBadge (left) - Fixed size icon, clickable for zoom */}
-{isEditMode && isOwnProfile ? (
-  <EditableUStoreBadgeBanner
-    type="badge"
-    uStoreId={uStore.id}
-    currentImageUrl={uStore.badge_url}
-    storeName={uStore.name}
-    onImageUpdate={handleBadgeBannerUpdate}
-    isLoading={isLoadingUpdate}
-  />
-) : (
-  uStore.badge_url ? (
-    <img
-      src={uStore.badge_url}
-      alt={`${uStore.name} badge`}
-      className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-      onClick={() => onBadgeZoom?.({ url: uStore.badge_url, name: uStore.name })}
-      title="Click to zoom"
-    />
-  ) : (
-    <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
-  )
-)}
+                        {isEditMode && isOwnProfile ? (
+                          <EditableUStoreBadgeBanner
+                            type="badge"
+                            uStoreId={uStore.id}
+                            currentImageUrl={uStore.badge_url}
+                            storeName={uStore.name}
+                            onImageUpdate={handleBadgeBannerUpdate}
+                            isLoading={isLoadingUpdate}
+                          />
+                        ) : (
+                          uStore.badge_url ? (
+                            <img
+                              src={uStore.badge_url}
+                              alt={`${uStore.name} badge`}
+                              className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+                              onClick={() => onBadgeZoom?.({ url: uStore.badge_url, name: uStore.name })}
+                              title="Click to zoom"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
+                          )
+                        )}
       
       {/* uStore Name */}
       <span className="font-semibold text-xs text-cyan-400 flex-shrink-0 whitespace-nowrap">
         {uStore.name}
       </span>
       
-      {/* uBanner (right) - Takes remaining space (Note to union001:> This is how to modify banner size -Salem */}
-{isEditMode && isOwnProfile ? (
-  <EditableUStoreBadgeBanner
-    type="banner"
-    uStoreId={uStore.id}
-    currentImageUrl={uStore.banner_url}
-    storeName={uStore.name}
-    onImageUpdate={handleBadgeBannerUpdate}
-    isLoading={isLoadingUpdate}
-  />
-) : (
-  uStore.banner_url ? (
-    <img
-      src={uStore.banner_url}
-      alt={`${uStore.name} banner`}
-      className="h-6 rounded object-cover flex-grow ml-auto"
-      style={{ minWidth: '80px', maxWidth: '150px' }}
-    />
-  ) : (
-    <img
-      src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
-      alt="default banner"
-      className="h-6 rounded object-cover flex-grow ml-auto"
-      style={{ minWidth: '80px', maxWidth: '150px' }}
-    />
-  )
-)}
+       {/* uBanner (right) - Takes remaining space */}
+                        {isEditMode && isOwnProfile ? (
+                          <EditableUStoreBadgeBanner
+                            type="banner"
+                            uStoreId={uStore.id}
+                            currentImageUrl={uStore.banner_url}
+                            storeName={uStore.name}
+                            onImageUpdate={handleBadgeBannerUpdate}
+                            isLoading={isLoadingUpdate}
+                          />
+                        ) : (
+                          uStore.banner_url ? (
+                            <img
+                              src={uStore.banner_url}
+                              alt={`${uStore.name} banner`}
+                              className="h-6 rounded object-cover flex-grow ml-auto"
+                              style={{ minWidth: '80px', maxWidth: '150px' }}
+                            />
+                          ) : (
+                            <img
+                              src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
+                              alt="default banner"
+                              className="h-6 rounded object-cover flex-grow ml-auto"
+                              style={{ minWidth: '80px', maxWidth: '150px' }}
+                            />
+                          )
+                        )}
     </div>
 
     {/* Products within uStore */}
