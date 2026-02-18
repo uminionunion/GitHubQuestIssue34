@@ -7,6 +7,7 @@ import AuthModal from './features/auth/AuthModal';
 import MainUhubFeatureV001ForMyProfileModal from '@/features/profile/MainUhubFeatureV001ForMyProfileModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MainUhubFeatureV001ForUserProfileModal from './features/profile/MainUhubFeatureV001ForUserProfileModal';
+import BadgeZoomToast from './features/profile/BadgeZoomToast';
 
 const MainUhubFeatureV001Layout = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +95,8 @@ useEffect(() => {
     if (!user) {
       handleOpenAuthModal('login');
     } else {
+      // Show own user profile (not my profile modal)
+      setSharedProfileUser(user);
       setProfileModalOpen(true);
     }
   };
@@ -154,14 +157,13 @@ useEffect(() => {
         }}
         user={sharedProfileUser}
         currentUser={user}
-        onBadgeZoom={(badge) => setZoomedBadge(badge)}
+        onBadgeZoomOpen={(badge) => setZoomedBadge(badge)}
       />
     ) : (
       <MainUhubFeatureV001ForMyProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setProfileModalOpen(false)}
         onOpenAuthModal={handleOpenAuthModal}
-        onBadgeZoom={(badge) => setZoomedBadge(badge)}
       />
     )}
   </div>
