@@ -17,6 +17,7 @@ const MainUhubFeatureV001Layout = () => {
   const [countdown, setCountdown] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [autoLaunch, setAutoLaunch] = useState(true);
+  const [zoomedBadge, setZoomedBadge] = useState<{ url: string; name: string } | null>(null);
 
 // Check for shared profile link in URL
 useEffect(() => {
@@ -140,7 +141,9 @@ useEffect(() => {
           <Route path="/*" element={<MainUhubFeatureV001ForSisterUnionRoutes />} />
         </Routes>
 
-        {isProfileModalOpen && (
+        
+
+{isProfileModalOpen && (
   <div className="absolute inset-0 z-40 bg-black/50">
     {sharedProfileUser ? (
       <MainUhubFeatureV001ForUserProfileModal
@@ -150,15 +153,26 @@ useEffect(() => {
           setSharedProfileUser(null);
         }}
         user={sharedProfileUser}
+        onBadgeZoom={(badge) => setZoomedBadge(badge)}
       />
     ) : (
       <MainUhubFeatureV001ForMyProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setProfileModalOpen(false)}
         onOpenAuthModal={handleOpenAuthModal}
+        onBadgeZoom={(badge) => setZoomedBadge(badge)}
       />
     )}
   </div>
+)}
+
+{/* Badge zoom toast - rendered at app level, OUTSIDE modal z-index context */}
+{zoomedBadge && (
+  <BadgeZoomToast
+    imageUrl={zoomedBadge.url}
+    altText={`${zoomedBadge.name} badge`}
+    onClose={() => setZoomedBadge(null)}
+  />
 )}
       </main>
 
