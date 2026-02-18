@@ -1341,4 +1341,110 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
   }
 });
 
+
+
+
+
+
+
+// PUT - Update uStore badge or banner image
+router.put('/user-stores/:userStoreId/:imageType', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { userStoreId, imageType } = req.params;
+  const parsedStoreId = parseInt(userStoreId);
+
+  if (imageType !== 'badge' && imageType !== 'banner') {
+    res.status(400).json({ message: 'imageType must be "badge" or "banner"' });
+    return;
+  }
+
+  try {
+    // Verify the user store exists and belongs to the user
+    const userStore = await db
+      .selectFrom('user_stores')
+      .selectAll()
+      .where('id', '=', parsedStoreId)
+      .where('user_id', '=', req.user.userId)
+      .executeTakeFirst();
+
+    if (!userStore) {
+      res.status(404).json({ message: 'User store not found or does not belong to you' });
+      return;
+    }
+
+    // Check if file was uploaded
+    const files = req.files as any;
+    if (!files || !files.file) {
+      res.status(400).json({ message: 'No file uploaded' });
+      return;
+    }
+
+    const uploadedFile = files.file;
+
+    // Validate file type
+    const validMimes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validMimes.includes(uploadedFile.mimetype)) {
+      res.status(400).json({ message: 'Only JPG, JPEG, and PNG files are allowed' });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (uploadedFile.size > 5 * 1024 * 1024) {
+      res.status(400).json({ message: 'File size must be less than 5MB' });
+      return;
+    }
+
+    // Create uploads directory
+    const uploadsDir = path.join(process.cwd(), 'data', 'uploads', 'store-images');
+    await fs.mkdir(uploadsDir, { recursive: true });
+
+    // Generate filename
+    const ext = uploadedFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const fileName = `${userStoreId}-${imageType}-${Date.now()}.${ext}`;
+    const filePath = path.join(uploadsDir, fileName);
+
+    // Save file
+    await uploadedFile.mv(filePath);
+    const imageUrl = `/data/uploads/store-images/${fileName}`;
+
+    console.log(`[PRODUCTS] ✅ Store ${imageType} uploaded: ${imageUrl}`);
+
+    // Update database
+    const updateData: any = {};
+    updateData[`${imageType}_url`] = imageUrl;
+
+    await db
+      .updateTable('user_stores')
+      .set(updateData)
+      .where('id', '=', parsedStoreId)
+      .execute();
+
+    console.log(`[PRODUCTS] ✅ User store ${userStoreId} ${imageType} updated in database`);
+
+    res.status(200).json({
+      message: `${imageType} updated successfully`,
+      imageUrl,
+      userStoreId: parsedStoreId,
+    });
+  } catch (error) {
+    console.error(`[PRODUCTS] Error updating ${imageType}:`, error);
+    res.status(500).json({
+      message: `Failed to update ${imageType}`,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+
+
+
+
+
+
+
+
 export default router;
