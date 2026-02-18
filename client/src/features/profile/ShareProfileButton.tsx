@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/ui/button';
-import { Share2, Copy, Check } from 'lucide-react';
+import { Share2, Check } from 'lucide-react';
 
 interface ShareProfileButtonProps {
   userId: number;
@@ -11,7 +11,7 @@ const ShareProfileButton: React.FC<ShareProfileButtonProps> = ({ userId, usernam
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
-    const shareUrl = `${window.location.origin}/?openProfile=${userId}`;
+    const shareUrl = `${window.location.origin}/?openProfile=${username}`;
     
     // Copy to clipboard
     navigator.clipboard.writeText(shareUrl).then(() => {
