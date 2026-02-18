@@ -111,19 +111,21 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
       </span>
       
       {/* uBanner (right) - Takes remaining space */}
-      {uStore.banner_url ? (
-        <img
-          src={uStore.banner_url}
-          alt={`${uStore.name} banner`}
-          className="h-6 rounded object-cover flex-grow ml-auto"
-          style={{ minWidth: '80px', maxWidth: '150px' }}
-        />
-      ) : (
-        <div 
-          className="h-6 rounded flex-grow ml-auto" 
-          style={{ minWidth: '80px', maxWidth: '150px', backgroundColor: '#4a5568' }}
-        />
-      )}
+{uStore.banner_url ? (
+  <img
+    src={uStore.banner_url}
+    alt={`${uStore.name} banner`}
+    className="h-6 rounded object-cover flex-grow ml-auto"
+    style={{ minWidth: '80px', maxWidth: '150px' }}
+  />
+) : (
+  <img
+    src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
+    alt="default banner"
+    className="h-6 rounded object-cover flex-grow ml-auto"
+    style={{ minWidth: '80px', maxWidth: '150px' }}
+  />
+)}
     </div>
 
     {/* Products within uStore */}
