@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { MessageSquare, Eye } from 'lucide-react';
 import ShareProfileButton from './ShareProfileButton';
+import BadgeZoomToast from './BadgeZoomToast';
 
 interface MainUhubFeatureV001ForUserProfileModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface MainUhubFeatureV001ForUserProfileModalProps {
 const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUserProfileModalProps> = ({ isOpen, onClose, user, onProductView }) => {
   const [userStoresData, setUserStoresData] = useState<any[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
+  const [zoomedBadge, setZoomedBadge] = useState<{ url: string; name: string } | null>(null);
 
   // Fetch user's stores and products when modal opens
   useEffect(() => {
@@ -94,16 +96,18 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
   <div key={uStore.id} className="space-y-1">
     {/* uStore Header with Badge and Banner */}
     <div className="flex items-center gap-2 py-1 px-2 rounded border border-gray-700 bg-gray-900/50">
-      {/* uBadge (left) - Fixed size icon */}
-      {uStore.badge_url ? (
-        <img
-          src={uStore.badge_url}
-          alt={`${uStore.name} badge`}
-          className="w-6 h-6 rounded object-cover flex-shrink-0"
-        />
-      ) : (
-        <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
-      )}
+      {/* uBadge (left) - Fixed size icon, clickable for zoom */}
+{uStore.badge_url ? (
+  <img
+    src={uStore.badge_url}
+    alt={`${uStore.name} badge`}
+    className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+    onClick={() => setZoomedBadge({ url: uStore.badge_url, name: uStore.name })}
+    title="Click to zoom"
+  />
+) : (
+  <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
+)}
       
       {/* uStore Name */}
       <span className="font-semibold text-xs text-cyan-400 flex-shrink-0 whitespace-nowrap">
@@ -194,6 +198,18 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
           </div>
         </div>
       </DialogContent>
+
+
+{zoomedBadge && (
+  <BadgeZoomToast
+    imageUrl={zoomedBadge.url}
+    altText={`${zoomedBadge.name} badge`}
+    onClose={() => setZoomedBadge(null)}
+  />
+)}
+
+
+      
     </Dialog>
   );
 };
