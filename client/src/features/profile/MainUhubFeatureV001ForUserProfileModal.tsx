@@ -170,7 +170,6 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
                               alt={`${uStore.name} badge`}
                               className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
                               onClick={() => {
-                                 setZoomedBadge({ url: uStore.badge_url, name: uStore.name });
                                  onBadgeZoomOpen?.({ url: uStore.badge_url, name: uStore.name });
                                }}
                               title="Click to zoom"
