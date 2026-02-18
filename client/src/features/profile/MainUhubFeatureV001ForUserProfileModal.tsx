@@ -81,12 +81,35 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
 </DialogHeader>
         <div className="flex-grow flex flex-col overflow-hidden">
           <div className="flex p-4 border-b">
-            <div className="w-1/5 pr-4 space-y-2">
-                <Button variant="outline" className="w-full justify-start">List of Friends</Button>
-                <Button variant="outline" className="w-full justify-start">Favorited Broadcasts</Button>
-                <Button variant="outline" className="w-full justify-start">Created Chatrooms</Button>
-                <Button variant="secondary" className="w-full justify-start"><MessageSquare className="mr-2 h-4 w-4"/>Direct Message</Button>
-            </div>
+            {/* AFTER - Add Edit button only for own profile */}
+<div className="w-1/5 pr-4 space-y-2">
+  <Button variant="outline" className="w-full justify-start">List of Friends</Button>
+  <Button variant="outline" className="w-full justify-start">Favorited Broadcasts</Button>
+  <Button variant="outline" className="w-full justify-start">Created Chatrooms</Button>
+  <Button variant="secondary" className="w-full justify-start"><MessageSquare className="mr-2 h-4 w-4"/>Direct Message</Button>
+  
+  {/* NEW: Edit button (only for own profile) */}
+  {isOwnProfile && !isEditMode && (
+    <Button 
+      variant="outline" 
+      className="w-full justify-start bg-cyan-600 hover:bg-cyan-700 text-white"
+      onClick={() => setIsEditMode(true)}
+    >
+      Edit?
+    </Button>
+  )}
+  
+  {/* Exit edit mode button */}
+  {isOwnProfile && isEditMode && (
+    <Button 
+      variant="outline" 
+      className="w-full justify-start bg-red-600 hover:bg-red-700 text-white"
+      onClick={() => setIsEditMode(false)}
+    >
+      Done Editing
+    </Button>
+  )}
+</div>
             <div className="w-3/5 h-40 bg-cover bg-center rounded-md" style={{ backgroundImage: `url(${user.cover_photo_url || 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png'})` }}>
             </div>
             <div className="w-1/5 flex justify-end items-start pl-4">
