@@ -58,6 +58,7 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
   if (!user) return null;
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl h-[90vh] flex flex-col p-0">
        <DialogHeader className="flex items-center justify-between pr-4">
@@ -209,7 +210,7 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
     onClose={() => setZoomedBadge(null)}
   />
 )}
-
+</>
     
   );
 };
