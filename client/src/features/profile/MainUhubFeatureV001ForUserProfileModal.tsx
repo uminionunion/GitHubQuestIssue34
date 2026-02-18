@@ -198,6 +198,8 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
           </div>
         </div>
       </DialogContent>
+    </Dialog>
+
 
 
 {zoomedBadge && (
@@ -208,9 +210,7 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
   />
 )}
 
-
-      
-    </Dialog>
+    
   );
 };
 
