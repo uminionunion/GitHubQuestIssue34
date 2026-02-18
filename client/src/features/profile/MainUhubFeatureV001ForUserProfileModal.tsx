@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar'
 import { MessageSquare, Eye } from 'lucide-react';
 import ShareProfileButton from './ShareProfileButton';
 import BadgeZoomToast from './BadgeZoomToast';
+import EditableUStoreBadgeBanner from './EditableUStoreBadgeBanner';
 
 interface MainUhubFeatureV001ForUserProfileModalProps {
   isOpen: boolean;
@@ -32,8 +33,33 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
   const isOwnProfile = currentUser && user.id === currentUser.id;  
   const [userStoresData, setUserStoresData] = useState<any[]>([]);
   const [isLoadingStores, setIsLoadingStores] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+
+const isOwnProfile = currentUser && user.id === currentUser.id;
+
+
+
+
+  
+// Handler for badge/banner updates
+const handleBadgeBannerUpdate = async (uStoreId: number, imageUrl: string, type: 'badge' | 'banner') => {
+  // Update local state to reflect new image immediately
+  setUserStoresData(prevStores =>
+    prevStores.map(store =>
+      store.id === uStoreId
+        ? { ...store, [type + '_url']: imageUrl }
+        : store
+    )
+  );
+  console.log(`[EDIT MODE] ✅ ${type} updated for uStore ${uStoreId}`);
+};
   
 
+
+
+
+  
   // Fetch user's stores and products when modal opens
   useEffect(() => {
     if (isOpen && user && user.id) {
@@ -132,16 +158,27 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
     {/* uStore Header with Badge and Banner */}
     <div className="flex items-center gap-2 py-1 px-2 rounded border border-gray-700 bg-gray-900/50">
       {/* uBadge (left) - Fixed size icon, clickable for zoom */}
-{uStore.badge_url ? (
-  <img
-    src={uStore.badge_url}
-    alt={`${uStore.name} badge`}
-    className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-    onClick={() => onBadgeZoom?.({ url: uStore.badge_url, name: uStore.name })}
-    title="Click to zoom"
+{isEditMode && isOwnProfile ? (
+  <EditableUStoreBadgeBanner
+    type="badge"
+    uStoreId={uStore.id}
+    currentImageUrl={uStore.badge_url}
+    storeName={uStore.name}
+    onImageUpdate={handleBadgeBannerUpdate}
+    isLoading={isLoadingUpdate}
   />
 ) : (
-  <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
+  uStore.badge_url ? (
+    <img
+      src={uStore.badge_url}
+      alt={`${uStore.name} badge`}
+      className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+      onClick={() => onBadgeZoom?.({ url: uStore.badge_url, name: uStore.name })}
+      title="Click to zoom"
+    />
+  ) : (
+    <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
+  )
 )}
       
       {/* uStore Name */}
@@ -149,21 +186,32 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
         {uStore.name}
       </span>
       
-      {/* uBanner (right) - Takes remaining space */}
-{uStore.banner_url ? (
-  <img
-    src={uStore.banner_url}
-    alt={`${uStore.name} banner`}
-    className="h-6 rounded object-cover flex-grow ml-auto"
-    style={{ minWidth: '80px', maxWidth: '150px' }}
+      {/* uBanner (right) - Takes remaining space (Note to union001:> This is how to modify banner size -Salem */}
+{isEditMode && isOwnProfile ? (
+  <EditableUStoreBadgeBanner
+    type="banner"
+    uStoreId={uStore.id}
+    currentImageUrl={uStore.banner_url}
+    storeName={uStore.name}
+    onImageUpdate={handleBadgeBannerUpdate}
+    isLoading={isLoadingUpdate}
   />
 ) : (
-  <img
-    src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
-    alt="default banner"
-    className="h-6 rounded object-cover flex-grow ml-auto"
-    style={{ minWidth: '80px', maxWidth: '150px' }}
-  />
+  uStore.banner_url ? (
+    <img
+      src={uStore.banner_url}
+      alt={`${uStore.name} banner`}
+      className="h-6 rounded object-cover flex-grow ml-auto"
+      style={{ minWidth: '80px', maxWidth: '150px' }}
+    />
+  ) : (
+    <img
+      src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
+      alt="default banner"
+      className="h-6 rounded object-cover flex-grow ml-auto"
+      style={{ minWidth: '80px', maxWidth: '150px' }}
+    />
+  )
 )}
     </div>
 
