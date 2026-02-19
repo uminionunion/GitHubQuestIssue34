@@ -203,7 +203,7 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              maxLength={1000}
+              maxLength={100000}
               rows={4}
               placeholder="Describe your product in detail..."
             />
