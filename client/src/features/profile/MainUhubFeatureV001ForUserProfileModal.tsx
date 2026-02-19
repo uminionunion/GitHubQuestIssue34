@@ -184,8 +184,8 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
         {uStore.name}
       </span>
       
-       // uBanner (right) - Takes remaining space
-{isEditMode && isOwnProfile ? (
+       
+{isEditMode && isOwnProfile ? ( // uBanner (right) - Takes remaining space
   <EditableUStoreBadgeBanner
     type="banner"
     uStoreId={uStore.id}
