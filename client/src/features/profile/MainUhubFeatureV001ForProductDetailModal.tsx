@@ -109,7 +109,7 @@ const MainUhubFeatureV001ForProductDetailModal: React.FC<MainUhubFeatureV001ForP
 
           {/* Description */}
           <div className="mb-6">
-            <p className="text-sm">{product.description || "No description available."}</p>
+            <div className="text-sm whitespace-pre-wrap"> {product.description || "No description available."} </div>
           </div>
 
           {/* Price */}
