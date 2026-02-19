@@ -221,67 +221,50 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
 )}
     </div>
 
-   {/* Products within uStore - Grid layout with random order */}
-<div className="ml-2">
-  {uStore.products && uStore.products.length > 0 ? (
-    <div className={`grid grid-cols-2 gap-2 ${
-      uStore.products.length >= 5 
+    {/* Products within uStore */}
+    <div className={`ml-2 space-y-1 ${
+      uStore.products && uStore.products.length >= 5 
         ? 'max-h-48 overflow-y-auto' 
         : ''
-    }`} style={{
-      scrollbarColor: '#14b8a6 #1f2937',
-      scrollbarWidth: 'thin'
-    }}>
-      {/* Shuffle products randomly using Fisher-Yates algorithm */}
-      {uStore.products
-        .slice()
-        .sort(() => Math.random() - 0.5)
-        .map((product: any) => (
-          <div
-            key={product.id}
-            className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
-            style={{
-              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
-            {/* Clickable Overlay */}
-            <div 
-              className="absolute inset-0 bg-black bg-opacity-40 rounded-md cursor-pointer"
-              onClick={() => onProductView && onProductView(product)}
-            ></div>
-
-            {/* Product Name */}
-            <div className="relative z-10 text-xs font-semibold text-white truncate pointer-events-none">
-              {product.name}
-            </div>
-
-            {/* Price Badge */}
-            {product.price && (
-              <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded pointer-events-none">
-                ${product.price.toFixed(2)}
-              </div>
-            )}
-
-            {/* Eye Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onProductView && onProductView(product);
-              }}
-              className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
-              title="View product details"
-            >
-              <Eye className="h-3 w-3 text-white" />
-            </button>
-          </div>
-        ))}
-    </div>
-  ) : (
-    <p className="text-xs text-gray-500 italic ml-2">No products in this store</p>
-  )}
-</div>
+    }`}>
+                        {uStore.products && uStore.products.length > 0 ? (
+                          uStore.products.map((product: any) => (
+                            <div
+                              key={product.id}
+                              className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer bg-gray-800/30"
+                              onClick={() => onProductView && onProductView(product)}
+                            >
+                              {product.image_url && (
+                                <img
+                                  src={product.image_url}
+                                  alt={product.name}
+                                  className="w-5 h-5 rounded object-cover flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold truncate text-xs">{product.name}</p>
+                                {product.price && (
+                                  <p className="text-orange-400 text-xs">${product.price.toFixed(2)}</p>
+                                )}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 text-white hover:text-orange-400 flex-shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onProductView && onProductView(product);
+                                }}
+                                title="View product details"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-gray-500 italic ml-2">No products in this store</p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
