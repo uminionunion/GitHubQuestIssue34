@@ -20,6 +20,12 @@ const MainUhubFeatureV001Layout = () => {
   const [autoLaunch, setAutoLaunch] = useState(true);
   const [zoomedBadge, setZoomedBadge] = useState<{ url: string; name: string } | null>(null);
 
+  // Handler for badge zoom that works in ANY modal context
+  const handleBadgeZoom = (badge: { url: string; name: string }) => {
+    console.log('[BADGE ZOOM] Opening badge zoom modal:', badge);
+    setZoomedBadge(badge);
+  };
+
 // Check for shared profile link in URL
 useEffect(() => {
   const params = new URLSearchParams(window.location.search);
@@ -159,13 +165,14 @@ useEffect(() => {
         currentUser={user}
         onBadgeZoomOpen={(badge) => setZoomedBadge(badge)}
       />
-    ) : (
-      <MainUhubFeatureV001ForMyProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setProfileModalOpen(false)}
-        onOpenAuthModal={handleOpenAuthModal}
-      />
-    )}
+   ) : (
+              <MainUhubFeatureV001ForMyProfileModal
+                isOpen={isProfileModalOpen}
+                onClose={() => setProfileModalOpen(false)}
+                onOpenAuthModal={handleOpenAuthModal}
+                onBadgeZoom={handleBadgeZoom}
+              />
+            )}
   </div>
 )}
 
