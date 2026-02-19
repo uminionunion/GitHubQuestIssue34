@@ -135,11 +135,20 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
             <div className="w-3/5 h-40 bg-cover bg-center rounded-md" style={{ backgroundImage: `url(${user.cover_photo_url || 'https://uminion.com/wp-content/uploads/2025/03/UminionLogo018.00.2024Classic-1536x1536.png'})` }}>
             </div>
             <div className="w-1/5 flex justify-end items-start pl-4">
-              <Avatar className="h-32 w-32">
-                <AvatarImage src={user.profile_image_url || 'https://uminion.com/wp-content/uploads/2025/02/iArt06532.png'} alt={user.username} />
-                <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-            </div>
+  <div 
+    onClick={() => {
+      if (user.profile_image_url) {
+        onBadgeZoomOpen?.({ url: user.profile_image_url, name: user.username });
+      }
+    }}
+    className="cursor-pointer relative group"
+  >
+    <Avatar className="h-32 w-32 group-hover:opacity-80 transition">
+      <AvatarImage src={user.profile_image_url || 'https://uminion.com/wp-content/uploads/2025/02/iArt06532.png'} alt={user.username} />
+      <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+    </Avatar>
+  </div>
+</div>
           </div>
 
           <div className="flex-grow flex overflow-hidden">
