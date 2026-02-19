@@ -21,6 +21,7 @@ interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenAuthModal: (mode: 'login' | 'signup') => void;
+  onBadgeZoom?: (badge: { url: string; name: string }) => void;
 }
 
 const ALL_STORES = [
@@ -1129,7 +1130,7 @@ const HomeModal = ({ isOpen, onClose, userProducts = [] }) => {
 };
 
 
-const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal }) => {
+const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyProfileModalProps> = ({ isOpen, onClose, onOpenAuthModal, onBadgeZoom }) => {
   const { user } = useAuth();
   const MainUhubFeatureV001ForUHomeHubButtons = Array.from({ length: 30 }, (_, i) => i + 1);
   const [activeChatModal, setActiveChatModal] = useState<number | null>(null);
@@ -2184,8 +2185,8 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
       setProductDetailModalOpen(true);
     }}
     onBadgeZoomOpen={(badge) => {
-      // Handle badge zoom if needed in MyProfileModal context
-      console.log('Badge clicked:', badge);
+      console.log('[MY PROFILE] Badge clicked in friend profile:', badge);
+      onBadgeZoom?.(badge);
     }}
   />
 )}
