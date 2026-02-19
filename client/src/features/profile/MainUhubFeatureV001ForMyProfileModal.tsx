@@ -1576,68 +1576,104 @@ useEffect(() => {
         )}
       </div>
     </div>
-    <div id="MainUhubFeatureV001ForUsersStores" className="border rounded-md p-2">
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center flex-1">
-          <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white mr-2" onClick={() => {
-            if (!user) {
-              alert('You must be logged in to add a product.');
-              return;
-            }
-            setAddProductModalOpen(true)
-          }}>
-            <Plus className="h-4 w-4" />
-          </Button>
-          <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
-        </div>
-        <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-black">
-            <ShoppingCart className="h-4 w-4" />
-          </Button>
-        </a>
-      </div>
-      <div className="space-y-2">
-        {everythingProducts.length > 0 ? (
-          everythingProducts.map((p, i) => (
+    <div id="MainUhubFeatureV001ForUsersStores" className="border rounded-md p-2 flex flex-col h-full">
+  <div className="flex justify-between items-center mb-2 sticky top-0 bg-background z-10">
+    <div className="flex items-center flex-1">
+      <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white mr-2" onClick={() => {
+        if (!user) {
+          alert('You must be logged in to add a product.');
+          return;
+        }
+        setAddProductModalOpen(true)
+      }}>
+        <Plus className="h-4 w-4" />
+      </Button>
+      <h4 className="font-semibold text-center flex-1">Users' Stores</h4>
+    </div>
+    <a href="https://page001.uminion.com/cart/" target="_blank" rel="noopener noreferrer">
+      <Button variant="outline" size="icon" className="bg-orange-400 hover:bg-orange-500 text-black">
+        <ShoppingCart className="h-4 w-4" />
+      </Button>
+    </a>
+  </div>
+  <div 
+    className="flex-1 overflow-y-auto"
+    style={{
+      maxHeight: '320px',
+      scrollbarColor: '#f97316 #1f2937',
+      scrollbarWidth: 'thin'
+    }}
+  >
+    <style>{`
+      div[style*="maxHeight: 320px"]::-webkit-scrollbar {
+        width: 8px;
+      }
+      div[style*="maxHeight: 320px"]::-webkit-scrollbar-track {
+        background: #1f2937;
+      }
+      div[style*="maxHeight: 320px"]::-webkit-scrollbar-thumb {
+        background: #f97316;
+        border-radius: 4px;
+      }
+      div[style*="maxHeight: 320px"]::-webkit-scrollbar-thumb:hover {
+        background: #ea580c;
+      }
+    `}</style>
+    {everythingProducts.length > 0 ? (
+      <div className="grid grid-cols-2 gap-2">
+        {getRandomizedProducts(everythingProducts).map((product) => (
+          <div
+            key={product.id}
+            className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
+            style={{
+              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          >
+            {/* Clickable Overlay */}
             <div 
-              key={p.id || i}
-              className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
+              className="absolute inset-0 bg-black bg-opacity-40 rounded-md cursor-pointer"
               onClick={() => {
-                setSelectedProduct(p);
+                setSelectedProduct(product);
                 setProductDetailModalOpen(true);
               }}
-            >
-              {p.image_url && (
-                <img 
-                  src={p.image_url} 
-                  alt={p.name}
-                  className="w-8 h-8 rounded object-cover flex-shrink-0"
-                />
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold truncate">{p.name}</p>
-                {p.price && <p className="text-orange-400">${p.price.toFixed(2)}</p>}
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-white hover:text-orange-400 flex-shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedProduct(p);
-                  setProductDetailModalOpen(true);
-                }}
-                title="View details"
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
+            ></div>
+
+            {/* Product Name */}
+            <div className="relative z-10 text-xs font-semibold text-white truncate pointer-events-none">
+              {product.name}
             </div>
-          ))
-        ) : (
-          <div className="text-center text-muted-foreground py-4">No products yet</div>
-        )}
+
+            {/* Price Badge */}
+            {product.price && (
+              <div className="absolute bottom-1 left-1 z-10 text-xs font-semibold bg-black bg-opacity-60 text-orange-400 px-1 rounded pointer-events-none">
+                ${product.price.toFixed(2)}
+              </div>
+            )}
+
+            {/* Eye Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedProduct(product);
+                setProductDetailModalOpen(true);
+              }}
+              className="absolute bottom-1 right-1 z-20 bg-black bg-opacity-60 hover:bg-opacity-80 p-1 rounded transition"
+              title="View product details"
+            >
+              <Eye className="h-3 w-3 text-white" />
+            </button>
+          </div>
+        ))}
       </div>
-    </div>
+    ) : (
+      <div className="text-center text-muted-foreground text-sm py-8">
+        No products yet
+      </div>
+    )}
+  </div>
+</div>
   </>
 )}
 
