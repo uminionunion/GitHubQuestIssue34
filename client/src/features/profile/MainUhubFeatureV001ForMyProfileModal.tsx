@@ -1597,8 +1597,8 @@ useEffect(() => {
         </a>
       </div>
       <div className="space-y-2">
-        {userStoreProducts.length > 0 ? (
-          userStoreProducts.map((p, i) => (
+        {everythingProducts.length > 0 ? (
+          everythingProducts.map((p, i) => (
             <div 
               key={p.id || i}
               className="border rounded p-2 text-xs flex items-center gap-2 hover:bg-gray-800 transition cursor-pointer"
