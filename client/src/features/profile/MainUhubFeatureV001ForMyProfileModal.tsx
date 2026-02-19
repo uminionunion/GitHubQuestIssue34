@@ -2178,14 +2178,17 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
       setSelectedFriendForModal(null);
     }}
     user={selectedFriendForModal}
+    currentUser={user}
     onProductView={(product) => {
       setSelectedProduct(product);
       setProductDetailModalOpen(true);
     }}
+    onBadgeZoomOpen={(badge) => {
+      // Handle badge zoom if needed in MyProfileModal context
+      console.log('Badge clicked:', badge);
+    }}
   />
 )}
-
-
 
 
 
