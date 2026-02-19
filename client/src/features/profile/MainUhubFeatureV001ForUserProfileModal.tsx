@@ -184,33 +184,41 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
         {uStore.name}
       </span>
       
-       {/* uBanner (right) - Takes remaining space */}
-                        {isEditMode && isOwnProfile ? (
-                          <EditableUStoreBadgeBanner
-                            type="banner"
-                            uStoreId={uStore.id}
-                            currentImageUrl={uStore.banner_url}
-                            storeName={uStore.name}
-                            onImageUpdate={handleBadgeBannerUpdate}
-                            isLoading={isLoadingUpdate}
-                          />
-                        ) : (
-                          uStore.banner_url ? (
-                            <img
-                              src={uStore.banner_url}
-                              alt={`${uStore.name} banner`}
-                              className="h-6 rounded object-cover flex-grow ml-auto"
-                              style={{ minWidth: '80px', maxWidth: '150px' }}
-                            />
-                          ) : (
-                            <img
-                              src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
-                              alt="default banner"
-                              className="h-6 rounded object-cover flex-grow ml-auto"
-                              style={{ minWidth: '80px', maxWidth: '150px' }}
-                            />
-                          )
-                        )}
+       // uBanner (right) - Takes remaining space
+{isEditMode && isOwnProfile ? (
+  <EditableUStoreBadgeBanner
+    type="banner"
+    uStoreId={uStore.id}
+    currentImageUrl={uStore.banner_url}
+    storeName={uStore.name}
+    onImageUpdate={handleBadgeBannerUpdate}
+    isLoading={isLoadingUpdate}
+  />
+) : (
+  uStore.banner_url ? (
+    <img
+      src={uStore.banner_url}
+      alt={`${uStore.name} banner`}
+      className="h-6 rounded object-cover flex-grow ml-auto cursor-pointer hover:opacity-80 transition"
+      style={{ minWidth: '80px', maxWidth: '150px' }}
+      onClick={() => {
+        onBadgeZoomOpen?.({ url: uStore.banner_url, name: uStore.name });
+      }}
+      title="Click to zoom"
+    />
+  ) : (
+    <img
+      src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
+      alt="default banner"
+      className="h-6 rounded object-cover flex-grow ml-auto cursor-pointer hover:opacity-80 transition"
+      style={{ minWidth: '80px', maxWidth: '150px' }}
+      onClick={() => {
+        onBadgeZoomOpen?.({ url: "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", name: uStore.name });
+      }}
+      title="Click to zoom"
+    />
+  )
+)}
     </div>
 
     {/* Products within uStore */}
