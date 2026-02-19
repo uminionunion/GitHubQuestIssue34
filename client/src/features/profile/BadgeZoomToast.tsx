@@ -10,8 +10,8 @@ interface BadgeZoomToastProps {
 
 const BadgeZoomToast: React.FC<BadgeZoomToastProps> = ({ imageUrl, altText, onClose }) => {
   return (
-    <div className="fixed inset-0 z-[9999999] flex items-center justify-center bg-black/70 pointer-events-auto">
-      <div className="relative bg-black rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-auto z-[10000]">
+    <div className="fixed inset-0 z-[999999] !z-[999999] flex items-center justify-center bg-black/70 pointer-events-auto">
+      <div className="relative bg-black rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-auto z-[9999999] !z-[9999999]">
         <Button
           variant="ghost"
           size="icon"
