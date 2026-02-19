@@ -1997,6 +1997,15 @@ const handleEditProfileImageClick = (e: React.MouseEvent) => {
                  <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
              </div>
              <div className="space-y-1 md:space-y-4">
+               // Helper function to shuffle array (randomize products)
+const getRandomizedProducts = (products: Product[]): Product[] => {
+  const shuffled = [...products];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
                {renderCenterRightContent()}
              </div>
            </div>
