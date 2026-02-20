@@ -468,10 +468,53 @@ const storePages = buildStorePages();
                           {friendData.uStores && friendData.uStores.length > 0 ? (
                             friendData.uStores.map((uStore) => (
                               <div key={uStore.id} className="space-y-1">
-                                {/* uStore Name (First Indent) */}
-                                <div className="font-semibold text-xs text-cyan-400 py-1">
-                                  {uStore.name}
-                                </div>
+                                {/* uStore Header with Badge and Banner */}
+<div className="flex items-center gap-2 py-1 px-2 rounded border border-gray-700 bg-gray-900/50">
+  {/* uBadge (left) - Fixed size icon */}
+  {uStore.badge_url ? (
+    <img
+      src={uStore.badge_url}
+      alt={`${uStore.name} badge`}
+      className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+      onClick={() => {
+        onBadgeZoomOpen?.({ url: uStore.badge_url, name: uStore.name });
+      }}
+      title="Click to zoom"
+    />
+  ) : (
+    <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
+  )}
+
+  {/* uStore Name */}
+  <span className="font-semibold text-xs text-cyan-400 flex-shrink-0 whitespace-nowrap">
+    {uStore.name}
+  </span>
+
+  {/* uBanner (right) - Takes remaining space */}
+  {uStore.banner_url ? (
+    <img
+      src={uStore.banner_url}
+      alt={`${uStore.name} banner`}
+      className="h-6 rounded object-cover flex-grow ml-auto cursor-pointer hover:opacity-80 transition"
+      style={{ minWidth: '80px', maxWidth: '150px' }}
+      onClick={() => {
+        onBadgeZoomOpen?.({ url: uStore.banner_url, name: uStore.name });
+      }}
+      title="Click to zoom"
+    />
+  ) : (
+    <img
+      src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
+      alt="default banner"
+      className="h-6 rounded object-cover flex-grow ml-auto cursor-pointer hover:opacity-80 transition"
+      style={{ minWidth: '80px', maxWidth: '150px' }}
+      onClick={() => {
+        onBadgeZoomOpen?.({ url: "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", name: uStore.name });
+      }}
+      title="Click to zoom"
+    />
+  )}
+</div>
 
                                 {/* Products within uStore (Second Indent) */}
                                 <div 
