@@ -216,6 +216,7 @@ interface QuadrantsModalProps {
   setEditProductModalOpen: (open: boolean) => void;
   setSelectedFriendForModal?: (friend: any) => void;
   setIsFriendProfileModalOpen?: (open: boolean) => void;
+  onBadgeZoomOpen?: (badge: { url: string; name: string }) => void;
 }
 
 const QuadrantsModal: React.FC<QuadrantsModalProps> = ({ 
@@ -245,7 +246,8 @@ const QuadrantsModal: React.FC<QuadrantsModalProps> = ({
   setEditingProduct,
   setEditProductModalOpen,
   setSelectedFriendForModal,
-  setIsFriendProfileModalOpen
+  setIsFriendProfileModalOpen,
+  onBadgeZoomOpen
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [myStoreView, setMyStoreView] = useState<'list' | 'add'>('list');
@@ -471,19 +473,26 @@ const storePages = buildStorePages();
                                 {/* uStore Header with Badge and Banner */}
 <div className="flex items-center gap-2 py-1 px-2 rounded border border-gray-700 bg-gray-900/50">
   {/* uBadge (left) - Fixed size icon */}
-  {uStore.badge_url ? (
-    <img
-      src={uStore.badge_url}
-      alt={`${uStore.name} badge`}
-      className="w-6 h-6 rounded object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-      onClick={() => {
-        onBadgeZoomOpen?.({ url: uStore.badge_url, name: uStore.name });
-      }}
-      title="Click to zoom"
-    />
-  ) : (
-    <div className="w-6 h-6 bg-gray-700 rounded flex-shrink-0" />
-  )}
+  <div className="w-6 h-6 rounded flex-shrink-0 bg-gray-700 overflow-hidden flex items-center justify-center">
+    {uStore.badge_url ? (
+      <img
+        src={uStore.badge_url}
+        alt={`${uStore.name} badge`}
+        className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
+        onClick={(e) => {
+          e.stopPropagation();
+          onBadgeZoomOpen?.({ url: uStore.badge_url, name: uStore.name });
+        }}
+        title="Click to zoom"
+        onError={(e) => {
+          console.log(`[FRIENDS STORES] Badge failed to load: ${uStore.badge_url}`);
+          (e.currentTarget as HTMLImageElement).style.display = 'none';
+        }}
+      />
+    ) : (
+      <div className="w-full h-full bg-gray-700" />
+    )}
+  </div>
 
   {/* uStore Name */}
   <span className="font-semibold text-xs text-cyan-400 flex-shrink-0 whitespace-nowrap">
@@ -491,29 +500,26 @@ const storePages = buildStorePages();
   </span>
 
   {/* uBanner (right) - Takes remaining space */}
-  {uStore.banner_url ? (
+  <div className="h-6 rounded flex-grow ml-auto overflow-hidden flex items-center justify-center bg-gray-700" style={{ minWidth: '80px', maxWidth: '150px' }}>
     <img
-      src={uStore.banner_url}
+      src={uStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"}
       alt={`${uStore.name} banner`}
-      className="h-6 rounded object-cover flex-grow ml-auto cursor-pointer hover:opacity-80 transition"
-      style={{ minWidth: '80px', maxWidth: '150px' }}
-      onClick={() => {
-        onBadgeZoomOpen?.({ url: uStore.banner_url, name: uStore.name });
+      className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
+      onClick={(e) => {
+        e.stopPropagation();
+        onBadgeZoomOpen?.({ 
+          url: uStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", 
+          name: uStore.name 
+        });
       }}
       title="Click to zoom"
-    />
-  ) : (
-    <img
-      src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
-      alt="default banner"
-      className="h-6 rounded object-cover flex-grow ml-auto cursor-pointer hover:opacity-80 transition"
-      style={{ minWidth: '80px', maxWidth: '150px' }}
-      onClick={() => {
-        onBadgeZoomOpen?.({ url: "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", name: uStore.name });
+      onError={(e) => {
+        console.log(`[FRIENDS STORES] Banner failed to load: ${uStore.banner_url}`);
+        // Load default if custom fails
+        (e.currentTarget as HTMLImageElement).src = "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png";
       }}
-      title="Click to zoom"
     />
-  )}
+  </div>
 </div>
 
                                 {/* Products within uStore (Second Indent) */}
@@ -2250,6 +2256,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
     setAddProductModalOpen(true);
   }}
   allProducts={everythingProducts}
+  onBadgeZoomOpen={onBadgeZoom}
 />
 
 
