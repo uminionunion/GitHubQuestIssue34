@@ -41,23 +41,26 @@ let anonymousCounter = 0;
 const usersInRooms: { [room: string]: { [socketId: string]: { username: string } } } = {};
 
 export function setupChat(io: SocketIOServer) {
-  io.use((socket: any, next: any) => {
-    const token = socket.handshake.auth.token;
-    if (token) {
-      try {
-        const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
-        socket.user = payload;
-      } catch (err) {
-        // Invalid token - user can still join as anonymous
-      }
+io.use((socket: SocketWithUser, next) => {
+  const token = socket.handshake.auth.token;
+  
+  if (token && token !== '') {
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as UserPayload;
+      socket.user = payload;
+      console.log(`[AUTH] User authenticated: ${payload.username} (ID: ${payload.userId})`);
+      return next();
+    } catch (err) {
+      console.log('[AUTH] Token verification failed:', err);
     }
-    // Assign an anonymous ID if not logged in
-    if (!socket.user) {
-      anonymousCounter++;
-      socket.anonymousId = `Anonymous${String(anonymousCounter).padStart(3, '0')}`;
-    }
-    next();
-  });
+  }
+  
+  // Assign an anonymous ID if not logged in
+  anonymousCounter++;
+  socket.anonymousId = `Anonymous${String(anonymousCounter).padStart(3, '0')}`;
+  console.log(`[AUTH] User is anonymous: ${socket.anonymousId}`);
+  next();
+});
 
   io.on('connection', (socket: SocketWithUser) => {
     console.log('A user connected:', socket.id, 'as', socket.user?.username || socket.anonymousId);
