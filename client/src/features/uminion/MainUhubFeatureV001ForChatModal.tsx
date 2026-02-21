@@ -116,12 +116,13 @@ const [archiveOffset, setArchiveOffset] = useState(0);
     ? window.location.origin 
     : 'http://localhost:3001',
   {
-    withCredentials: true,
-    auth: {
-      token: localStorage.getItem('token') || '',
-    },
-  }
-);
+  withCredentials: true,
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: 5,
+  transports: ['websocket', 'polling'],
+});
 
      socketRef.current.on('connect', () => {
        console.log('Connected to socket server');
