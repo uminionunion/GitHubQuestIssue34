@@ -106,65 +106,65 @@ const [archiveOffset, setArchiveOffset] = useState(0);
  const restrictedTabs = [1, 3, 4, 5, 6];
 
  useEffect(() => {
-   setCurrentBg(backgroundColor);
- }, [backgroundColor]);
+     setCurrentBg(backgroundColor);
+   }, [backgroundColor]);
 
- useEffect(() => {useEffect(() => {
-    if (isOpen) {
-      const initializeSocket = async () => {
-        try {
-          // Verify authentication token exists in cookie
-          const authResponse = await fetch('/api/auth/me', { credentials: 'include' });
-          console.log('[CHAT] Auth check:', authResponse.ok ? 'Logged in' : 'Not logged in');
+   useEffect(() => {
+     if (isOpen) {
+       const initializeSocket = async () => {
+         try {
+           // Verify authentication token exists in cookie
+           const authResponse = await fetch('/api/auth/me', { credentials: 'include' });
+           console.log('[CHAT] Auth check:', authResponse.ok ? 'Logged in' : 'Not logged in');
 
-          // Connect with credentials regardless of auth status
-          socketRef.current = io(
-            process.env.NODE_ENV === 'production' 
-              ? window.location.origin 
-              : 'http://localhost:3001',
-            {
-              withCredentials: true,
-              reconnection: true,
-              reconnectionDelay: 1000,
-              reconnectionDelayMax: 5000,
-              reconnectionAttempts: 5,
-              transports: ['websocket', 'polling'],
-            }
-          );
+           // Connect with credentials regardless of auth status
+           socketRef.current = io(
+             process.env.NODE_ENV === 'production' 
+               ? window.location.origin 
+               : 'http://localhost:3001',
+             {
+               withCredentials: true,
+               reconnection: true,
+               reconnectionDelay: 1000,
+               reconnectionDelayMax: 5000,
+               reconnectionAttempts: 5,
+               transports: ['websocket', 'polling'],
+             }
+           );
 
-          socketRef.current.on('connect', () => {
-            console.log('Connected to socket server');
-            socketRef.current?.emit('joinRoom', roomName);
-          });
+           socketRef.current.on('connect', () => {
+             console.log('Connected to socket server');
+             socketRef.current?.emit('joinRoom', roomName);
+           });
 
-          socketRef.current.on('loadMessages', (loadedMessages: Message[]) => {
-            setMessages(loadedMessages);
-          });
+           socketRef.current.on('loadMessages', (loadedMessages: Message[]) => {
+             setMessages(loadedMessages);
+           });
 
-          socketRef.current.on('receiveMessage', (message: Message) => {
-            setMessages((prevMessages) => [...prevMessages, message]);
-          });
+           socketRef.current.on('receiveMessage', (message: Message) => {
+             setMessages((prevMessages) => [...prevMessages, message]);
+           });
 
-          socketRef.current.on('updateUserList', (userList: User[]) => {
-            setUsers(userList);
-          });
+           socketRef.current.on('updateUserList', (userList: User[]) => {
+             setUsers(userList);
+           });
 
-          socketRef.current.on('error', (error: any) => {
-            console.error('[CHAT] Socket error:', error);
-          });
-        } catch (error) {
-          console.error('Error initializing socket:', error);
-        }
-      };
+           socketRef.current.on('error', (error: any) => {
+             console.error('[CHAT] Socket error:', error);
+           });
+         } catch (error) {
+           console.error('Error initializing socket:', error);
+         }
+       };
 
-      initializeSocket();
+       initializeSocket();
 
-      return () => {
-        socketRef.current?.emit('leaveRoom', roomName);
-        socketRef.current?.disconnect();
-      };
-    }
-  }, [isOpen, roomName]);
+       return () => {
+         socketRef.current?.emit('leaveRoom', roomName);
+         socketRef.current?.disconnect();
+       };
+     }
+   }, [isOpen, roomName]);
 
  useEffect(() => {
    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
