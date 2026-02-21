@@ -65,6 +65,8 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
   const [newStoreName, setNewStoreName] = useState('');
   const [newStoreSubtitle, setNewStoreSubtitle] = useState('');
   const [newStoreDescription, setNewStoreDescription] = useState('');
+  const [newStoreBadgeImage, setNewStoreBadgeImage] = useState<File | null>(null);
+  const [newStoreBannerImage, setNewStoreBannerImage] = useState<File | null>(null);
   const [isCreatingStore, setIsCreatingStore] = useState(false);
 
   // Pre-fill form when editing
@@ -140,14 +142,26 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
 
     try {
       console.log('[ADD PRODUCT MODAL] Creating new user store:', newStoreName);
+      
+      // Create FormData to handle file uploads
+      const formData = new FormData();
+      formData.append('name', newStoreName.trim());
+      formData.append('subtitle', newStoreSubtitle.trim() || '');
+      formData.append('description', newStoreDescription.trim() || '');
+      
+      // Add badge image if provided
+      if (newStoreBadgeImage) {
+        formData.append('badgeImage', newStoreBadgeImage);
+      }
+      
+      // Add banner image if provided
+      if (newStoreBannerImage) {
+        formData.append('bannerImage', newStoreBannerImage);
+      }
+
       const response = await fetch(`/api/products/user/${user.id}/stores`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newStoreName.trim(),
-          subtitle: newStoreSubtitle.trim() || undefined,
-          description: newStoreDescription.trim() || undefined,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -164,11 +178,13 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
       // Auto-select the newly created store
       setSelectedUserStoreId(String(newStore.id));
 
-      // Reset the create store form
+       // Reset the create store form
       setShowCreateNewStore(false);
       setNewStoreName('');
       setNewStoreSubtitle('');
       setNewStoreDescription('');
+      setNewStoreBadgeImage(null);
+      setNewStoreBannerImage(null);
     } catch (err) {
       console.error('[ADD PRODUCT MODAL] Error creating store:', err);
       setError(err instanceof Error ? err.message : 'Failed to create store');
@@ -186,6 +202,18 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
   const handleQrCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setQrCodeImage(e.target.files[0]);
+    }
+  };
+
+  const handleNewStoreBadgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setNewStoreBadgeImage(e.target.files[0]);
+    }
+  };
+
+  const handleNewStoreBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setNewStoreBannerImage(e.target.files[0]);
     }
   };
 
@@ -661,6 +689,66 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                           placeholder="Describe your store..."
                           rows={2}
                           className="text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Store Badge Image (optional)</label>
+                        <div className="border-2 border-dashed border-border rounded p-2 text-center mb-2">
+                          {newStoreBadgeImage ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <img
+                                src={URL.createObjectURL(newStoreBadgeImage)}
+                                alt="Badge Preview"
+                                className="max-h-16 max-w-16 rounded"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setNewStoreBadgeImage(null)}
+                                className="text-xs text-orange-400 hover:underline"
+                              >
+                                Remove badge
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">No badge selected</p>
+                          )}
+                        </div>
+                        <Input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleNewStoreBadgeChange}
+                          className="text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Store Banner Image (optional)</label>
+                        <div className="border-2 border-dashed border-border rounded p-2 text-center mb-2">
+                          {newStoreBannerImage ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <img
+                                src={URL.createObjectURL(newStoreBannerImage)}
+                                alt="Banner Preview"
+                                className="max-h-16 max-w-32 rounded"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setNewStoreBannerImage(null)}
+                                className="text-xs text-orange-400 hover:underline"
+                              >
+                                Remove banner
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">No banner selected</p>
+                          )}
+                        </div>
+                        <Input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleNewStoreBannerChange}
+                          className="text-xs"
                         />
                       </div>
 
