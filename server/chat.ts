@@ -93,18 +93,27 @@ export function setupChat(io: SocketIOServer) {
         
   const formattedMessages = messages.map(msg => {
   let displayUsername: string;
+  let displayIsAnonymous: boolean;
   
-  if (msg.is_anonymous || !msg.username) {
+  if (msg.is_anonymous === 1) {
+    // Message was posted anonymously
     displayUsername = msg.anonymous_username || 'Anonymous';
-  } else {
+    displayIsAnonymous = true;
+  } else if (msg.username) {
+    // Message was posted by logged-in user with their real name
     displayUsername = msg.username;
+    displayIsAnonymous = false;
+  } else {
+    // Fallback - shouldn't happen with correct logic
+    displayUsername = 'Anonymous';
+    displayIsAnonymous = true;
   }
   
   return {
     id: msg.id,
     content: msg.content,
     username: displayUsername,
-    is_anonymous: msg.is_anonymous,
+    is_anonymous: displayIsAnonymous,
     timestamp: msg.timestamp,
   };
 });
@@ -119,51 +128,67 @@ socket.emit('loadMessages', formattedMessages);
   const { room, content, isAnonymous } = data;
   
   try {
-    let userId = null;
-    let anonymousUsername = null;
-    let displayUsername = null;
-
+    let userId: number | null = null;
+    let anonymousUsername: string | null = null;
+    let isAnon = 0;
+    
     // DETERMINE WHO IS SENDING THE MESSAGE
-    if (isAnonymous) {
-      // User CHOSE to post anonymously (they have socket.user but clicked "Post Anonymously?")
-      anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
-      displayUsername = anonymousUsername;
-    } else if (socket.user) {
-      // LOGGED-IN USER posting with their username
+    if (socket.user) {
+      // LOGGED-IN USER
       userId = socket.user.userId;
-      displayUsername = socket.user.username;
+      if (isAnonymous) {
+        // They clicked "Post Anonymously?" - mark as anonymous
+        isAnon = 1;
+        anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+      } else {
+        // They did NOT click "Post Anonymously?" - post as themselves
+        isAnon = 0;
+        anonymousUsername = null;  // No anonymous name needed
+      }
     } else {
-      // NOT LOGGED-IN user, treat as anonymous
+      // NOT LOGGED-IN USER - Always anonymous
+      userId = null;
+      isAnon = 1;
       anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
-      displayUsername = anonymousUsername;
     }
 
     // Save message to database
-    const message = await db
+    const newMessage = await db
       .insertInto('messages')
       .values({
         content,
         room,
         user_id: userId,
-        is_anonymous: isAnonymous ? 1 : 0,
+        is_anonymous: isAnon,
         anonymous_username: anonymousUsername,
       })
-      .returning('id')
-      .executeTakeFirstOrThrow();
+      .returningAll()
+      .executeTakeFirst();
 
-    console.log(`Message saved to room ${room}:`, content);
-    console.log(`[CHAT] Message from: "${displayUsername}" | Anonymous: ${isAnonymous ? 'YES' : 'NO'} | UserID: ${userId}`);
+    if (newMessage) {
+      // Determine display username for clients
+      let displayUsername: string;
+      if (isAnon === 1 && anonymousUsername) {
+        displayUsername = anonymousUsername;  // Show "AnonymousXXX"
+      } else if (socket.user) {
+        displayUsername = socket.user.username;  // Show their actual username
+      } else {
+        displayUsername = 'Anonymous';
+      }
 
-    // Broadcast to all users in room - NOW WITH CORRECT USERNAME
-    io.to(room).emit('newMessage', {
-      id: message.id,
-      content,
-      username: displayUsername,  // ← ALWAYS has the correct value
-      timestamp: new Date().toISOString(),
-      is_anonymous: isAnonymous ? 1 : 0,
-    });
+      const messageForClient = {
+        id: newMessage.id,
+        content: newMessage.content,
+        username: displayUsername,
+        is_anonymous: isAnon === 1,
+        timestamp: newMessage.timestamp,
+      };
+
+      console.log(`[CHAT] Message from: "${displayUsername}" | Anonymous: ${isAnon === 1 ? 'YES' : 'NO'} | UserID: ${userId}`);
+      io.to(room).emit('receiveMessage', messageForClient);
+    }
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error('Error saving message:', error);
     socket.emit('error', { message: 'Failed to send message' });
   }
 });
