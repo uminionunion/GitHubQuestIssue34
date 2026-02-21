@@ -91,11 +91,23 @@ export function setupChat(io: SocketIOServer) {
           ])
           .execute();
         
-        const formattedMessages = messages.map(msg => ({
-  ...msg,
-  username: msg.is_anonymous ? (msg.anonymous_username || 'Anonymous') : msg.username,
-  timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString(),
-}));
+  const formattedMessages = messages.map(msg => {
+  let displayUsername: string;
+  
+  if (msg.is_anonymous || !msg.username) {
+    displayUsername = msg.anonymous_username || 'Anonymous';
+  } else {
+    displayUsername = msg.username;
+  }
+  
+  return {
+    id: msg.id,
+    content: msg.content,
+    username: displayUsername,
+    is_anonymous: msg.is_anonymous,
+    timestamp: msg.timestamp,
+  };
+});
 
 socket.emit('loadMessages', formattedMessages);
       } catch (error) {
