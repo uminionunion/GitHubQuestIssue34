@@ -110,62 +110,62 @@ const [archiveOffset, setArchiveOffset] = useState(0);
    }, [backgroundColor]);
 
    useEffect(() => {
-  if (isOpen) {
-    const initializeSocket = async () => {
-      try {
-        // Verify authentication token exists in cookie
-        const authResponse = await fetch('/api/auth/me', { credentials: 'include' });
-        const isLoggedIn = authResponse.ok;
-        console.log('[CHAT] Auth check:', isLoggedIn ? 'Logged in' : 'Not logged in');
+    if (isOpen) {
+      const initializeSocket = async () => {
+        try {
+          // Verify authentication token exists in cookie
+          const authResponse = await fetch('/api/auth/me', { credentials: 'include' });
+          const isLoggedIn = authResponse.ok;
+          console.log('[CHAT] Auth check:', isLoggedIn ? 'Logged in' : 'Not logged in');
 
-        // Connect with credentials - cookies are sent automatically with withCredentials: true
-        socketRef.current = io(
-          process.env.NODE_ENV === 'production' 
-            ? window.location.origin 
-            : 'http://localhost:3001',
-          {
-            withCredentials: true,  // This sends cookies automatically
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: 5,
-            transports: ['websocket', 'polling'],
-          }
-        );
+          // Connect with credentials - cookies are sent automatically with withCredentials: true
+          socketRef.current = io(
+            process.env.NODE_ENV === 'production' 
+              ? window.location.origin 
+              : 'http://localhost:3001',
+            {
+              withCredentials: true,  // This sends cookies automatically
+              reconnection: true,
+              reconnectionDelay: 1000,
+              reconnectionDelayMax: 5000,
+              reconnectionAttempts: 5,
+              transports: ['websocket', 'polling'],
+            }
+          );
 
-        socketRef.current.on('connect', () => {
-          console.log('[CHAT] Connected to socket server');
-          socketRef.current?.emit('joinRoom', roomName);
-        });
+          socketRef.current.on('connect', () => {
+            console.log('[CHAT] Connected to socket server');
+            socketRef.current?.emit('joinRoom', roomName);
+          });
 
-        socketRef.current.on('loadMessages', (loadedMessages: Message[]) => {
-          setMessages(loadedMessages);
-        });
+          socketRef.current.on('loadMessages', (loadedMessages: Message[]) => {
+            setMessages(loadedMessages);
+          });
 
-        socketRef.current.on('receiveMessage', (message: Message) => {
-          setMessages((prevMessages) => [...prevMessages, message]);
-        });
+          socketRef.current.on('receiveMessage', (message: Message) => {
+            setMessages((prevMessages) => [...prevMessages, message]);
+          });
 
-        socketRef.current.on('updateUserList', (userList: User[]) => {
-          setUsers(userList);
-        });
+          socketRef.current.on('updateUserList', (userList: User[]) => {
+            setUsers(userList);
+          });
 
-        socketRef.current.on('error', (error: any) => {
-          console.error('[CHAT] Socket error:', error);
-        });
-      } catch (error) {
-        console.error('Error initializing socket:', error);
-      }
-    };
+          socketRef.current.on('error', (error: any) => {
+            console.error('[CHAT] Socket error:', error);
+          });
+        } catch (error) {
+          console.error('Error initializing socket:', error);
+        }
+      };
 
-    initializeSocket();
+      initializeSocket();
 
-    return () => {
-      socketRef.current?.emit('leaveRoom', roomName);
-      socketRef.current?.disconnect();
-    };
-  }
-}, [isOpen, roomName]);
+      return () => {
+        socketRef.current?.emit('leaveRoom', roomName);
+        socketRef.current?.disconnect();
+      };
+    }
+  }, [isOpen, roomName]);
 
           socketRef.current.on('connect', () => {
             console.log('Connected to socket server');
