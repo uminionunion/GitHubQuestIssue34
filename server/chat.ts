@@ -129,41 +129,41 @@ socket.emit('loadMessages', formattedMessages);
   
   try {
     let userId: number | null = null;
-    let anonymousUsername: string | null = null;
-    let isAnon = 0;
-    
-    // DETERMINE WHO IS SENDING THE MESSAGE
-    if (socket.user) {
-      // LOGGED-IN USER
-      userId = socket.user.userId;
-      if (isAnonymous) {
-        // They clicked "Post Anonymously?" - mark as anonymous
-        isAnon = 1;
-        anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
-      } else {
-        // They did NOT click "Post Anonymously?" - post as themselves
-        isAnon = 0;
-        anonymousUsername = null;  // No anonymous name needed
-      }
-    } else {
-      // NOT LOGGED-IN USER - Always anonymous
-      userId = null;
-      isAnon = 1;
-      anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
-    }
+        let anonymousUsername: string | null = null;
+        let isAnon: 0 | 1 = 0;
+        
+        // DETERMINE WHO IS SENDING THE MESSAGE
+        if (socket.user) {
+          // LOGGED-IN USER
+          userId = socket.user.userId;
+          if (isAnonymous) {
+            // They clicked "Post Anonymously?" - mark as anonymous
+            isAnon = 1 as const;
+            anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+          } else {
+            // They did NOT click "Post Anonymously?" - post as themselves
+            isAnon = 0 as const;
+            anonymousUsername = null;  // No anonymous name needed
+          }
+        } else {
+          // NOT LOGGED-IN USER - Always anonymous
+          userId = null;
+          isAnon = 1 as const;
+          anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+        }
 
-    // Save message to database
-    const newMessage = await db
-      .insertInto('messages')
-      .values({
-        content,
-        room,
-        user_id: userId,
-        is_anonymous: isAnon,
-        anonymous_username: anonymousUsername,
-      })
-      .returningAll()
-      .executeTakeFirst();
+        // Save message to database
+        const newMessage = await db
+          .insertInto('messages')
+          .values({
+            content,
+            room,
+            user_id: userId,
+            is_anonymous: isAnon,
+            anonymous_username: anonymousUsername,
+          })
+          .returningAll()
+          .executeTakeFirst();
 
     if (newMessage) {
       // Determine display username for clients
