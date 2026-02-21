@@ -111,18 +111,43 @@ const [archiveOffset, setArchiveOffset] = useState(0);
 
  useEffect(() => {
    if (isOpen) {
-  socketRef.current = io(
-  process.env.NODE_ENV === 'production' 
-    ? window.location.origin 
-    : 'http://localhost:3001',
-  {
-  withCredentials: true,
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: 5,
-  transports: ['websocket', 'polling'],
-});
+  useEffect(() => {
+    if (isOpen) {
+      // Get the JWT token from localStorage or cookies
+      const getToken = async () => {
+        try {
+          const response = await fetch('/api/auth/me', { credentials: 'include' });
+          if (response.ok) {
+            // Token exists in httpOnly cookie, connect with credentials
+            socketRef.current = io(
+              process.env.NODE_ENV === 'production' 
+                ? window.location.origin 
+                : 'http://localhost:3001',
+              {
+                withCredentials: true,
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                reconnectionAttempts: 5,
+                transports: ['websocket', 'polling'],
+              }
+            );
+          } else {
+            // Not logged in, connect as guest
+            socketRef.current = io(
+              process.env.NODE_ENV === 'production' 
+                ? window.location.origin 
+                : 'http://localhost:3001',
+              {
+                withCredentials: true,
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                reconnectionAttempts: 5,
+                transports: ['websocket', 'polling'],
+              }
+            );
+          }
 
      socketRef.current.on('connect', () => {
        console.log('Connected to socket server');
