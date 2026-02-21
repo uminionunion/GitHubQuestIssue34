@@ -787,6 +787,103 @@ router.delete('/admin/:productId', authenticate, async (req, res) => {
 
 
 
+// DELETE - Delete user store and all its products (cascade delete)
+router.delete('/user-stores/:userStoreId', authenticate, async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  const { userStoreId } = req.params;
+  const parsedStoreId = parseInt(userStoreId);
+
+  try {
+    console.log(`[PRODUCTS] User ${req.user.userId} deleting uStore ${parsedStoreId}`);
+
+    // Verify the user store exists and belongs to the user
+    const userStore = await db
+      .selectFrom('user_stores')
+      .selectAll()
+      .where('id', '=', parsedStoreId)
+      .where('user_id', '=', req.user.userId)
+      .executeTakeFirst();
+
+    if (!userStore) {
+      res.status(404).json({ message: 'User store not found or does not belong to you' });
+      return;
+    }
+
+    // Get all products in this uStore
+    const productsInStore = await db
+      .selectFrom('MainHubUpgradeV001ForProducts')
+      .selectAll()
+      .where('user_store_id', '=', parsedStoreId)
+      .where('is_in_trash', '=', 0)
+      .execute();
+
+    console.log(`[PRODUCTS] Found ${productsInStore.length} products in uStore ${parsedStoreId}`);
+
+    // Soft delete all products (move to trash)
+    if (productsInStore.length > 0) {
+      await db
+        .updateTable('MainHubUpgradeV001ForProducts')
+        .set({ is_in_trash: 1 })
+        .where('user_store_id', '=', parsedStoreId)
+        .execute();
+
+      // Create trash records for each product
+      for (const product of productsInStore) {
+        await db
+          .insertInto('MainHubUpgradeV001ForProductTrash')
+          .values({
+            product_id: product.id,
+            user_id: req.user.userId,
+          })
+          .execute();
+      }
+
+      console.log(`[PRODUCTS] ✅ Moved ${productsInStore.length} products to trash`);
+    }
+
+    // Delete the user store
+    await db
+      .deleteFrom('user_stores')
+      .where('id', '=', parsedStoreId)
+      .execute();
+
+    console.log(`[PRODUCTS] ✅ User store ${parsedStoreId} deleted successfully by user ${req.user.userId}`);
+
+    res.status(200).json({
+      message: 'User store and all its products have been deleted',
+      storeId: parsedStoreId,
+      productsDeleted: productsInStore.length,
+    });
+  } catch (error) {
+    console.error('[PRODUCTS] ❌ Error deleting user store:', error);
+    res.status(500).json({
+      message: 'Failed to delete user store',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Add product to user store (update existing product)
 router.put('/products/:productId/user-store', async (req, res) => {
   try {
