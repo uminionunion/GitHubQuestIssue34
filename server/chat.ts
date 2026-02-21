@@ -111,14 +111,17 @@ socket.emit('loadMessages', formattedMessages);
     let anonymousUsername = null;
     let displayUsername = null;
 
+    // DETERMINE WHO IS SENDING THE MESSAGE
     if (isAnonymous) {
+      // User CHOSE to post anonymously (they have socket.user but clicked "Post Anonymously?")
       anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
       displayUsername = anonymousUsername;
     } else if (socket.user) {
+      // LOGGED-IN USER posting with their username
       userId = socket.user.userId;
       displayUsername = socket.user.username;
     } else {
-      // Non-authenticated, must be anonymous
+      // NOT LOGGED-IN user, treat as anonymous
       anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
       displayUsername = anonymousUsername;
     }
@@ -137,13 +140,13 @@ socket.emit('loadMessages', formattedMessages);
       .executeTakeFirstOrThrow();
 
     console.log(`Message saved to room ${room}:`, content);
-    console.log(`[CHAT] Emitting message with username: "${displayUsername}"`);
+    console.log(`[CHAT] Message from: "${displayUsername}" | Anonymous: ${isAnonymous ? 'YES' : 'NO'} | UserID: ${userId}`);
 
     // Broadcast to all users in room - NOW WITH CORRECT USERNAME
     io.to(room).emit('newMessage', {
       id: message.id,
       content,
-      username: displayUsername,  // ← FIXED - Always has correct value
+      username: displayUsername,  // ← ALWAYS has the correct value
       timestamp: new Date().toISOString(),
       is_anonymous: isAnonymous ? 1 : 0,
     });
