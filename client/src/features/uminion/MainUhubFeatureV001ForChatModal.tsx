@@ -286,6 +286,42 @@ const getChatTabs = () => {
 
  const isMobile = window.innerWidth < 768;
 
+
+
+
+
+
+
+// Format timestamp to readable date and time
+const formatMessageTime = (isoString: string): string => {
+  try {
+    const date = new Date(isoString);
+    const options: Intl.DateTimeFormatOptions = {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    };
+    return date.toLocaleDateString('en-US', options);
+  } catch (error) {
+    console.error('Error formatting timestamp:', error);
+    return 'Invalid date';
+  }
+};
+
+
+
+
+
+
+
+
+
+  
+
   return (
     <>
        <Dialog open={isOpen} onOpenChange={onClose}>
@@ -334,24 +370,28 @@ const getChatTabs = () => {
                 ) : (
                   <div className="space-y-4">
                     {messages.map((msg) => (
-                      <div key={msg.id}>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <span className="font-bold cursor-pointer hover:underline">{msg.username}: </span>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-48">
-                            <div className="grid gap-2">
-                              <Button variant="ghost" className="justify-start" onClick={() => handleViewProfile(msg.username)}>View Profile</Button>
-                              <Button variant="ghost" className="justify-start"><UserPlus className="mr-2 h-4 w-4" /> Add Friend</Button>
-                              <Button variant="ghost" className="justify-start"><MessageSquare className="mr-2 h-4 w-4" /> Direct Message</Button>
-                              <Button variant="ghost" className="justify-start"><UserX className="mr-2 h-4 w-4" /> Block/Ignore</Button>
-                              <Button variant="destructive" className="justify-start"><ShieldAlert className="mr-2 h-4 w-4" /> Report</Button>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                        <span className={msg.is_anonymous ? 'text-orange-400' : ''}>{msg.content}</span>
-                      </div>
-                    ))}
+  <div key={msg.id}>
+    <div className="flex items-baseline gap-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <span className="font-bold cursor-pointer hover:underline">{msg.username}</span>
+        </PopoverTrigger>
+        <PopoverContent className="w-48">
+          <div className="grid gap-2">
+            <Button variant="ghost" className="justify-start" onClick={() => handleViewProfile(msg.username)}>View Profile</Button>
+            <Button variant="ghost" className="justify-start"><UserPlus className="mr-2 h-4 w-4" /> Add Friend</Button>
+            <Button variant="ghost" className="justify-start"><MessageSquare className="mr-2 h-4 w-4" /> Direct Message</Button>
+            <Button variant="ghost" className="justify-start"><UserX className="mr-2 h-4 w-4" /> Block/Ignore</Button>
+            <Button variant="destructive" className="justify-start"><ShieldAlert className="mr-2 h-4 w-4" /> Report</Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+      <span className="text-xs text-gray-400">{formatMessageTime(msg.timestamp)}</span>
+      <span className="text-gray-400">-</span>
+    </div>
+    <span className={msg.is_anonymous ? 'text-orange-400' : ''}>{msg.content}</span>
+  </div>
+))}
                     <div ref={messagesEndRef} />
                   </div>
                 )}
