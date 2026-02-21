@@ -110,49 +110,47 @@ const [archiveOffset, setArchiveOffset] = useState(0);
    }, [backgroundColor]);
 
    useEffect(() => {
-    if (isOpen) {
-      const initializeSocket = async () => {
-        try {
-          // Verify authentication token exists in cookie
-          const authResponse = await fetch('/api/auth/me', { credentials: 'include' });
-          console.log('[CHAT] Auth check:', authResponse.ok ? 'Logged in' : 'Not logged in');
+  if (isOpen) {
+    const initializeSocket = async () => {
+      try {
+        // Verify authentication token exists in cookie
+        const authResponse = await fetch('/api/auth/me', { credentials: 'include' });
+        console.log('[CHAT] Auth check:', authResponse.ok ? 'Logged in' : 'Not logged in');
 
-          // Extract token from cookie in a reliable way
-          const getToken = (): string => {
-            const name = 'token=';
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
-            for (let i = 0; i < cookieArray.length; i++) {
-              let cookie = cookieArray[i].trim();
-              if (cookie.indexOf(name) === 0) {
-                return cookie.substring(name.length);
-              }
+        // Extract token from cookie
+        const getToken = (): string => {
+          const name = 'token=';
+          const decodedCookie = decodeURIComponent(document.cookie);
+          const cookieArray = decodedCookie.split(';');
+          for (let i = 0; i < cookieArray.length; i++) {
+            let cookie = cookieArray[i].trim();
+            if (cookie.indexOf(name) === 0) {
+              return cookie.substring(name.length);
             }
-            return '';
-          };
+          }
+          return '';
+        };
 
-          const token = getToken();
-          console.log('[CHAT] Token extracted from cookie:', token ? 'Present' : 'Missing');
+        const token = getToken();
+        console.log('[CHAT] Token extracted from cookie:', token ? 'Present' : 'Missing');
 
-          // Connect with credentials regardless of auth status
-           socketRef.current = io(
-            process.env.NODE_ENV === 'production' 
-              ? window.location.origin 
-              : 'http://localhost:3001',
-            {
-              withCredentials: true,
-              reconnection: true,
-              reconnectionDelay: 1000,
-              reconnectionDelayMax: 5000,
-              reconnectionAttempts: 5,
-              transports: ['websocket', 'polling'],
-              ...(token ? { 
-                extraHeaders: {
-                  authorization: `Bearer ${token}`
-                }
-              } : {})
+        // Connect with credentials AND pass token via auth object
+         socketRef.current = io(
+          process.env.NODE_ENV === 'production' 
+            ? window.location.origin 
+            : 'http://localhost:3001',
+          {
+            withCredentials: true,
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: 5,
+            transports: ['websocket', 'polling'],
+            auth: {
+              token: token || ''
             }
-           );
+          }
+         );
 
           socketRef.current.on('connect', () => {
             console.log('Connected to socket server');
