@@ -13,6 +13,30 @@ interface SocketWithUser {
   join: (room: string) => void;
 }
 
+
+
+// Format timestamp to readable date and time (e.g., "Feb 10, 2025 3:45 PM")
+function formatTimestamp(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    const options: Intl.DateTimeFormatOptions = {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    };
+    return date.toLocaleDateString('en-US', options);
+  } catch (error) {
+    console.error('Error formatting timestamp:', error);
+    return 'Invalid date';
+  }
+}
+
+
+
 let anonymousCounter = 0;
 const usersInRooms: { [room: string]: { [socketId: string]: { username: string } } } = {};
 
@@ -68,11 +92,12 @@ export function setupChat(io: SocketIOServer) {
           .execute();
         
         const formattedMessages = messages.map(msg => ({
-          ...msg,
-          username: msg.is_anonymous ? (msg.anonymous_username || 'Anonymous') : msg.username,
-        }));
+  ...msg,
+  username: msg.is_anonymous ? (msg.anonymous_username || 'Anonymous') : msg.username,
+  timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString(),
+}));
 
-        socket.emit('loadMessages', formattedMessages);
+socket.emit('loadMessages', formattedMessages);
       } catch (error) {
         console.error(`Error loading messages for room ${room}:`, error);
       }
