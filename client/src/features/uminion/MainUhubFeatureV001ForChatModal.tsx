@@ -167,40 +167,6 @@ const [archiveOffset, setArchiveOffset] = useState(0);
     }
   }, [isOpen, roomName]);
 
-          socketRef.current.on('connect', () => {
-            console.log('Connected to socket server');
-            socketRef.current?.emit('joinRoom', roomName);
-          });
-
-          socketRef.current.on('loadMessages', (loadedMessages: Message[]) => {
-            setMessages(loadedMessages);
-          });
-
-          socketRef.current.on('receiveMessage', (message: Message) => {
-            setMessages((prevMessages) => [...prevMessages, message]);
-          });
-
-          socketRef.current.on('updateUserList', (userList: User[]) => {
-            setUsers(userList);
-          });
-
-          socketRef.current.on('error', (error: any) => {
-            console.error('[CHAT] Socket error:', error);
-          });
-        } catch (error) {
-          console.error('Error initializing socket:', error);
-        }
-      };
-
-      initializeSocket();
-
-      return () => {
-        socketRef.current?.emit('leaveRoom', roomName);
-        socketRef.current?.disconnect();
-      };
-    }
-  }, [isOpen, roomName]);
-
  useEffect(() => {
    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
  }, [messages]);
