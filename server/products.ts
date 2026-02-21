@@ -1160,6 +1160,40 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
       return;
     }
 
+    // Handle badge image upload
+    let badgeUrl = 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg';
+    if ((req as any).files && (req as any).files.badgeImage) {
+      await ensureUploadDir();
+      const uploadedFile = (req as any).files.badgeImage;
+      const uploadsDir = path.join(process.cwd(), 'data', 'uploads', 'store-images');
+      await fs.mkdir(uploadsDir, { recursive: true });
+      
+      const ext = uploadedFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const filename = `badge-${parsedUserId}-${Date.now()}.${ext}`;
+      const filepath = path.join(uploadsDir, filename);
+      
+      await uploadedFile.mv(filepath);
+      badgeUrl = `/data/uploads/store-images/${filename}`;
+      console.log('[PRODUCTS] Badge image uploaded:', badgeUrl);
+    }
+
+    // Handle banner image upload
+    let bannerUrl = 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png';
+    if ((req as any).files && (req as any).files.bannerImage) {
+      await ensureUploadDir();
+      const uploadedFile = (req as any).files.bannerImage;
+      const uploadsDir = path.join(process.cwd(), 'data', 'uploads', 'store-images');
+      await fs.mkdir(uploadsDir, { recursive: true });
+      
+      const ext = uploadedFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const filename = `banner-${parsedUserId}-${Date.now()}.${ext}`;
+      const filepath = path.join(uploadsDir, filename);
+      
+      await uploadedFile.mv(filepath);
+      bannerUrl = `/data/uploads/store-images/${filename}`;
+      console.log('[PRODUCTS] Banner image uploaded:', bannerUrl);
+    }
+
     // NEW: Check uStore limit for NEW users (is_new_user = 1)
     if (user.is_new_user === 1) {
       const storeCount = await db
@@ -1191,8 +1225,8 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
     name: name.trim(),
     subtitle: subtitle && subtitle.trim() ? subtitle.trim() : null,
     description: description && description.trim() ? description.trim() : null,
-    badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg',
-    banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png',
+    badge_url: badgeUrl,
+    banner_url: bannerUrl,
   })
       .returning(['id', 'user_id', 'name', 'subtitle', 'description', 'created_at'])
       .executeTakeFirstOrThrow();
