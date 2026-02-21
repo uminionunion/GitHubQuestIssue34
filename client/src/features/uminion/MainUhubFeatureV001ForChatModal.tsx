@@ -49,6 +49,13 @@ interface User {
   username: string;
 }
 
+interface ArchivedBatch {
+  messages: Message[];
+  hasMore: boolean;
+  offset: number;
+  archivedAt: string;
+}
+
 const backgroundGradients = [
   'linear-gradient(to right, #232526, #414345)', 'linear-gradient(to right, #434343, #000000)',
   'linear-gradient(to right, #141e30, #243b55)', 'linear-gradient(to right, #3a6186, #89253e)',
@@ -85,7 +92,8 @@ const [messages, setMessages] = useState<Message[]>([]);
 const [archivedMessages, setArchivedMessages] = useState<Message[]>([]);
 const [showArchive, setShowArchive] = useState(false);
 const [archiveOffset, setArchiveOffset] = useState(0);
-  const [newMessage, setNewMessage] = useState('');
+const [hasMoreArchives, setHasMoreArchives] = useState(false);
+const [isLoadingArchive, setIsLoadingArchive] = useState(false);  const [newMessage, setNewMessage] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [modalOptionPage, setModalOptionPage] = useState(0);
@@ -143,16 +151,30 @@ const [archiveOffset, setArchiveOffset] = useState(0);
           });
 
           socketRef.current.on('receiveMessage', (message: Message) => {
-            setMessages((prevMessages) => [...prevMessages, message]);
-          });
+  setMessages((prevMessages) => [...prevMessages, message]);
+});
 
-          socketRef.current.on('updateUserList', (userList: User[]) => {
-            setUsers(userList);
-          });
+socketRef.current.on('updateUserList', (userList: User[]) => {
+  setUsers(userList);
+});
 
-          socketRef.current.on('error', (error: any) => {
-            console.error('[CHAT] Socket error:', error);
-          });
+socketRef.current.on('messagesCleared', () => {
+  setMessages([]);
+  setShowArchive(false);
+  setArchiveOffset(0);
+  console.log('[CHAT] Messages cleared at midnight');
+});
+
+socketRef.current.on('loadedArchivedMessages', (batch: ArchivedBatch) => {
+  setArchivedMessages(batch.messages);
+  setHasMoreArchives(batch.hasMore);
+  setArchiveOffset(batch.offset);
+  setIsLoadingArchive(false);
+});
+
+socketRef.current.on('error', (error: any) => {
+  console.error('[CHAT] Socket error:', error);
+});
         } catch (error) {
           console.error('Error initializing socket:', error);
         }
@@ -297,6 +319,34 @@ const getChatTabs = () => {
       document.addEventListener('mouseup', handleMouseUp);
     }
 
+
+
+const handleArchiveClick = () => {
+  if (showArchive) {
+    // User is closing archive
+    setShowArchive(false);
+    setArchivedMessages([]);
+    setArchiveOffset(0);
+  } else {
+    // User is opening archive
+    loadMoreArchives(0);
+  }
+};
+
+const loadMoreArchives = (offset: number) => {
+  setIsLoadingArchive(true);
+  if (socketRef.current) {
+    socketRef.current.emit('loadArchivedMessages', {
+      room: roomName,
+      offset: offset,
+    });
+  }
+};
+
+
+
+    
+
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -373,22 +423,74 @@ const formatMessageTime = (isoString: string): string => {
             <div className="flex-grow flex overflow-hidden" ref={containerRef}>
               <div className="overflow-y-auto p-4" style={{ width: `${chatWidth}%`, color: currentFontColor }}>
                 {isChatDisabled ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    {activeTab === 2 && !isUnlocked ? (
-                      <>
-                        <h3 className="text-lg font-semibold mb-4">This chatroom is password protected.</h3>
-                        <div className="flex gap-2">
-                          <Input type="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                          <Button onClick={handlePasswordSubmit}>Enter</Button>
-                        </div>
-                      </>
-                    ) : (
-                      <h3 className="text-lg font-semibold mb-4">You must be logged in to access this chatroom.</h3>
-                    )}
+  <div className="flex flex-col items-center justify-center h-full">
+    {activeTab === 2 && !isUnlocked ? (
+      <>
+        <h3 className="text-lg font-semibold mb-4">This chatroom is password protected.</h3>
+        <div className="flex gap-2">
+          <Input type="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Button onClick={handlePasswordSubmit}>Enter</Button>
+        </div>
+      </>
+    ) : (
+      <h3 className="text-lg font-semibold mb-4">You must be logged in to access this chatroom.</h3>
+    )}
+  </div>
+) : (
+  <div className="space-y-4 flex flex-col">
+    {showArchive && (
+      <>
+        <Button 
+          className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mb-4"
+          onClick={() => loadMoreArchives(archiveOffset)}
+          disabled={isLoadingArchive}
+        >
+          {isLoadingArchive ? 'Loading...' : 'Archive'}
+        </Button>
+        {archivedMessages.map((msg) => (
+          <div key={msg.id}>
+            <div className="flex items-baseline gap-2 mb-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <span className="font-bold cursor-pointer hover:underline text-xs" style={{ color: msg.is_anonymous ? '#fb923c' : currentFontColor }}>
+                    {msg.username}
+                  </span>
+                </PopoverTrigger>
+                <PopoverContent className="w-48">
+                  <div className="grid gap-2">
+                    <Button variant="ghost" className="justify-start" onClick={() => handleViewProfile(msg.username)}>View Profile</Button>
+                    <Button variant="ghost" className="justify-start"><UserPlus className="mr-2 h-4 w-4" /> Add Friend</Button>
+                    <Button variant="ghost" className="justify-start"><MessageSquare className="mr-2 h-4 w-4" /> Direct Message</Button>
+                    <Button variant="ghost" className="justify-start"><UserX className="mr-2 h-4 w-4" /> Block/Ignore</Button>
+                    <Button variant="destructive" className="justify-start"><ShieldAlert className="mr-2 h-4 w-4" /> Report</Button>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {messages.map((msg) => (
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-gray-400">-</span>
+              <span className="text-xs text-gray-400">{formatMessageTime(msg.timestamp)}</span>
+            </div>
+            <span className={msg.is_anonymous ? 'text-orange-400 text-sm' : 'text-sm'}>{msg.content}</span>
+          </div>
+        ))}
+        {!showArchive && (
+          <Button 
+            className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mt-4"
+            onClick={handleArchiveClick}
+          >
+            Back to Chat
+          </Button>
+        )}
+      </>
+    )}
+    {!showArchive && (
+      <>
+        <Button 
+          className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mb-4"
+          onClick={handleArchiveClick}
+        >
+          Archive
+        </Button>
+        {messages.map((msg) => (
   <div key={msg.id}>
     <div className="flex items-baseline gap-2 mb-2">
       <Popover>
@@ -414,8 +516,10 @@ const formatMessageTime = (isoString: string): string => {
   </div>
 ))}
                     <div ref={messagesEndRef} />
-                  </div>
-                )}
+            </>
+          )}
+        </div>
+      )}
               </div>
 
               <div
