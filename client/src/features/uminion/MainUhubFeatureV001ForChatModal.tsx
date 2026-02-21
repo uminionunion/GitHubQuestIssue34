@@ -115,41 +115,57 @@ const [archiveOffset, setArchiveOffset] = useState(0);
       try {
         // Verify authentication token exists in cookie
         const authResponse = await fetch('/api/auth/me', { credentials: 'include' });
-        console.log('[CHAT] Auth check:', authResponse.ok ? 'Logged in' : 'Not logged in');
+        const isLoggedIn = authResponse.ok;
+        console.log('[CHAT] Auth check:', isLoggedIn ? 'Logged in' : 'Not logged in');
 
-        // Extract token from cookie
-const getToken = (): string => {
-  const name = 'token=';
-  const decodedCookie = decodeURIComponent(document.cookie);
-  const cookieArray = decodedCookie.split(';');
-  for (let i = 0; i < cookieArray.length; i++) {
-    let cookie = cookieArray[i].trim();
-    if (cookie.indexOf(name) === 0) {
-      return cookie.substring(name.length);
-    }
+        // Connect with credentials - cookies are sent automatically with withCredentials: true
+        socketRef.current = io(
+          process.env.NODE_ENV === 'production' 
+            ? window.location.origin 
+            : 'http://localhost:3001',
+          {
+            withCredentials: true,  // This sends cookies automatically
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: 5,
+            transports: ['websocket', 'polling'],
+          }
+        );
+
+        socketRef.current.on('connect', () => {
+          console.log('[CHAT] Connected to socket server');
+          socketRef.current?.emit('joinRoom', roomName);
+        });
+
+        socketRef.current.on('loadMessages', (loadedMessages: Message[]) => {
+          setMessages(loadedMessages);
+        });
+
+        socketRef.current.on('receiveMessage', (message: Message) => {
+          setMessages((prevMessages) => [...prevMessages, message]);
+        });
+
+        socketRef.current.on('updateUserList', (userList: User[]) => {
+          setUsers(userList);
+        });
+
+        socketRef.current.on('error', (error: any) => {
+          console.error('[CHAT] Socket error:', error);
+        });
+      } catch (error) {
+        console.error('Error initializing socket:', error);
+      }
+    };
+
+    initializeSocket();
+
+    return () => {
+      socketRef.current?.emit('leaveRoom', roomName);
+      socketRef.current?.disconnect();
+    };
   }
-  return '';
-};
-
-const token = getToken();
-console.log('[CHAT] Token extracted from cookie:', token ? 'Present' : 'Missing');
-console.log('[CHAT] Token value:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
-
-// Connect with credentials AND pass token via auth object
- socketRef.current = io(
-  process.env.NODE_ENV === 'production' 
-    ? window.location.origin 
-    : 'http://localhost:3001',
-  {
-    withCredentials: true,
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    reconnectionAttempts: 5,
-    transports: ['websocket', 'polling'],
-    auth: token ? { token } : {}
-  }
- );
+}, [isOpen, roomName]);
 
           socketRef.current.on('connect', () => {
             console.log('Connected to socket server');
