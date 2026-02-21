@@ -104,49 +104,54 @@ socket.emit('loadMessages', formattedMessages);
     });
 
     socket.on('sendMessage', async (data: { room: string; content: string; isAnonymous: boolean }) => {
-      const { room, content, isAnonymous } = data;
-      
-      try {
-        let userId = null;
-        let anonymousUsername = null;
+  const { room, content, isAnonymous } = data;
+  
+  try {
+    let userId = null;
+    let anonymousUsername = null;
+    let displayUsername = null;
 
-        if (isAnonymous) {
-          anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
-        } else if (socket.user) {
-          userId = socket.user.userId;
-        } else {
-          // Non-authenticated, must be anonymous
-          anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
-        }
+    if (isAnonymous) {
+      anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+      displayUsername = anonymousUsername;
+    } else if (socket.user) {
+      userId = socket.user.userId;
+      displayUsername = socket.user.username;
+    } else {
+      // Non-authenticated, must be anonymous
+      anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+      displayUsername = anonymousUsername;
+    }
 
-        // Save message to database
-        const message = await db
-          .insertInto('messages')
-          .values({
-            content,
-            room,
-            user_id: userId,
-            is_anonymous: isAnonymous ? 1 : 0,
-            anonymous_username: anonymousUsername,
-          })
-          .returning('id')
-          .executeTakeFirstOrThrow();
+    // Save message to database
+    const message = await db
+      .insertInto('messages')
+      .values({
+        content,
+        room,
+        user_id: userId,
+        is_anonymous: isAnonymous ? 1 : 0,
+        anonymous_username: anonymousUsername,
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow();
 
-        console.log(`Message saved to room ${room}:`, content);
+    console.log(`Message saved to room ${room}:`, content);
+    console.log(`[CHAT] Emitting message with username: "${displayUsername}"`);
 
-        // Broadcast to all users in room
-        io.to(room).emit('newMessage', {
-          id: message.id,
-          content,
-          username: isAnonymous ? anonymousUsername : socket.user?.username,
-          timestamp: new Date().toISOString(),
-          is_anonymous: isAnonymous ? 1 : 0,
-        });
-      } catch (error) {
-        console.error('Error sending message:', error);
-        socket.emit('error', { message: 'Failed to send message' });
-      }
+    // Broadcast to all users in room - NOW WITH CORRECT USERNAME
+    io.to(room).emit('newMessage', {
+      id: message.id,
+      content,
+      username: displayUsername,  // ← FIXED - Always has correct value
+      timestamp: new Date().toISOString(),
+      is_anonymous: isAnonymous ? 1 : 0,
     });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    socket.emit('error', { message: 'Failed to send message' });
+  }
+});
 
     socket.on('disconnect', () => {
       console.log('A user disconnected:', socket.id);
