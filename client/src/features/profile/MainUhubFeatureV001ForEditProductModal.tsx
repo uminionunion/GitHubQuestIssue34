@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface MainUhubFeatureV001ForEditProductModalProps {
@@ -43,6 +43,11 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
   const [wooSku, setWooSku] = useState('');
   const [selectedUserStoreId, setSelectedUserStoreId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [badgeFileInputRef, setBadgeFileInputRef] = useState<HTMLInputElement | null>(null);
+  const [bannerFileInputRef, setBannerFileInputRef] = useState<HTMLInputElement | null>(null);
+  const badgeInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState('');
 
   // Pre-fill form when product loads or modal opens
@@ -159,6 +164,119 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
       setIsSubmitting(false);
     }
   };
+
+
+
+const handleEditStoreImage = (type: 'badge' | 'banner') => {
+    const inputRef = type === 'badge' ? badgeInputRef : bannerInputRef;
+    inputRef.current?.click();
+  };
+
+  const handleStoreImageChange = async (type: 'badge' | 'banner', e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      alert('Please upload a JPG, JPEG, or PNG image');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log(`[EDIT PRODUCT MODAL] Uploading ${type} for uStore ${selectedUserStoreId}`);
+
+      const response = await fetch(`/api/products/user-stores/${selectedUserStoreId}/${type}`, {
+        method: 'PUT',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Failed to upload ${type}: ${errorData.message}`);
+        return;
+      }
+
+      const data = await response.json();
+      console.log(`[EDIT PRODUCT MODAL] ✅ ${type} uploaded:`, data.imageUrl);
+      alert(`${type.charAt(0).toUpperCase() + type.slice(1)} updated successfully!`);
+    } catch (error) {
+      console.error(`[EDIT PRODUCT MODAL] Error uploading ${type}:`, error);
+      alert(`Failed to upload ${type}`);
+    } finally {
+      setIsSubmitting(false);
+      // Reset file input
+      const inputRef = type === 'badge' ? badgeInputRef : bannerInputRef;
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteStore = async () => {
+    if (!selectedUserStoreId) {
+      alert('No store selected');
+      return;
+    }
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure? This will delete both this uStore along with all of the products found within. This action cannot be undone.'
+    );
+
+    if (!confirmed) {
+      console.log('[EDIT PRODUCT MODAL] Store deletion cancelled by user');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      console.log(`[EDIT PRODUCT MODAL] Deleting uStore ${selectedUserStoreId} and all its products`);
+
+      const response = await fetch(`/api/products/user-stores/${selectedUserStoreId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Failed to delete store: ${errorData.message}`);
+        console.error('[EDIT PRODUCT MODAL] Delete error:', errorData);
+        return;
+      }
+
+      const data = await response.json();
+      console.log(`[EDIT PRODUCT MODAL] ✅ Store deleted successfully:`, data);
+      alert(`Store deleted successfully! ${data.productsDeleted} products were also removed.`);
+
+      // Close the modal and trigger refresh
+      if (onProductUpdated) {
+        onProductUpdated();
+      }
+      onClose();
+    } catch (error) {
+      console.error('[EDIT PRODUCT MODAL] Error deleting store:', error);
+      alert('Failed to delete store: ' + error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
+
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100001]">
@@ -439,6 +557,63 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
             </div>
           )}
 
+          {/* NEW SECTION: STORE MANAGEMENT (appears only when a store is selected or product is assigned to a store) */}
+          {selectedUserStoreId && parseInt(selectedUserStoreId) > 0 && (
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-lg font-semibold mb-4 text-cyan-400">Store Management</h3>
+              
+              <div className="space-y-3">
+                {/* Change uBadge Button */}
+                <div className="flex items-center justify-between p-3 border border-gray-700 rounded bg-gray-900/50 hover:border-cyan-400 transition">
+                  <div>
+                    <p className="font-semibold text-sm">Change Store Badge</p>
+                    <p className="text-xs text-gray-400">Update your store's logo badge</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleEditStoreImage('badge')}
+                    disabled={isSubmitting}
+                    className="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded transition disabled:opacity-50"
+                  >
+                    Change Badge
+                  </button>
+                </div>
+
+                {/* Change uBanner Button */}
+                <div className="flex items-center justify-between p-3 border border-gray-700 rounded bg-gray-900/50 hover:border-cyan-400 transition">
+                  <div>
+                    <p className="font-semibold text-sm">Change Store Banner</p>
+                    <p className="text-xs text-gray-400">Update your store's banner image</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleEditStoreImage('banner')}
+                    disabled={isSubmitting}
+                    className="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-xs rounded transition disabled:opacity-50"
+                  >
+                    Change Banner
+                  </button>
+                </div>
+
+                {/* Delete uStore Button */}
+                <div className="flex items-center justify-between p-3 border border-red-700/50 rounded bg-red-900/20 hover:border-red-500 transition">
+                  <div>
+                    <p className="font-semibold text-sm text-red-400">Delete Store</p>
+                    <p className="text-xs text-red-300/70">Permanently delete this store and all its products</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDeleteStore}
+                    disabled={isSubmitting}
+                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition disabled:opacity-50"
+                  >
+                    Delete Store
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-3 pt-4">
             <Button
               type="submit"
@@ -457,6 +632,30 @@ const MainUhubFeatureV001ForEditProductModal: React.FC<MainUhubFeatureV001ForEdi
             </Button>
           </div>
         </form>
+
+
+
+{/* Hidden file inputs for store images */}
+        <input
+          ref={badgeInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png"
+          onChange={(e) => handleStoreImageChange('badge', e)}
+          className="hidden"
+          disabled={isSubmitting}
+        />
+        <input
+          ref={bannerInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png"
+          onChange={(e) => handleStoreImageChange('banner', e)}
+          className="hidden"
+          disabled={isSubmitting}
+        />
+
+
+
+        
       </div>
     </div>
   );
