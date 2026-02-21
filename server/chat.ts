@@ -42,19 +42,39 @@ const usersInRooms: { [room: string]: { [socketId: string]: { username: string }
 
 export function setupChat(io: SocketIOServer) {
   io.use((socket: any, next: any) => {
-    const token = socket.handshake.auth.token;
+    let token: string | undefined;
+
+    // Try to get token from cookies (most reliable method)
+    const cookies = socket.handshake.headers.cookie;
+    if (cookies) {
+      const tokenMatch = cookies
+        .split(';')
+        .find(c => c.trim().startsWith('token='));
+      if (tokenMatch) {
+        token = tokenMatch.split('=')[1];
+        console.log(`[CHAT AUTH] Token found in cookies for socket ${socket.id}`);
+      }
+    }
+
+    // If token found, verify it
     if (token) {
       try {
         const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
         socket.user = payload;
+        console.log(`[CHAT AUTH] ✅ Socket ${socket.id} authenticated as user ID ${payload.userId} (${payload.username})`);
       } catch (err) {
+        console.log(`[CHAT AUTH] ❌ Invalid token for socket ${socket.id}, treating as anonymous`);
         // Invalid token - user can still join as anonymous
       }
+    } else {
+      console.log(`[CHAT AUTH] No token found for socket ${socket.id}, treating as anonymous`);
     }
+
     // Assign an anonymous ID if not logged in
     if (!socket.user) {
       anonymousCounter++;
       socket.anonymousId = `Anonymous${String(anonymousCounter).padStart(3, '0')}`;
+      console.log(`[CHAT AUTH] Assigned anonymous ID to socket ${socket.id}: ${socket.anonymousId}`);
     }
     next();
   });
