@@ -371,10 +371,12 @@ const formatMessageTime = (isoString: string): string => {
                   <div className="space-y-4">
                     {messages.map((msg) => (
   <div key={msg.id}>
-    <div className="flex items-baseline gap-2">
+    <div className="flex items-baseline gap-2 mb-2">
       <Popover>
         <PopoverTrigger asChild>
-          <span className="font-bold cursor-pointer hover:underline">{msg.username}</span>
+          <span className="font-bold cursor-pointer hover:underline" style={{ color: msg.is_anonymous ? '#fb923c' : currentFontColor }}>
+            {msg.username}
+          </span>
         </PopoverTrigger>
         <PopoverContent className="w-48">
           <div className="grid gap-2">
@@ -386,8 +388,8 @@ const formatMessageTime = (isoString: string): string => {
           </div>
         </PopoverContent>
       </Popover>
+      <span className="text-xs text-gray-400">-</span>
       <span className="text-xs text-gray-400">{formatMessageTime(msg.timestamp)}</span>
-      <span className="text-gray-400">-</span>
     </div>
     <span className={msg.is_anonymous ? 'text-orange-400' : ''}>{msg.content}</span>
   </div>
