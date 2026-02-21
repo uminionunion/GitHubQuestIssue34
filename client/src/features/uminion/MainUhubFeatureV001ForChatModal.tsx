@@ -118,39 +118,38 @@ const [archiveOffset, setArchiveOffset] = useState(0);
         console.log('[CHAT] Auth check:', authResponse.ok ? 'Logged in' : 'Not logged in');
 
         // Extract token from cookie
-        const getToken = (): string => {
-          const name = 'token=';
-          const decodedCookie = decodeURIComponent(document.cookie);
-          const cookieArray = decodedCookie.split(';');
-          for (let i = 0; i < cookieArray.length; i++) {
-            let cookie = cookieArray[i].trim();
-            if (cookie.indexOf(name) === 0) {
-              return cookie.substring(name.length);
-            }
-          }
-          return '';
-        };
+const getToken = (): string => {
+  const name = 'token=';
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookieArray = decodedCookie.split(';');
+  for (let i = 0; i < cookieArray.length; i++) {
+    let cookie = cookieArray[i].trim();
+    if (cookie.indexOf(name) === 0) {
+      return cookie.substring(name.length);
+    }
+  }
+  return '';
+};
 
-        const token = getToken();
-        console.log('[CHAT] Token extracted from cookie:', token ? 'Present' : 'Missing');
+const token = getToken();
+console.log('[CHAT] Token extracted from cookie:', token ? 'Present' : 'Missing');
+console.log('[CHAT] Token value:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
 
-        // Connect with credentials AND pass token via auth object
-         socketRef.current = io(
-          process.env.NODE_ENV === 'production' 
-            ? window.location.origin 
-            : 'http://localhost:3001',
-          {
-            withCredentials: true,
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: 5,
-            transports: ['websocket', 'polling'],
-            auth: {
-              token: token || ''
-            }
-          }
-         );
+// Connect with credentials AND pass token via auth object
+ socketRef.current = io(
+  process.env.NODE_ENV === 'production' 
+    ? window.location.origin 
+    : 'http://localhost:3001',
+  {
+    withCredentials: true,
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: 5,
+    transports: ['websocket', 'polling'],
+    auth: token ? { token } : {}
+  }
+ );
 
           socketRef.current.on('connect', () => {
             console.log('Connected to socket server');
