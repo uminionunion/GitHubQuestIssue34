@@ -969,8 +969,60 @@ const storePages = buildStorePages();
       storePages[currentPage - 1].map((userStore, idx) => (
         userStore ? (
           <div key={userStore.id} className="border rounded-lg p-4 flex flex-col h-full">
+            {/* uStore Header with Badge and Banner */}
+            <div className="flex items-center gap-2 py-1 px-2 rounded border border-gray-700 bg-gray-900/50 mb-3">
+              {/* uBadge (left) - Fixed size icon */}
+              <div className="w-6 h-6 rounded flex-shrink-0 bg-gray-700 overflow-hidden flex items-center justify-center">
+                {userStore.badge_url ? (
+                  <img
+                    src={userStore.badge_url}
+                    alt={`${userStore.name} badge`}
+                    className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBadgeZoomOpen?.({ url: userStore.badge_url, name: userStore.name });
+                    }}
+                    title="Click to zoom"
+                    onError={(e) => {
+                      console.log(`[PAGE 10+] Badge failed to load: ${userStore.badge_url}`);
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-700" />
+                )}
+              </div>
+
+              {/* uStore Name */}
+              <span className="font-semibold text-xs text-cyan-400 flex-shrink-0 whitespace-nowrap">
+                {userStore.name}
+              </span>
+
+              {/* uBanner (right) - Takes remaining space */}
+              <div className="h-6 rounded flex-grow ml-auto overflow-hidden flex items-center justify-center bg-gray-700" style={{ minWidth: '80px', maxWidth: '150px' }}>
+                <img
+                  src={userStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"}
+                  alt={`${userStore.name} banner`}
+                  className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onBadgeZoomOpen?.({ 
+                      url: userStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", 
+                      name: userStore.name 
+                    });
+                  }}
+                  title="Click to zoom"
+                  onError={(e) => {
+                    console.log(`[PAGE 10+] Banner failed to load: ${userStore.banner_url}`);
+                    // Load default if custom fails
+                    (e.currentTarget as HTMLImageElement).src = "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png";
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Subtitle and Description */}
             <div className="mb-3">
-              <h3 className="font-bold text-sm">{userStore.name}</h3>
               {userStore.subtitle && (
                 <p className="text-xs text-gray-400">{userStore.subtitle}</p>
               )}
