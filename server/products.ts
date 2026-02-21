@@ -1273,6 +1273,8 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
         'u.profile_image_url as friend_profile_image_url',
         'us.id as user_store_id',
         'us.name as user_store_name',
+        'us.badge_url as user_store_badge_url',
+        'us.banner_url as user_store_banner_url',
         'p.id as product_id',
         'p.name as product_name',
         'p.price as product_price',
@@ -1309,6 +1311,8 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
         friend.uStores.set(row.user_store_id, {
           id: row.user_store_id,
           name: row.user_store_name,
+          badge_url: row.user_store_badge_url,
+          banner_url: row.user_store_banner_url,
           products: [],
         });
       }
