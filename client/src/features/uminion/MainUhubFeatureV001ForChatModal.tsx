@@ -478,8 +478,8 @@ const formatMessageTime = (isoString: string): string => {
     )}
     {!showArchive && (
       <>
-        <Button 
-          className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mb-4"
+       <Button 
+          className="bg-teal-700 hover:bg-teal-800 text-white w-full mb-4"
           onClick={handleArchiveClick}
         >
           Archive
