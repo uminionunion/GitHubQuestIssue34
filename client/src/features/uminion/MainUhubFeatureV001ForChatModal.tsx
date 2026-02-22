@@ -433,14 +433,15 @@ const formatMessageTime = (isoString: string): string => {
 ) : (
   <div className="space-y-4 flex flex-col">
     {showArchive && (
-      <>
-        <Button 
-          className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mb-4"
-          onClick={() => loadMoreArchives(archiveOffset)}
-          disabled={isLoadingArchive}
-        >
-          {isLoadingArchive ? 'Loading...' : 'Archive'}
-        </Button>
+  <>
+    <Button 
+      className="bg-gray-500 text-white w-full mb-4 cursor-not-allowed opacity-50"
+      onClick={() => {}}
+      disabled={true}
+      title="Archive feature is currently disabled"
+    >
+      {isLoadingArchive ? 'Loading...' : 'Archive'}
+    </Button>
         {archivedMessages.map((msg) => (
           <div key={msg.id}>
             <div className="flex items-baseline gap-2 mb-2">
@@ -466,13 +467,16 @@ const formatMessageTime = (isoString: string): string => {
             <span className={msg.is_anonymous ? 'text-orange-400 text-sm' : 'text-sm'}>{msg.content}</span>
           </div>
         ))}
-        {!showArchive && (
-          <Button 
-            className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mt-4"
-            onClick={handleArchiveClick}
-          >
-            Back to Chat
-          </Button>
+       {!showArchive && (
+  <>
+    <Button 
+      className="bg-gray-500 text-white w-full mb-4 cursor-not-allowed opacity-50"
+      onClick={() => {}}
+      disabled={true}
+      title="Archive feature is currently disabled"
+    >
+      Archive
+    </Button>
         )}
       </>
     )}
