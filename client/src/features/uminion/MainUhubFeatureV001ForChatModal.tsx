@@ -172,14 +172,6 @@ socketRef.current.on('loadedArchivedMessages', (batch: ArchivedBatch) => {
   setIsLoadingArchive(false);
 });
 
-          socketRef.current.on('loadedArchivedMessages', (data: any) => {
-  console.log('[CHAT] Received archived messages:', data.messages.length);
-  setArchivedMessages(data.messages);
-  setHasMoreArchives(data.hasMore);
-  setArchiveOffset(data.offset);
-  setIsLoadingArchive(false);
-});
-
 socketRef.current.on('error', (error: any) => {
   console.error('[CHAT] Socket error:', error);
 });
@@ -441,14 +433,14 @@ const formatMessageTime = (isoString: string): string => {
 ) : (
   <div className="space-y-4 flex flex-col">
     {showArchive && (
-  <>
-    <Button 
-      className="bg-teal-700 hover:bg-teal-800 text-white w-full mb-4"
-      onClick={() => loadMoreArchives(archiveOffset)}
-      disabled={isLoadingArchive}
-    >
-      {isLoadingArchive ? 'Loading...' : 'Load Earlier Messages'}
-    </Button>
+      <>
+        <Button 
+          className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mb-4"
+          onClick={() => loadMoreArchives(archiveOffset)}
+          disabled={isLoadingArchive}
+        >
+          {isLoadingArchive ? 'Loading...' : 'Archive'}
+        </Button>
         {archivedMessages.map((msg) => (
           <div key={msg.id}>
             <div className="flex items-baseline gap-2 mb-2">
@@ -474,9 +466,9 @@ const formatMessageTime = (isoString: string): string => {
             <span className={msg.is_anonymous ? 'text-orange-400 text-sm' : 'text-sm'}>{msg.content}</span>
           </div>
         ))}
-       {!showArchive && (
+        {!showArchive && (
           <Button 
-            className="bg-teal-700 hover:bg-teal-800 text-white w-full mt-4"
+            className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mt-4"
             onClick={handleArchiveClick}
           >
             Back to Chat
@@ -486,8 +478,8 @@ const formatMessageTime = (isoString: string): string => {
     )}
     {!showArchive && (
       <>
-       <Button 
-          className="bg-teal-700 hover:bg-teal-800 text-white w-full mb-4"
+        <Button 
+          className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mb-4"
           onClick={handleArchiveClick}
         >
           Archive
