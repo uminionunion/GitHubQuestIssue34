@@ -1,3 +1,4 @@
+
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { db } from './db.js';
 import jwt from 'jsonwebtoken';
@@ -278,13 +279,24 @@ export function setupChat(io: SocketIOServer) {
       }
 
       try {
-        // Load last 50 messages from this room
+        // Get timezone for this room
+        const timezone = getTimezoneForRoom(room);
+        const offset = getTimezoneOffset(timezone);
+        
+        // Get today's date in the room's timezone
+        const now = new Date();
+        const tzNow = new Date(now.getTime() + (offset * 60 * 60 * 1000));
+        const todayDateStr = tzNow.toISOString().split('T')[0]; // YYYY-MM-DD
+        const tomorrowDateStr = new Date(tzNow.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        // Load messages from TODAY ONLY
         const messages = await db
           .selectFrom('messages')
           .leftJoin('users', 'users.id', 'messages.user_id')
           .where('room', '=', room)
+          .where('timestamp', '>=', `${todayDateStr}T00:00:00`)
+          .where('timestamp', '<', `${tomorrowDateStr}T00:00:00`)
           .orderBy('timestamp', 'asc')
-          .limit(50)
           .select([
             'messages.id',
             'messages.content',
@@ -294,6 +306,8 @@ export function setupChat(io: SocketIOServer) {
             'messages.anonymous_username'
           ])
           .execute();
+        
+        console.log(`[CHAT] Loaded ${messages.length} messages for today in ${room}`);
         
         const formattedMessages = messages.map(msg => {
           let displayUsername: string;
