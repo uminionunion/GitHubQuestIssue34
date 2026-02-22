@@ -109,10 +109,10 @@ const roomTimezoneMap: Record<string, string> = {
 
 function getTimezoneOffset(timezone: string): number {
   const offsets: Record<string, number> = {
-    'EST': 5,
-    'CST': 6,
-    'MST': 7,
-    'PST': 8,
+    'EST': -5,
+    'CST': -6,
+    'MST': -7,
+    'PST': -8,
   };
   return offsets[timezone] || 0;
 }
@@ -122,7 +122,7 @@ function getTimezoneForRoom(room: string): string {
 }
 
 function getLocalDateString(date: Date, timezoneHours: number): string {
-  const localDate = new Date(date.getTime() - (timezoneHours * 60 * 60 * 1000));
+  const localDate = new Date(date.getTime() + (timezoneHours * 60 * 60 * 1000));
   const year = localDate.getUTCFullYear();
   const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
   const day = String(localDate.getUTCDate()).padStart(2, '0');
