@@ -14,6 +14,11 @@ interface SocketWithUser extends Socket {
     anonymousId?: string;
 }
 
+// ===============================================
+// TIMEZONE & ARCHIVING HELPER FUNCTIONS
+// ===============================================
+
+// Map room names to timezones
 const roomTimezoneMap: Record<string, string> = {
   'SisterUnion001NewEngland-chatroom-1': 'EST',
   'SisterUnion001NewEngland-chatroom-2': 'EST',
@@ -102,11 +107,12 @@ const roomTimezoneMap: Record<string, string> = {
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-1': 'EST',
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-2': 'EST',
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-3': 'EST',
-  'SisterUnion030HousingAndHealthcare-chatroom-1': 'EST',
-  'SisterUnion030HousingAndHealthcare-chatroom-2': 'EST',
-  'SisterUnion030HousingAndHealthcare-chatroom-3': 'EST',
+  'SisterUnion030HousingAndHealthCare-chatroom-1': 'EST',
+  'SisterUnion030HousingAndHealthCare-chatroom-2': 'EST',
+  'SisterUnion030HousingAndHealthCare-chatroom-3': 'EST',
 };
 
+// Convert timezone offset to hours
 function getTimezoneOffset(timezone: string): number {
   const offsets: Record<string, number> = {
     'EST': -5,
@@ -117,50 +123,15 @@ function getTimezoneOffset(timezone: string): number {
   return offsets[timezone] || 0;
 }
 
+// Get timezone for a room
 function getTimezoneForRoom(room: string): string {
   return roomTimezoneMap[room] || 'EST';
 }
 
-function getLocalDateString(date: Date, timezoneHours: number): string {
-  const localDate = new Date(date.getTime() + (timezoneHours * 60 * 60 * 1000));
-  const year = localDate.getUTCFullYear();
-  const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(localDate.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-async function ensureResetScheduleExists(room: string): Promise<void> {
-  try {
-    const exists = await db
-      .selectFrom('chat_reset_schedule')
-      .where('room', '=', room)
-      .selectAll()
-      .executeTakeFirst();
-
-    if (!exists) {
-      const timezone = getTimezoneForRoom(room);
-      console.log(`[CHAT INIT] Creating reset schedule for ${room} (${timezone})`);
-      
-      await db
-        .insertInto('chat_reset_schedule')
-        .values({
-          room,
-          timezone,
-          last_reset_at: new Date().toISOString(),
-        })
-        .execute();
-    }
-  } catch (error) {
-    console.error(`[CHAT INIT] Error ensuring reset schedule:`, error);
-  }
-}
-
+// Check if we need to archive messages (if midnight has passed in the room's timezone)
 async function checkAndArchiveIfNeeded(room: string): Promise<boolean> {
   try {
-    await ensureResetScheduleExists(room);
-
     const timezone = getTimezoneForRoom(room);
-    const tzHours = getTimezoneOffset(timezone);
     
     const resetRecord = await db
       .selectFrom('chat_reset_schedule')
@@ -176,44 +147,48 @@ async function checkAndArchiveIfNeeded(room: string): Promise<boolean> {
     const lastReset = new Date(resetRecord.last_reset_at);
     const now = new Date();
     
-    const nowDateStr = getLocalDateString(now, tzHours);
-    const lastResetDateStr = getLocalDateString(lastReset, tzHours);
+    // Get current time in the room's timezone
+    const offset = getTimezoneOffset(timezone);
+    const tzNow = new Date(now.getTime() + (offset * 60 * 60 * 1000));
+    const tzLastReset = new Date(lastReset.getTime() + (offset * 60 * 60 * 1000));
     
-    if (nowDateStr !== lastResetDateStr) {
-      console.log(`[CHAT ARCHIVE] Daily reset triggered for ${room} (${timezone}) - Date changed from ${lastResetDateStr} to ${nowDateStr}`);
+    // Check if dates differ (midnight has passed)
+    const nowDate = tzNow.toISOString().split('T')[0];
+    const lastResetDate = tzLastReset.toISOString().split('T')[0];
+    
+    if (nowDate !== lastResetDate) {
+      console.log(`[CHAT ARCHIVE] Archiving ${room} (${timezone})`);
       
-      const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const yesterdayStr = getLocalDateString(yesterdayDate, tzHours);
-      const todayStr = nowDateStr;
-      
-      const messagesToArchive = await db
+      // Get all current messages for this room
+      const messages = await db
         .selectFrom('messages')
         .where('room', '=', room)
-        .where('timestamp', '>=', `${yesterdayStr}T00:00:00`)
-        .where('timestamp', '<', `${todayStr}T00:00:00`)
         .selectAll()
         .execute();
       
-      if (messagesToArchive.length > 0) {
+      if (messages.length > 0) {
+        // Archive them
         await db
           .insertInto('chat_message_archives')
           .values({
             room,
-            archived_messages: JSON.stringify(messagesToArchive),
+            archived_messages: JSON.stringify(messages),
             archived_at: new Date().toISOString(),
           })
           .execute();
         
-        console.log(`[CHAT ARCHIVE] Archived ${messagesToArchive.length} messages from ${yesterdayStr}`);
+        console.log(`[CHAT ARCHIVE] Archived ${messages.length} messages for ${room}`);
         
+        // Delete messages from current table
         await db
           .deleteFrom('messages')
           .where('room', '=', room)
-          .where('timestamp', '>=', `${yesterdayStr}T00:00:00`)
-          .where('timestamp', '<', `${todayStr}T00:00:00`)
           .execute();
+        
+        console.log(`[CHAT ARCHIVE] Cleared current messages for ${room}`);
       }
       
+      // Update last reset time
       await db
         .updateTable('chat_reset_schedule')
         .set({ last_reset_at: new Date().toISOString() })
@@ -230,13 +205,24 @@ async function checkAndArchiveIfNeeded(room: string): Promise<boolean> {
   }
 }
 
+// Get base room name from full room name (removes -chatroom-X)
+function getBaseRoom(room: string): string {
+  return room.replace(/-chatroom-\d+$/, '');
+}
+
+// ===============================================
+// MAIN SETUP FUNCTION
+// ===============================================
+
 export function setupChat(io: SocketIOServer) {
   const usersInRooms: Record<string, Record<string, { username: string }>> = {};
   let anonymousCounter = 0;
 
   io.use((socket: SocketWithUser, next) => {
+    // Try to get token from auth object first (most reliable)
     let token = (socket.handshake.auth as any)?.token;
 
+    // If no token in auth, try cookie
     if (!token) {
       const cookie = socket.handshake.headers.cookie;
       if (cookie) {
@@ -244,6 +230,7 @@ export function setupChat(io: SocketIOServer) {
       }
     }
 
+    // If no token in cookie, try Authorization header
     if (!token) {
       const authHeader = socket.handshake.headers.authorization;
       if (authHeader?.startsWith('Bearer ')) {
@@ -262,6 +249,7 @@ export function setupChat(io: SocketIOServer) {
       }
     }
 
+    // Assign an anonymous ID if not logged in
     anonymousCounter++;
     socket.anonymousId = `Anonymous${String(anonymousCounter).padStart(3, '0')}`;
     console.log(`[CHAT] User joining as anonymous: ${socket.anonymousId}`);
@@ -282,31 +270,21 @@ export function setupChat(io: SocketIOServer) {
       usersInRooms[room][socket.id] = { username: displayName! };
       io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
       
-      await ensureResetScheduleExists(room);
-      
+      // Check and archive if needed (at midnight based on timezone)
       const archived = await checkAndArchiveIfNeeded(room);
       if (archived) {
+        // Notify clients that messages have been cleared
         io.to(room).emit('messagesCleared');
       }
 
       try {
-        const timezone = getTimezoneForRoom(room);
-        const tzHours = getTimezoneOffset(timezone);
-        
-        const now = new Date();
-        const todayDateStr = getLocalDateString(now, tzHours);
-        const tomorrowDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        const tomorrowDateStr = getLocalDateString(tomorrowDate, tzHours);
-        
-        console.log(`[CHAT] Loading TODAY messages for ${room}: ${todayDateStr}T00:00:00 to ${tomorrowDateStr}T00:00:00`);
-        
+        // Load last 50 messages from this room
         const messages = await db
           .selectFrom('messages')
           .leftJoin('users', 'users.id', 'messages.user_id')
           .where('room', '=', room)
-          .where('timestamp', '>=', `${todayDateStr}T00:00:00`)
-          .where('timestamp', '<', `${tomorrowDateStr}T00:00:00`)
           .orderBy('timestamp', 'asc')
+          .limit(50)
           .select([
             'messages.id',
             'messages.content',
@@ -316,8 +294,6 @@ export function setupChat(io: SocketIOServer) {
             'messages.anonymous_username'
           ])
           .execute();
-        
-        console.log(`[CHAT] Loaded ${messages.length} messages for today in ${room}`);
         
         const formattedMessages = messages.map(msg => {
           let displayUsername: string;
@@ -343,73 +319,45 @@ export function setupChat(io: SocketIOServer) {
       }
     });
 
+    // NEW: Load archived messages
     socket.on('loadArchivedMessages', async (data: { room: string; offset: number }) => {
       const { room, offset } = data;
-      const BATCH_SIZE = 50;
       
       try {
-        console.log(`[CHAT ARCHIVE] Client requesting archives for ${room} at offset ${offset}`);
-        
-        const countResult = await db
-          .selectFrom('chat_message_archives')
-          .where('room', '=', room)
-          .select(db.fn.count<number>('id').as('count'))
-          .executeTakeFirst();
-        
-        const totalArchives = countResult?.count || 0;
-        console.log(`[CHAT ARCHIVE] Total archive batches for ${room}: ${totalArchives}`);
-        
-        if (totalArchives === 0) {
-          console.log(`[CHAT ARCHIVE] No archives exist for ${room}`);
-          socket.emit('loadedArchivedMessages', {
-            messages: [],
-            hasMore: false,
-            offset: 0,
-            archivedAt: null,
-          });
-          return;
-        }
-        
+        // Get archived messages for this room, ordered by date descending (most recent first)
         const archives = await db
           .selectFrom('chat_message_archives')
           .where('room', '=', room)
           .orderBy('archived_at', 'desc')
           .select(['id', 'archived_messages', 'archived_at'])
-          .limit(1)
-          .offset(offset)
           .execute();
         
-        if (archives.length > 0) {
-          const archive = archives[0];
-          const allMessages = JSON.parse(archive.archived_messages);
+        // Skip to the offset archive batch
+        const archive = archives[offset];
+        
+        if (archive) {
+          const messages = JSON.parse(archive.archived_messages);
           
-          console.log(`[CHAT ARCHIVE] Archive batch has ${allMessages.length} total messages`);
-          
-          const lastFifty = allMessages.slice(-BATCH_SIZE);
-          
-          console.log(`[CHAT ARCHIVE] Sending ${lastFifty.length} messages to client`);
-          
-          const formattedMessages = lastFifty.map((msg: any) => ({
+          // Format messages
+          const formattedMessages = messages.map((msg: any) => ({
             id: msg.id,
             content: msg.content,
-            username: msg.anonymous_username || msg.username || 'Anonymous',
-            is_anonymous: msg.is_anonymous === 1 || msg.is_anonymous === true,
+            username: msg.anonymous_username || 'Anonymous',
+            is_anonymous: msg.is_anonymous === 1,
             timestamp: msg.timestamp,
           }));
           
           socket.emit('loadedArchivedMessages', {
             messages: formattedMessages,
-            hasMore: offset < totalArchives - 1,
+            hasMore: offset < archives.length - 1,
             offset: offset + 1,
             archivedAt: archive.archived_at,
           });
         } else {
-          console.log(`[CHAT ARCHIVE] No archives found for ${room} at offset ${offset}`);
           socket.emit('loadedArchivedMessages', {
             messages: [],
             hasMore: false,
             offset: offset,
-            archivedAt: null,
           });
         }
       } catch (error) {
@@ -426,21 +374,27 @@ export function setupChat(io: SocketIOServer) {
         let anonymousUsername: string | null = null;
         let isAnon = 0;
         
+        // DETERMINE WHO IS SENDING THE MESSAGE
         if (socket.user) {
+          // LOGGED-IN USER
           userId = socket.user.userId;
           if (isAnonymous) {
+            // They clicked "Post Anonymously?" - mark as anonymous
             isAnon = 1;
             anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
           } else {
+            // They did NOT click "Post Anonymously?" - post as themselves
             isAnon = 0;
-            anonymousUsername = null;
+            anonymousUsername = null;  // No anonymous name needed
           }
         } else {
+          // NOT LOGGED-IN USER - Always anonymous
           userId = null;
           isAnon = 1;
           anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
         }
 
+        // Save message to database
         const newMessage = await db
           .insertInto('messages')
           .values({
@@ -454,11 +408,12 @@ export function setupChat(io: SocketIOServer) {
           .executeTakeFirst();
 
         if (newMessage) {
+          // Determine display username for clients
           let displayUsername: string;
           if (isAnon === 1 && anonymousUsername) {
-            displayUsername = anonymousUsername;
+            displayUsername = anonymousUsername;  // Show "AnonymousXXX"
           } else if (socket.user) {
-            displayUsername = socket.user.username;
+            displayUsername = socket.user.username;  // Show their actual username
           } else {
             displayUsername = 'Anonymous';
           }
