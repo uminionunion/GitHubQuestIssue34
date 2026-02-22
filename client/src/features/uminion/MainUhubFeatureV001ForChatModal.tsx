@@ -466,9 +466,9 @@ const formatMessageTime = (isoString: string): string => {
             <span className={msg.is_anonymous ? 'text-orange-400 text-sm' : 'text-sm'}>{msg.content}</span>
           </div>
         ))}
-        {!showArchive && (
+       {!showArchive && (
           <Button 
-            className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mt-4"
+            className="bg-teal-700 hover:bg-teal-800 text-white w-full mt-4"
             onClick={handleArchiveClick}
           >
             Back to Chat
