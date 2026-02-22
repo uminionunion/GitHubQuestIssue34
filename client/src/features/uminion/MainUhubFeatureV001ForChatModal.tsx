@@ -172,6 +172,14 @@ socketRef.current.on('loadedArchivedMessages', (batch: ArchivedBatch) => {
   setIsLoadingArchive(false);
 });
 
+          socketRef.current.on('loadedArchivedMessages', (data: any) => {
+  console.log('[CHAT] Received archived messages:', data.messages.length);
+  setArchivedMessages(data.messages);
+  setHasMoreArchives(data.hasMore);
+  setArchiveOffset(data.offset);
+  setIsLoadingArchive(false);
+});
+
 socketRef.current.on('error', (error: any) => {
   console.error('[CHAT] Socket error:', error);
 });
