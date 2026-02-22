@@ -173,6 +173,23 @@ export interface Users {
 }
 
 
+
+export interface ChatMessageArchives {
+  id: Generated<number>;
+  room: string;
+  archived_messages: string;
+  archived_at: Generated<string | null>;
+}
+
+export interface ChatResetSchedule {
+  id: Generated<number>;
+  room: string;
+  timezone: string;
+  last_reset_at: Generated<string | null>;
+}
+
+
+
 export interface DB {
   blocked_users: BlockedUsers;
   friends: Friends;
@@ -186,6 +203,8 @@ export interface DB {
   MainHubUpgradeV001ForInternalCart: MainHubUpgradeV001ForInternalCart;
   MainHubUpgradeV001ForLookingFor: MainHubUpgradeV001ForLookingFor;
   MainHubUpgradeV001ForStores: MainHubUpgradeV001ForStores;
+  chat_message_archives: ChatMessageArchives;
+  chat_reset_schedule: ChatResetSchedule;
   messages: Messages;
   reports: Reports;
   user_chatrooms: UserChatrooms;
