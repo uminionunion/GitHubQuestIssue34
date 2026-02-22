@@ -441,14 +441,14 @@ const formatMessageTime = (isoString: string): string => {
 ) : (
   <div className="space-y-4 flex flex-col">
     {showArchive && (
-      <>
-         <Button 
-          className="bg-teal-700 hover:bg-teal-800 text-white w-full mb-4"
-          onClick={() => loadMoreArchives(archiveOffset)}
-          disabled={isLoadingArchive}
-        >
-          {isLoadingArchive ? 'Loading...' : 'Archive'}
-        </Button>
+  <>
+    <Button 
+      className="bg-teal-700 hover:bg-teal-800 text-white w-full mb-4"
+      onClick={() => loadMoreArchives(archiveOffset)}
+      disabled={isLoadingArchive}
+    >
+      {isLoadingArchive ? 'Loading...' : 'Load Earlier Messages'}
+    </Button>
         {archivedMessages.map((msg) => (
           <div key={msg.id}>
             <div className="flex items-baseline gap-2 mb-2">
