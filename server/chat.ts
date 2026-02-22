@@ -106,12 +106,11 @@ const roomTimezoneMap: Record<string, string> = {
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-1': 'EST',
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-2': 'EST',
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-3': 'EST',
-  'SisterUnion030HousingAndHealthCare-chatroom-1': 'EST',
-  'SisterUnion030HousingAndHealthCare-chatroom-2': 'EST',
-  'SisterUnion030HousingAndHealthCare-chatroom-3': 'EST',
+  'SisterUnion030HousingAndHealthcare-chatroom-1': 'EST',
+  'SisterUnion030HousingAndHealthcare-chatroom-2': 'EST',
+  'SisterUnion030HousingAndHealthcare-chatroom-3': 'EST',
 };
 
-// ✅ FIX #1: Use CORRECT timezone conversion (subtract offset, not add)
 function getTimezoneOffset(timezone: string): number {
   const offsets: Record<string, number> = {
     'EST': -5,
@@ -126,7 +125,17 @@ function getTimezoneForRoom(room: string): string {
   return roomTimezoneMap[room] || 'EST';
 }
 
-// ✅ FIX #2: Initialize reset schedule record if it doesn't exist
+// ✅ FIX: Use a helper function to get proper local date string without timezone confusion
+function getLocalDateString(date: Date, offset: number): string {
+  // Create a new date by subtracting the offset to get the local time
+  const localDate = new Date(date.getTime() - (offset * 60 * 60 * 1000));
+  // Extract YYYY-MM-DD without using toISOString (which converts back to UTC)
+  const year = localDate.getUTCFullYear();
+  const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(localDate.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 async function ensureResetScheduleExists(room: string): Promise<void> {
   try {
     const exists = await db
@@ -153,10 +162,8 @@ async function ensureResetScheduleExists(room: string): Promise<void> {
   }
 }
 
-// ✅ FIX #3: Simplified archive check - don't delete TODAY'S messages
 async function checkAndArchiveIfNeeded(room: string): Promise<boolean> {
   try {
-    // Ensure the record exists first
     await ensureResetScheduleExists(room);
 
     const timezone = getTimezoneForRoom(room);
@@ -176,19 +183,15 @@ async function checkAndArchiveIfNeeded(room: string): Promise<boolean> {
     const lastReset = new Date(resetRecord.last_reset_at);
     const now = new Date();
     
-    // ✅ FIX: SUBTRACT offset to get local time (not add)
-    const tzNow = new Date(now.getTime() - (offset * 60 * 60 * 1000));
-    const tzLastReset = new Date(lastReset.getTime() - (offset * 60 * 60 * 1000));
+    const nowDateStr = getLocalDateString(now, offset);
+    const lastResetDateStr = getLocalDateString(lastReset, offset);
     
-    const nowDate = tzNow.toISOString().split('T')[0];
-    const lastResetDate = tzLastReset.toISOString().split('T')[0];
-    
-    if (nowDate !== lastResetDate) {
+    if (nowDateStr !== lastResetDateStr) {
       console.log(`[CHAT ARCHIVE] Daily reset triggered for ${room} (${timezone})`);
       
-      // Get all messages from YESTERDAY (not today!)
-      const yesterdayStr = new Date(tzNow.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const todayStr = nowDate;
+      // Archive yesterday's messages only
+      const yesterdayStr = new Date(new Date(now.getTime() - (offset * 60 * 60 * 1000)).getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const todayStr = nowDateStr;
       
       const messagesToArchive = await db
         .selectFrom('messages')
@@ -210,7 +213,6 @@ async function checkAndArchiveIfNeeded(room: string): Promise<boolean> {
         
         console.log(`[CHAT ARCHIVE] Archived ${messagesToArchive.length} messages from ${yesterdayStr}`);
         
-        // Only delete YESTERDAY's messages, not today's
         await db
           .deleteFrom('messages')
           .where('room', '=', room)
@@ -234,10 +236,6 @@ async function checkAndArchiveIfNeeded(room: string): Promise<boolean> {
     return false;
   }
 }
-
-// ===============================================
-// MAIN SETUP FUNCTION
-// ===============================================
 
 export function setupChat(io: SocketIOServer) {
   const usersInRooms: Record<string, Record<string, { username: string }>> = {};
@@ -291,10 +289,8 @@ export function setupChat(io: SocketIOServer) {
       usersInRooms[room][socket.id] = { username: displayName! };
       io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
       
-      // Ensure reset schedule exists
       await ensureResetScheduleExists(room);
       
-      // Check if archiving is needed
       const archived = await checkAndArchiveIfNeeded(room);
       if (archived) {
         io.to(room).emit('messagesCleared');
@@ -305,14 +301,13 @@ export function setupChat(io: SocketIOServer) {
         const offset = getTimezoneOffset(timezone);
         
         const now = new Date();
-        // ✅ FIX: SUBTRACT offset (not add) to get correct local time
-        const tzNow = new Date(now.getTime() - (offset * 60 * 60 * 1000));
-        const todayDateStr = tzNow.toISOString().split('T')[0];
-        const tomorrowDateStr = new Date(tzNow.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        // ✅ FIX: Use proper local date calculation
+        const todayDateStr = getLocalDateString(now, offset);
+        const tomorrowDate = new Date(new Date(now.getTime() - (offset * 60 * 60 * 1000)).getTime() + 24 * 60 * 60 * 1000);
+        const tomorrowDateStr = getLocalDateString(tomorrowDate, offset);
         
         console.log(`[CHAT] Loading messages for ${room} from ${todayDateStr} to ${tomorrowDateStr}`);
         
-        // Load TODAY's messages
         const messages = await db
           .selectFrom('messages')
           .leftJoin('users', 'users.id', 'messages.user_id')
@@ -356,74 +351,67 @@ export function setupChat(io: SocketIOServer) {
       }
     });
 
-    // ✅ FIX #4: Proper pagination for archived messages (LIMIT + OFFSET)
-   socket.on('loadArchivedMessages', async (data: { room: string; offset: number }) => {
-  const { room, offset } = data;
-  const BATCH_SIZE = 50;
-  
-  try {
-    console.log(`[CHAT ARCHIVE] Loading archived messages for ${room} at offset ${offset}`);
-    
-    // Get count of total archives
-    const countResult = await db
-      .selectFrom('chat_message_archives')
-      .where('room', '=', room)
-      .select(db.fn.count<number>('id').as('count'))
-      .executeTakeFirst();
-    
-    const totalArchives = countResult?.count || 0;
-    console.log(`[CHAT ARCHIVE] Total archives: ${totalArchives}`);
-    
-    // Fetch with LIMIT and OFFSET
-    const archives = await db
-      .selectFrom('chat_message_archives')
-      .where('room', '=', room)
-      .orderBy('archived_at', 'desc')
-      .select(['id', 'archived_messages', 'archived_at'])
-      .limit(1)
-      .offset(offset)
-      .execute();
-    
-    if (archives.length > 0) {
-      const archive = archives[0];
-      const allMessages = JSON.parse(archive.archived_messages);
+    socket.on('loadArchivedMessages', async (data: { room: string; offset: number }) => {
+      const { room, offset } = data;
+      const BATCH_SIZE = 50;
       
-      console.log(`[CHAT ARCHIVE] Found ${allMessages.length} messages in archive batch`);
-      
-      // Reverse to show oldest first, then take last 50
-      allMessages.reverse();
-      const lastFifty = allMessages.slice(-BATCH_SIZE);
-      
-      const formattedMessages = lastFifty.map((msg: any) => ({
-        id: msg.id,
-        content: msg.content,
-        username: msg.anonymous_username || msg.username || 'Anonymous',
-        is_anonymous: msg.is_anonymous === 1,
-        timestamp: msg.timestamp,
-      }));
-      
-      console.log(`[CHAT ARCHIVE] Emitting ${formattedMessages.length} formatted messages`);
-      
-      // ✅ THIS WAS MISSING - EMIT THE DATA BACK TO CLIENT
-      socket.emit('loadedArchivedMessages', {
-        messages: formattedMessages,
-        hasMore: offset < totalArchives - 1,
-        offset: offset + 1,
-        archivedAt: archive.archived_at,
-      });
-    } else {
-      console.log(`[CHAT ARCHIVE] No archives found at offset ${offset}`);
-      socket.emit('loadedArchivedMessages', {
-        messages: [],
-        hasMore: false,
-        offset: offset,
-      });
-    }
-  } catch (error) {
-    console.error(`[CHAT ARCHIVE] Error loading archived messages for ${room}:`, error);
-    socket.emit('error', { message: 'Failed to load archived messages' });
-  }
-});
+      try {
+        console.log(`[CHAT ARCHIVE] Loading archive for ${room} at offset ${offset}`);
+        
+        const countResult = await db
+          .selectFrom('chat_message_archives')
+          .where('room', '=', room)
+          .select(db.fn.count<number>('id').as('count'))
+          .executeTakeFirst();
+        
+        const totalArchives = countResult?.count || 0;
+        console.log(`[CHAT ARCHIVE] Total archives for ${room}: ${totalArchives}`);
+        
+        const archives = await db
+          .selectFrom('chat_message_archives')
+          .where('room', '=', room)
+          .orderBy('archived_at', 'desc')
+          .select(['id', 'archived_messages', 'archived_at'])
+          .limit(1)
+          .offset(offset)
+          .execute();
+        
+        if (archives.length > 0) {
+          const archive = archives[0];
+          const messages = JSON.parse(archive.archived_messages);
+          
+          messages.reverse();
+          const lastFifty = messages.slice(-BATCH_SIZE);
+          
+          console.log(`[CHAT ARCHIVE] Sending ${lastFifty.length} messages to client`);
+          
+          const formattedMessages = lastFifty.map((msg: any) => ({
+            id: msg.id,
+            content: msg.content,
+            username: msg.anonymous_username || msg.username || 'Anonymous',
+            is_anonymous: msg.is_anonymous === 1,
+            timestamp: msg.timestamp,
+          }));
+          
+          socket.emit('loadedArchivedMessages', {
+            messages: formattedMessages,
+            hasMore: offset < totalArchives - 1,
+            offset: offset + 1,
+            archivedAt: archive.archived_at,
+          });
+        } else {
+          console.log(`[CHAT ARCHIVE] No archives found at offset ${offset}`);
+          socket.emit('loadedArchivedMessages', {
+            messages: [],
+            hasMore: false,
+            offset: offset,
+          });
+        }
+      } catch (error) {
+        console.error(`Error loading archived messages for ${room}:`, error);
+        socket.emit('error', { message: 'Failed to load archived messages' });
+      }
+    });
 
     socket.on('sendMessage', async (data: { room: string; content: string; isAnonymous: boolean }) => {
       const { room, content, isAnonymous } = data;
