@@ -357,66 +357,73 @@ export function setupChat(io: SocketIOServer) {
     });
 
     // ✅ FIX #4: Proper pagination for archived messages (LIMIT + OFFSET)
-    socket.on('loadArchivedMessages', async (data: { room: string; offset: number }) => {
-      const { room, offset } = data;
-      const BATCH_SIZE = 50;  // Load 50 messages per request
+   socket.on('loadArchivedMessages', async (data: { room: string; offset: number }) => {
+  const { room, offset } = data;
+  const BATCH_SIZE = 50;
+  
+  try {
+    console.log(`[CHAT ARCHIVE] Loading archived messages for ${room} at offset ${offset}`);
+    
+    // Get count of total archives
+    const countResult = await db
+      .selectFrom('chat_message_archives')
+      .where('room', '=', room)
+      .select(db.fn.count<number>('id').as('count'))
+      .executeTakeFirst();
+    
+    const totalArchives = countResult?.count || 0;
+    console.log(`[CHAT ARCHIVE] Total archives: ${totalArchives}`);
+    
+    // Fetch with LIMIT and OFFSET
+    const archives = await db
+      .selectFrom('chat_message_archives')
+      .where('room', '=', room)
+      .orderBy('archived_at', 'desc')
+      .select(['id', 'archived_messages', 'archived_at'])
+      .limit(1)
+      .offset(offset)
+      .execute();
+    
+    if (archives.length > 0) {
+      const archive = archives[0];
+      const allMessages = JSON.parse(archive.archived_messages);
       
-      try {
-        // Get count of total archives
-        const countResult = await db
-          .selectFrom('chat_message_archives')
-          .where('room', '=', room)
-          .select(db.fn.count<number>('id').as('count'))
-          .executeTakeFirst();
-        
-        const totalArchives = countResult?.count || 0;
-        
-        // Fetch with LIMIT and OFFSET
-        const archives = await db
-          .selectFrom('chat_message_archives')
-          .where('room', '=', room)
-          .orderBy('archived_at', 'desc')
-          .select(['id', 'archived_messages', 'archived_at'])
-          .limit(1)
-          .offset(offset)
-          .execute();
-        
-        if (archives.length > 0) {
-          const archive = archives[0];
-          const messages = JSON.parse(archive.archived_messages);
-          
-          // Reverse to show oldest first
-          messages.reverse();
-          
-          // Take last 50 messages from this archive batch
-          const lastFifty = messages.slice(-BATCH_SIZE);
-          
-          const formattedMessages = lastFifty.map((msg: any) => ({
-            id: msg.id,
-            content: msg.content,
-            username: msg.anonymous_username || msg.username || 'Anonymous',
-            is_anonymous: msg.is_anonymous === 1,
-            timestamp: msg.timestamp,
-          }));
-          
-          socket.emit('loadedArchivedMessages', {
-            messages: formattedMessages,
-            hasMore: offset < totalArchives - 1,
-            offset: offset + 1,
-            archivedAt: archive.archived_at,
-          });
-        } else {
-          socket.emit('loadedArchivedMessages', {
-            messages: [],
-            hasMore: false,
-            offset: offset,
-          });
-        }
-      } catch (error) {
-        console.error(`Error loading archived messages for ${room}:`, error);
-        socket.emit('error', { message: 'Failed to load archived messages' });
-      }
-    });
+      console.log(`[CHAT ARCHIVE] Found ${allMessages.length} messages in archive batch`);
+      
+      // Reverse to show oldest first, then take last 50
+      allMessages.reverse();
+      const lastFifty = allMessages.slice(-BATCH_SIZE);
+      
+      const formattedMessages = lastFifty.map((msg: any) => ({
+        id: msg.id,
+        content: msg.content,
+        username: msg.anonymous_username || msg.username || 'Anonymous',
+        is_anonymous: msg.is_anonymous === 1,
+        timestamp: msg.timestamp,
+      }));
+      
+      console.log(`[CHAT ARCHIVE] Emitting ${formattedMessages.length} formatted messages`);
+      
+      // ✅ THIS WAS MISSING - EMIT THE DATA BACK TO CLIENT
+      socket.emit('loadedArchivedMessages', {
+        messages: formattedMessages,
+        hasMore: offset < totalArchives - 1,
+        offset: offset + 1,
+        archivedAt: archive.archived_at,
+      });
+    } else {
+      console.log(`[CHAT ARCHIVE] No archives found at offset ${offset}`);
+      socket.emit('loadedArchivedMessages', {
+        messages: [],
+        hasMore: false,
+        offset: offset,
+      });
+    }
+  } catch (error) {
+    console.error(`[CHAT ARCHIVE] Error loading archived messages for ${room}:`, error);
+    socket.emit('error', { message: 'Failed to load archived messages' });
+  }
+});
 
     socket.on('sendMessage', async (data: { room: string; content: string; isAnonymous: boolean }) => {
       const { room, content, isAnonymous } = data;
