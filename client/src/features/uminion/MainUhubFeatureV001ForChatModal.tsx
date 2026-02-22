@@ -298,6 +298,28 @@ const getChatTabs = () => {
     setIsDraggingDivider(true);
   };
 
+  const handleArchiveClick = () => {
+    if (showArchive) {
+      // User is closing archive
+      setShowArchive(false);
+      setArchivedMessages([]);
+      setArchiveOffset(0);
+    } else {
+      // User is opening archive
+      loadMoreArchives(0);
+    }
+  };
+
+  const loadMoreArchives = (offset: number) => {
+    setIsLoadingArchive(true);
+    if (socketRef.current) {
+      socketRef.current.emit('loadArchivedMessages', {
+        room: roomName,
+        offset: offset,
+      });
+    }
+  };
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDraggingDivider) return;
@@ -318,34 +340,6 @@ const getChatTabs = () => {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
-
-
-
-const handleArchiveClick = () => {
-  if (showArchive) {
-    // User is closing archive
-    setShowArchive(false);
-    setArchivedMessages([]);
-    setArchiveOffset(0);
-  } else {
-    // User is opening archive
-    loadMoreArchives(0);
-  }
-};
-
-const loadMoreArchives = (offset: number) => {
-  setIsLoadingArchive(true);
-  if (socketRef.current) {
-    socketRef.current.emit('loadArchivedMessages', {
-      room: roomName,
-      offset: offset,
-    });
-  }
-};
-
-
-
-    
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
