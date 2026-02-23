@@ -1328,8 +1328,39 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [selectedFriendForModal, setSelectedFriendForModal] = useState<any>(null);
   const [isFriendProfileModalOpen, setIsFriendProfileModalOpen] = useState(false);
   const [isEditingProfileImage, setIsEditingProfileImage] = useState(false);
+  const [unreadChatrooms, setUnreadChatrooms] = useState<Set<number>>(new Set());
 
 
+
+
+
+
+  // Load unread chatroom status
+useEffect(() => {
+  if (user && user.id && isOpen) {
+    fetch('/api/chat/unread-status')
+      .then(res => {
+        if (!res.ok) return Promise.resolve([]);
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          const unreadSet = new Set<number>();
+          data.forEach((item: any) => {
+            const match = item.chatroom_room_name.match(/chatroom-(\d+)/);
+            if (match) {
+              // Extract the Sister Union number from the room name
+              const sisterUnionNum = parseInt(item.chatroom_room_name.split('-chatroom')[0].match(/\d+/)?.[0] || '0');
+              unreadSet.add(sisterUnionNum);
+            }
+          });
+          setUnreadChatrooms(unreadSet);
+          console.log('[PROFILE] Loaded unread chatrooms:', Array.from(unreadSet));
+        }
+      })
+      .catch(error => console.error('[PROFILE] Error loading unread chatrooms:', error));
+  }
+}, [user, isOpen]);
 
 
 
@@ -1460,6 +1491,35 @@ useEffect(() => {
 //  }
 // }, [isOpen]);
 
+
+
+// Listen for new messages in chatrooms
+useEffect(() => {
+  const handleChatroomNewMessage = (event: Event) => {
+    const customEvent = event as CustomEvent;
+    const { chatroomNumber } = customEvent.detail;
+    
+    // Add to unread set if not already there
+    setUnreadChatrooms(prev => {
+      const newSet = new Set(prev);
+      newSet.add(chatroomNumber);
+      return newSet;
+    });
+    
+    console.log('[PROFILE] Chatroom', chatroomNumber, 'has new messages');
+  };
+  
+  window.addEventListener('chatroomNewMessage', handleChatroomNewMessage);
+  
+  return () => {
+    window.removeEventListener('chatroomNewMessage', handleChatroomNewMessage);
+  };
+}, []);
+
+
+
+
+  
 
 // Fetch user stores data (all user stores with products)
   useEffect(() => {
@@ -1599,7 +1659,29 @@ useEffect(() => {
   const MainUhubFeatureV001ForModalColors = Array.from({ length: 30 }, (_, i) => `hsl(${i * 12}, 70%, 50%)`);
 
   const handleUHomeHubClick = (buttonNumber: number) => setActiveChatModal(buttonNumber);
-  const handleCloseChatModal = () => setActiveChatModal(null);
+  const handleCloseChatModal = async () => {
+  if (activeChatModal !== null) {
+    // Mark chatroom as read
+    try {
+      await fetch('/api/chat/mark-as-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chatroomNumber: activeChatModal,
+        }),
+      });
+      
+      // Remove from unread set
+      const newUnread = new Set(unreadChatrooms);
+      newUnread.delete(activeChatModal);
+      setUnreadChatrooms(newUnread);
+      console.log('[PROFILE] Chatroom', activeChatModal, 'marked as read');
+    } catch (error) {
+      console.error('[PROFILE] Error marking chatroom as read:', error);
+    }
+  }
+  setActiveChatModal(null);
+};
 
   const navigateCenterRight = (direction: 'left' | 'right') => {
     const currentIndex = ALL_STORES.findIndex(s => s.id === centerRightView.id);
@@ -2143,7 +2225,14 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
              <div className="grid grid-cols-2 gap-1 md:gap-2">
                {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
                  <Button key={num} variant="outline" size="sm" className="md:h-auto h-6 text-xs" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
-               ))}
+               
+     {/* Green unread message badge */}
+      {unreadChatrooms.has(num) && countdownActive !== num && (
+        <div className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-green-600 z-10"></div>
+      )}
+    </div>
+    
+    ))}
              </div>
            </div>
            <div className="w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleStartDragMobile}></div>
