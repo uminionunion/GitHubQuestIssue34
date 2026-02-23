@@ -2218,23 +2218,30 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
            </div>
          </div>
 
-         {/* Center Section */}
-         <div className="flex-grow flex overflow-hidden">
-           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : `${leftWidthDesktop}%` }}>
-             <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
-             <div className="grid grid-cols-2 gap-1 md:gap-2">
-               {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
-                 <Button key={num} variant="outline" size="sm" className="md:h-auto h-6 text-xs" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
-               
-     {/* Green unread message badge */}
-      {unreadChatrooms.has(num) && countdownActive !== num && (
-        <div className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-green-600 z-10"></div>
-      )}
+        {/* Center Section */}
+<div className="flex-grow flex overflow-hidden">
+  <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : `${leftWidthDesktop}%` }}>
+    <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
+    <div className="grid grid-cols-2 gap-1 md:gap-2">
+      {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
+        <div key={num} className="relative">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="md:h-auto h-6 text-xs w-full" 
+            onClick={() => handleUHomeHubClick(num)}
+          >
+            #{String(num).padStart(2, '0')}
+          </Button>
+          
+          {/* Green unread message badge */}
+          {unreadChatrooms.has(num) && (
+            <div className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-green-600 z-10"></div>
+          )}
+        </div>
+      ))}
     </div>
-    
-    ))}
-             </div>
-           </div>
+  </div>
            <div className="w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleStartDragMobile}></div>
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : `${centerWidthDesktop}%` }}>
              {renderCenterContent()}
