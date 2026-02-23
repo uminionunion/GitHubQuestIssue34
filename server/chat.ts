@@ -504,3 +504,19 @@ export function setupChat(io: SocketIOServer) {
     });
   });
 }
+
+// Export a helper function to check if room has messages
+export async function roomHasMessages(room: string): Promise<boolean> {
+  try {
+    const messageCount = await db
+      .selectFrom('messages')
+      .where('room', '=', room)
+      .selectAll()
+      .execute();
+    
+    return messageCount.length > 0;
+  } catch (error) {
+    console.error(`[CHAT] Error checking messages for room ${room}:`, error);
+    return false;
+  }
+}
