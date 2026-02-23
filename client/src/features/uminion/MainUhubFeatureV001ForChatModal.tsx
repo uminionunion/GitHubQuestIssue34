@@ -152,6 +152,14 @@ const [isLoadingArchive, setIsLoadingArchive] = useState(false);  const [newMess
 
           socketRef.current.on('receiveMessage', (message: Message) => {
   setMessages((prevMessages) => [...prevMessages, message]);
+  
+  // Emit event to parent that chatroom has new messages
+  // This will be caught by the parent profile modal
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('chatroomNewMessage', {
+      detail: { chatroomNumber: modalNumber }
+    }));
+  }
 });
 
 socketRef.current.on('updateUserList', (userList: User[]) => {
