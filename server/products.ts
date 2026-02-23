@@ -1032,44 +1032,44 @@ router.put('/:productId/user-store', authenticate, async (req, res) => {
   }
 });
 
-// GET - All user stores with their products (for page 10+ display)
+
 router.get('/stores/all/with-products', async (req, res) => {
   try {
     console.log('[PRODUCTS] Fetching all user stores with their products');
 
     // Get all user stores with their associated products
     const stores = await db
-  .selectFrom('user_stores')
-  .leftJoin(
-    'MainHubUpgradeV001ForProducts',
-    'user_stores.id',
-    'MainHubUpgradeV001ForProducts.user_store_id'
-  )
-  .leftJoin(
-    'users',
-    'user_stores.user_id',
-    'users.id'
-  )
-  .select([
-    'user_stores.id',
-    'user_stores.user_id',
-    'user_stores.name',
-    'user_stores.subtitle',
-    'user_stores.description',
-    'user_stores.badge_url',
-    'user_stores.banner_url',
-    'user_stores.created_at',
-    'MainHubUpgradeV001ForProducts.id as product_id',
-    'MainHubUpgradeV001ForProducts.name as product_name',
-    'MainHubUpgradeV001ForProducts.price',
-    'MainHubUpgradeV001ForProducts.image_url',
-    'MainHubUpgradeV001ForProducts.description as product_description',
-    'MainHubUpgradeV001ForProducts.subtitle as product_subtitle',
-    'users.username as store_owner_username',
-  ])
-  .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
-  .orderBy('user_stores.created_at', 'desc')
-  .execute();
+      .selectFrom('user_stores')
+      .leftJoin(
+        'MainHubUpgradeV001ForProducts',
+        'user_stores.id',
+        'MainHubUpgradeV001ForProducts.user_store_id'
+      )
+      .leftJoin(
+        'users',
+        'user_stores.user_id',
+        'users.id'
+      )
+      .select([
+        'user_stores.id',
+        'user_stores.user_id',
+        'user_stores.name',
+        'user_stores.subtitle',
+        'user_stores.description',
+        'user_stores.badge_url',
+        'user_stores.banner_url',
+        'user_stores.created_at',
+        'MainHubUpgradeV001ForProducts.id as product_id',
+        'MainHubUpgradeV001ForProducts.name as product_name',
+        'MainHubUpgradeV001ForProducts.price',
+        'MainHubUpgradeV001ForProducts.image_url',
+        'MainHubUpgradeV001ForProducts.description as product_description',
+        'MainHubUpgradeV001ForProducts.subtitle as product_subtitle',
+        'users.username as store_owner_username',
+      ])
+      .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
+      .orderBy('user_stores.created_at', 'desc')
+      .execute();
 
     // Transform flat results into nested structure
     const storesMap = new Map();
@@ -1084,7 +1084,7 @@ router.get('/stores/all/with-products', async (req, res) => {
           banner_url: row.banner_url,
           user_id: row.user_id,
           store_owner_username: row.store_owner_username,
-          created_at: row.store_created_at,
+          created_at: row.created_at,
           products: [],
         });
       }
@@ -1099,7 +1099,8 @@ router.get('/stores/all/with-products', async (req, res) => {
         });
       }
     });
-  const result = Array.from(storesMap.values());
+
+    const result = Array.from(storesMap.values());
     console.log(`[PRODUCTS] ✅ Fetched ${result.length} user stores with products`);
     res.json(result);
   } catch (error) {
