@@ -216,9 +216,9 @@ function getBaseRoom(room: string): string {
 
 export function setupChat(io: SocketIOServer) {
   const usersInRooms: Record<string, Record<string, { username: string }>> = {};
-  let anonymousCounter = 0;
+  // anonymousCounter moved to database for persistence (see getNextAnonymousId function)
 
-  io.use((socket: SocketWithUser, next) => {
+  io.use(async (socket: SocketWithUser, next) => {
     // Try to get token from auth object first (most reliable)
     let token = (socket.handshake.auth as any)?.token;
 
@@ -249,11 +249,22 @@ export function setupChat(io: SocketIOServer) {
       }
     }
 
-    // Assign an anonymous ID if not logged in
-    anonymousCounter++;
-    socket.anonymousId = `Anonymous${String(anonymousCounter).padStart(3, '0')}`;
-    console.log(`[CHAT] User joining as anonymous: ${socket.anonymousId}`);
-    next();
+    // Assign an anonymous ID if not logged in (using database for persistence)
+    try {
+      const anonId = await getNextAnonymousId();
+      socket.anonymousId = `Anonymous${String(anonId).padStart(3, '0')}`;
+      console.log(`[CHAT] User joining as anonymous: ${socket.anonymousId}`);
+      next();
+    } catch (error) {
+      console.error('[CHAT] Error assigning anonymous ID:', error);
+      // Fallback to timestamp-based ID if database fails
+      const fallbackId = Math.floor(Date.now() / 1000) % 10000;
+      socket.anonymousId = `Anonymous${String(fallbackId).padStart(3, '0')}`;
+      console.log(`[CHAT] User joining as anonymous (fallback): ${socket.anonymousId}`);
+      next();
+    }
+
+    
   });
 
   io.on('connection', (socket: SocketWithUser) => {
