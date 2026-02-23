@@ -1337,30 +1337,48 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
 
 
-  // Load unread chatroom status
+  // Load unread chatroom status for logged-in users OR load rooms with messages for all users
 useEffect(() => {
-  if (user && user.id && isOpen) {
-    fetch('/api/chat/unread-status')
-      .then(res => {
-        if (!res.ok) return Promise.resolve([]);
-        return res.json();
-      })
-      .then(data => {
-        if (Array.isArray(data)) {
-          const unreadSet = new Set<number>();
-          data.forEach((item: any) => {
-            const match = item.chatroom_room_name.match(/chatroom-(\d+)/);
-            if (match) {
-              // Extract the Sister Union number from the room name
-              const sisterUnionNum = parseInt(item.chatroom_room_name.split('-chatroom')[0].match(/\d+/)?.[0] || '0');
-              unreadSet.add(sisterUnionNum);
-            }
-          });
-          setUnreadChatrooms(unreadSet);
-          console.log('[PROFILE] Loaded unread chatrooms:', Array.from(unreadSet));
-        }
-      })
-      .catch(error => console.error('[PROFILE] Error loading unread chatrooms:', error));
+  if (isOpen) {
+    // For logged-in users, get their unread status
+    if (user && user.id) {
+      fetch('/api/chat/unread-status')
+        .then(res => {
+          if (!res.ok) return Promise.resolve([]);
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data)) {
+            const unreadSet = new Set<number>();
+            data.forEach((item: any) => {
+              const match = item.chatroom_room_name.match(/chatroom-(\d+)/);
+              if (match) {
+                // Extract the Sister Union number from the room name
+                const sisterUnionNum = parseInt(item.chatroom_room_name.split('-chatroom')[0].match(/\d+/)?.[0] || '0');
+                unreadSet.add(sisterUnionNum);
+              }
+            });
+            setUnreadChatrooms(unreadSet);
+            console.log('[PROFILE] Loaded unread chatrooms for logged-in user:', Array.from(unreadSet));
+          }
+        })
+        .catch(error => console.error('[PROFILE] Error loading unread chatrooms:', error));
+    } else {
+      // For non-logged-in users, show green circle for ANY room with messages
+      fetch('/api/chat/rooms-with-messages')
+        .then(res => {
+          if (!res.ok) return Promise.resolve([]);
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data)) {
+            const roomsWithMessagesSet = new Set<number>(data);
+            setUnreadChatrooms(roomsWithMessagesSet);
+            console.log('[PROFILE] Loaded rooms with messages for non-logged-in user:', Array.from(roomsWithMessagesSet));
+          }
+        })
+        .catch(error => console.error('[PROFILE] Error loading rooms with messages:', error));
+    }
   }
 }, [user, isOpen]);
 
