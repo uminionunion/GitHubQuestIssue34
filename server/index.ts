@@ -1,5 +1,5 @@
 // server/index.ts
-import express, { Router } from 'express';
+import express, { Router, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -7,21 +7,34 @@ import cookieParser from 'cookie-parser';
 import fileUpload from 'express-fileupload';
 import path from 'path';
 import fs from 'fs';
+import jwt from 'jsonwebtoken';
+import { db } from './db.js';
 
 dotenv.config();
+
+// Type extension for authenticated requests
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: number;
+        username: string;
+      };
+    }
+  }
+}
 
 const app = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: `http://localhost:${process.env.VITE_PORT || 3000}`,
+    origin: process.env.NODE_ENV === 'production' 
+      ? true 
+      : `http://localhost:${process.env.VITE_PORT || 3000}`,
     credentials: true,
   },
 });
 
-/**
- * sanitizeStringRoute
- */
 function sanitizeStringRoute(s: unknown): string {
   if (!s || typeof s !== 'string') return String(s ?? '/');
   const t = s.trim();
@@ -35,9 +48,6 @@ function sanitizeStringRoute(s: unknown): string {
   return t || '/';
 }
 
-/**
- * DEBUG helper (optional)
- */
 function warnIfUrlAndStack(s: string) {
   if (process.env.DEBUG_ROUTE_SANITIZE !== 'true') return;
   if (!s) return;
@@ -47,9 +57,6 @@ function warnIfUrlAndStack(s: string) {
   console.error(new Error().stack?.split('\n').slice(2, 8).join('\n'));
 }
 
-/**
- * Safer patch helper: call original with the same `this`
- */
 function patchMethodOn(target: any, methodName: string) {
   if (!target || typeof target[methodName] !== 'function') return;
   const orig = target[methodName];
@@ -77,28 +84,21 @@ function patchMethodOn(target: any, methodName: string) {
   };
 }
 
-// Patch app instance methods BEFORE any routers are loaded
 ['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(app, m));
 
-// Patch Router prototype methods BEFORE router modules load
 const RouterProto = (Router as any)?.prototype;
 if (RouterProto) {
   ['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(RouterProto, m));
 }
 
-// Use express middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-// ADD THIS LINE: Enable file upload handling
 app.use(fileUpload({
   createParentPath: true,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
+  limits: { fileSize: 50 * 1024 * 1024 },
 }));
 
-/**
- * Dynamic-import the modules that may register routes
- */
 const [{ setupStaticServing }, authMod, friendsMod, { setupChat }, productsMod] = await Promise.all([
   import('./static-serve.js'),
   import('./auth.js'),
@@ -161,24 +161,79 @@ function logRegisteredRoutes() {
   }
 }
 
-/**
- * Start server
- */
+// Middleware for authentication
+const authMiddleware = (req: Request, res: Response, next: Function) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    res.status(401).json({ error: 'Not authenticated' });
+    return;
+  }
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-key') as any;
+    req.user = payload;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+// Chat unread status routes
+app.get('/api/chat/unread-status', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    const unreadStatus = await db
+      .selectFrom('chatroom_unread_status')
+      .where('user_id', '=', req.user.userId)
+      .where('has_unread', '=', 1)
+      .selectAll()
+      .execute();
+
+    res.status(200).json(unreadStatus);
+  } catch (error) {
+    console.error('[API] Error fetching unread status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/chat/mark-as-read', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    const { chatroomNumber } = req.body;
+    
+    const sisterUnionNum = String(chatroomNumber).padStart(2, '0');
+    const roomName = `SisterUnion${sisterUnionNum}-chatroom-1`;
+
+    await db
+      .updateTable('chatroom_unread_status')
+      .set({ has_unread: 0 })
+      .where('user_id', '=', req.user.userId)
+      .where('chatroom_room_name', '=', roomName)
+      .execute();
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('[API] Error marking as read:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export async function startServer(port: number | string) {
   try {
     if (process.env.NODE_ENV === 'production') {
-  const publicPath = resolvePublicPath();
-  console.log('Production static path resolved to:', publicPath);
+      const publicPath = resolvePublicPath();
+      console.log('Production static path resolved to:', publicPath);
 
-  app.use(express.static(publicPath, { index: false }));
+      app.use(express.static(publicPath, { index: false }));
+      app.use('/data', express.static(path.join(process.cwd(), 'data')));
 
-      // Serve data directory (for profile images and uploads)
-    app.use('/data', express.static(path.join(process.cwd(), 'data')));
-  
-  // CRITICAL: Serve profile images directory in development and production
-//DOOOO I WANT THIS COMMENTED OUT??? -1:37pm on 2/16/26 (profile image aint showing up when updated with new profile image is what im trying to work on right now.) >>>>>>>  app.use('/data/profile-images', express.static(path.join(process.cwd(), 'data', 'profile-images')));
-
-      // ✅ FIXED: regex catch-all instead of "*"
       app.get(/.*/, (req, res, next) => {
         if (req.path.startsWith('/api/')) return next();
         const indexFile = path.join(publicPath, 'index.html');
@@ -208,7 +263,3 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log('Starting server...');
   startServer(process.env.PORT || 3001);
 }
-
-
-
-
