@@ -107,9 +107,9 @@ const roomTimezoneMap: Record<string, string> = {
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-1': 'EST',
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-2': 'EST',
   'SisterUnion029WheelsVehiclesAndeMods-chatroom-3': 'EST',
-  'SisterUnion030HousingAndHealthCare-chatroom-1': 'EST',
-  'SisterUnion030HousingAndHealthCare-chatroom-2': 'EST',
-  'SisterUnion030HousingAndHealthCare-chatroom-3': 'EST',
+  'SisterUnion030HousingAndHealthcare-chatroom-1': 'EST',
+  'SisterUnion030HousingAndHealthcare-chatroom-2': 'EST',
+  'SisterUnion030HousingAndHealthcare-chatroom-3': 'EST',
 };
 
 // Convert timezone offset to hours
@@ -210,36 +210,18 @@ function getBaseRoom(room: string): string {
   return room.replace(/-chatroom-\d+$/, '');
 }
 
-// Get next anonymous ID from the messages table (query max ID, not a counter table)
-async function getNextAnonymousId(): Promise<number> {
-  try {
-    // Query the messages table to find the highest anonymous_id that exists
-    // This works WITHOUT needing a separate counter table
-    const maxRecord = await db
-      .selectFrom('messages')
-      .select(db.fn.max('id').as('maxId'))
-      .executeTakeFirst();
-    
-    // Get the max ID from messages and add 1
-    const currentMax = maxRecord?.maxId ? Number(maxRecord.maxId) : 0;
-    const nextId = currentMax + 1;
-    
-    console.log(`[CHAT] Generated anonymous ID: Anonymous${String(nextId).padStart(3, '0')}`);
-    return nextId;
-  } catch (error) {
-    console.error('[CHAT] Error getting next anonymous ID:', error);
-    // Fallback to timestamp-based ID if database fails
-    return Math.floor(Date.now() / 1000) % 10000;
-  }
-}
-
 // ===============================================
 // MAIN SETUP FUNCTION
 // ===============================================
 
 export function setupChat(io: SocketIOServer) {
   const usersInRooms: Record<string, Record<string, { username: string }>> = {};
-  // anonymousCounter moved to database for persistence (see getNextAnonymousId function)
+  
+  // ✅ FIXED: Track anonymous IDs per socket (assigned at connection)
+  const socketAnonIds: Map<string, string> = new Map();
+  
+  // ✅ FIXED: Track anonymous counters PER ROOM (resets when room is empty)
+  const roomAnonCounters: Map<string, number> = new Map();
 
   io.use(async (socket: SocketWithUser, next) => {
     // Try to get token from auth object first (most reliable)
@@ -272,36 +254,40 @@ export function setupChat(io: SocketIOServer) {
       }
     }
 
-    // Assign an anonymous ID if not logged in (using database for persistence)
-    try {
-      const anonId = await getNextAnonymousId();
-      socket.anonymousId = `Anonymous${String(anonId).padStart(3, '0')}`;
-      console.log(`[CHAT] User joining as anonymous: ${socket.anonymousId}`);
-      next();
-    } catch (error) {
-      console.error('[CHAT] Error assigning anonymous ID:', error);
-      // Fallback to timestamp-based ID if database fails
-      const fallbackId = Math.floor(Date.now() / 1000) % 10000;
-      socket.anonymousId = `Anonymous${String(fallbackId).padStart(3, '0')}`;
-      console.log(`[CHAT] User joining as anonymous (fallback): ${socket.anonymousId}`);
-      next();
-    }
-
-    
+    // ✅ FIXED: Assign a temporary placeholder - actual ID assigned per room
+    socket.anonymousId = 'Anonymous_PENDING';
+    console.log(`[CHAT] User joining as anonymous (pending room assignment): ${socket.id}`);
+    next();
   });
 
   io.on('connection', (socket: SocketWithUser) => {
-    console.log('A user connected:', socket.id, 'as', socket.user?.username || socket.anonymousId);
+    console.log('A user connected:', socket.id, 'as', socket.user?.username || 'Anonymous_PENDING');
     
     socket.on('joinRoom', async (room) => {
       socket.join(room);
-      const displayName = socket.user?.username || socket.anonymousId;
-      console.log(`User ${displayName} joined room: ${room}`);
+      
+      // ✅ FIXED: Assign anonymous ID when joining room (not at connection)
+      let displayName: string;
+      if (socket.user) {
+        // Logged-in user - use their username
+        displayName = socket.user.username;
+        console.log(`[CHAT] Logged-in user ${socket.user.username} joined room: ${room}`);
+      } else {
+        // Anonymous user - get next counter for this room
+        const currentCounter = roomAnonCounters.get(room) || 0;
+        const nextId = currentCounter + 1;
+        roomAnonCounters.set(room, nextId);
+        
+        displayName = `Anonymous${String(nextId).padStart(1, '0')}`;
+        socketAnonIds.set(socket.id, displayName);
+        
+        console.log(`[CHAT] Anonymous user ${displayName} joined room: ${room} (room counter now: ${nextId})`);
+      }
 
       if (!usersInRooms[room]) {
         usersInRooms[room] = {};
       }
-      usersInRooms[room][socket.id] = { username: displayName! };
+      usersInRooms[room][socket.id] = { username: displayName };
       io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
       
       // Check and archive if needed (at midnight based on timezone)
@@ -401,138 +387,154 @@ export function setupChat(io: SocketIOServer) {
     });
 
     socket.on('sendMessage', async (data: { room: string; content: string; isAnonymous: boolean }) => {
-  const { room, content, isAnonymous } = data;
-  
-  try {
-    let userId: number | null = null;
-    let anonymousUsername: string | null = null;
-    let isAnon = 0;
-    
-    // DETERMINE WHO IS SENDING THE MESSAGE
-    if (socket.user) {
-      // LOGGED-IN USER
-      userId = socket.user.userId;
-      if (isAnonymous) {
-        // They clicked "Post Anonymously?" - mark as anonymous
-        isAnon = 1;
-        anonymousUsername = socket.anonymousId || 'Anonymous';
-      } else {
-        // They did NOT click "Post Anonymously?" - post as themselves
-        isAnon = 0;
-        anonymousUsername = null;  // No anonymous name needed
-      }
-    } else {
-      // NOT LOGGED-IN USER - Always anonymous
-      userId = null;
-      isAnon = 1;
-      anonymousUsername = socket.anonymousId || 'Anonymous';
-    }
-
-    // Save message to database
-    const newMessage = await db
-      .insertInto('messages')
-      .values({
-        content,
-        room,
-        user_id: userId,
-        is_anonymous: isAnon as any,
-        anonymous_username: anonymousUsername,
-      })
-      .returningAll()
-      .executeTakeFirst();
-
-    if (newMessage) {
-      // Determine display username for clients
-      let displayUsername: string;
-      if (isAnon === 1 && anonymousUsername) {
-        displayUsername = anonymousUsername;  // Show "AnonymousXXX"
-      } else if (socket.user) {
-        displayUsername = socket.user.username;  // Show their actual username
-      } else {
-        displayUsername = 'Anonymous';
-      }
-
-      const messageForClient = {
-        id: newMessage.id,
-        content: newMessage.content,
-        username: displayUsername,
-        is_anonymous: isAnon === 1,
-        timestamp: newMessage.timestamp,
-      };
-
-      console.log(`[CHAT] Message from: "${displayUsername}" | Anonymous: ${isAnon === 1 ? 'YES' : 'NO'} | UserID: ${userId}`);
+      const { room, content, isAnonymous } = data;
       
-      // ✅ BROADCAST MESSAGE TO ALL USERS IN THE ROOM
-      io.to(room).emit('receiveMessage', messageForClient);
-
-      // ✅ UPDATE UNREAD STATUS FOR LOGGED-IN USERS
-      if (socket.user?.userId) {
-        // Get all sockets GLOBALLY (not just in room) to find all logged-in users
-        const allSockets = await io.fetchSockets();
-        const userIdsToUpdate = new Set<number>();
+      try {
+        let userId: number | null = null;
+        let anonymousUsername: string | null = null;
+        let isAnon = 0;
         
-        allSockets.forEach(s => {
-          const userSocket = s as unknown as SocketWithUser;
-          // Update all logged-in users EXCEPT the sender
-          if (userSocket.user?.userId && userSocket.user.userId !== socket.user.userId) {
-            userIdsToUpdate.add(userSocket.user.userId);
+        // DETERMINE WHO IS SENDING THE MESSAGE
+        if (socket.user) {
+          // LOGGED-IN USER
+          userId = socket.user.userId;
+          if (isAnonymous) {
+            // They clicked "Post Anonymously?" - mark as anonymous
+            isAnon = 1;
+            anonymousUsername = `Anonymous_${socket.user.userId}`;
+          } else {
+            // They did NOT click "Post Anonymously?" - post as themselves
+            isAnon = 0;
+            anonymousUsername = null;
           }
-        });
-        
-        // Insert/update unread records for all logged-in users
-        for (const userId of userIdsToUpdate) {
-          try {
-            await db
-              .insertInto('chatroom_unread_status')
-              .values({
-                user_id: userId,
-                chatroom_room_name: room,
-                has_unread: 1,
-              })
-              .onConflict(oc =>
-                oc
-                  .columns(['user_id', 'chatroom_room_name'])
-                  .doUpdateSet({ has_unread: 1 })
-              )
-              .execute();
-          } catch (err) {
-            console.error(`[CHAT] Error updating unread status for user ${userId}:`, err);
-          }
+        } else {
+          // NOT LOGGED-IN USER - Always anonymous, use the assigned room anonymous ID
+          userId = null;
+          isAnon = 1;
+          anonymousUsername = socketAnonIds.get(socket.id) || 'Anonymous';
         }
-      }
 
-      // ✅ EMIT REAL-TIME NOTIFICATION TO ALL CONNECTED USERS (NEW!)
-      // This updates the UI immediately with the green circle for the chatroom
-      console.log(`[CHAT] Broadcasting unread notification for room: ${room}`);
-      io.emit('chatroomUnreadNotification', {
-        room: room,
-        hasUnread: true,
-        messageCount: 1,
-      });
-    }
-  } catch (error) {
-    console.error('Error saving message:', error);
-    socket.emit('error', { message: 'Failed to send message' });
-  }
-});
+        // Save message to database
+        const newMessage = await db
+          .insertInto('messages')
+          .values({
+            content,
+            room,
+            user_id: userId,
+            is_anonymous: isAnon as any,
+            anonymous_username: anonymousUsername,
+          })
+          .returningAll()
+          .executeTakeFirst();
+
+        if (newMessage) {
+          // Determine display username for clients
+          let displayUsername: string;
+          if (isAnon === 1 && anonymousUsername) {
+            displayUsername = anonymousUsername;
+          } else if (socket.user) {
+            displayUsername = socket.user.username;
+          } else {
+            displayUsername = 'Anonymous';
+          }
+
+          const messageForClient = {
+            id: newMessage.id,
+            content: newMessage.content,
+            username: displayUsername,
+            is_anonymous: isAnon === 1,
+            timestamp: newMessage.timestamp,
+          };
+
+          console.log(`[CHAT] Message from: "${displayUsername}" | Anonymous: ${isAnon === 1 ? 'YES' : 'NO'} | UserID: ${userId}`);
+          
+          // ✅ BROADCAST MESSAGE TO ALL USERS IN THE ROOM
+          io.to(room).emit('receiveMessage', messageForClient);
+
+          // ✅ UPDATE UNREAD STATUS FOR LOGGED-IN USERS
+          if (socket.user?.userId) {
+            const socketsInRoom = await io.in(room).fetchSockets();
+            const userIdsToUpdate = new Set<number>();
+            
+            socketsInRoom.forEach(s => {
+              const userSocket = s as unknown as SocketWithUser;
+              if (userSocket.user?.userId && userSocket.user.userId !== socket.user.userId) {
+                userIdsToUpdate.add(userSocket.user.userId);
+              }
+            });
+            
+            for (const userId of userIdsToUpdate) {
+              try {
+                await db
+                  .insertInto('chatroom_unread_status')
+                  .values({
+                    user_id: userId,
+                    chatroom_room_name: room,
+                    has_unread: 1,
+                  })
+                  .onConflict(oc =>
+                    oc
+                      .columns(['user_id', 'chatroom_room_name'])
+                      .doUpdateSet({ has_unread: 1 })
+                  )
+                  .execute();
+              } catch (err) {
+                console.error(`[CHAT] Error updating unread status for user ${userId}:`, err);
+              }
+            }
+          }
+
+          // ✅ EMIT REAL-TIME NOTIFICATION TO ALL CONNECTED USERS
+          console.log(`[CHAT] Broadcasting unread notification for room: ${room}`);
+          io.emit('chatroomUnreadNotification', {
+            room: room,
+            hasUnread: true,
+            messageCount: 1,
+          });
+        }
+      } catch (error) {
+        console.error('Error saving message:', error);
+        socket.emit('error', { message: 'Failed to send message' });
+      }
+    });
 
     socket.on('leaveRoom', (room) => {
       socket.leave(room);
-      const displayName = socket.user?.username || socket.anonymousId;
+      
+      // Get display name before cleanup
+      let displayName = socket.user?.username || socketAnonIds.get(socket.id) || 'Anonymous';
       console.log(`User ${displayName} left room: ${room}`);
+      
       if (usersInRooms[room]) {
         delete usersInRooms[room][socket.id];
         io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
+        
+        // ✅ FIXED: Reset counter if room is now empty
+        if (Object.keys(usersInRooms[room]).length === 0) {
+          roomAnonCounters.delete(room);
+          console.log(`[CHAT] Room ${room} is now empty, anonymous counter reset`);
+        }
       }
     });
 
     socket.on('disconnect', () => {
-      const displayName = socket.user?.username || socket.anonymousId;
+      const displayName = socket.user?.username || socketAnonIds.get(socket.id) || 'Anonymous';
       console.log('User disconnected:', socket.id, 'as', displayName);
+      
+      // Clean up this socket's anonymous ID
+      socketAnonIds.delete(socket.id);
+      
+      // Check all rooms and clean up
       for (const room in usersInRooms) {
         if (usersInRooms[room][socket.id]) {
           delete usersInRooms[room][socket.id];
           io.to(room).emit('updateUserList', Object.values(usersInRooms[room]));
+          
+          // ✅ FIXED: Reset counter if room is now empty
+          if (Object.keys(usersInRooms[room]).length === 0) {
+            roomAnonCounters.delete(room);
+            console.log(`[CHAT] Room ${room} is now empty after disconnect, anonymous counter reset`);
+          }
         }
       }
     });
