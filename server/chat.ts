@@ -210,6 +210,25 @@ function getBaseRoom(room: string): string {
   return room.replace(/-chatroom-\d+$/, '');
 }
 
+// Get next anonymous ID from database (ensures unique IDs across all users)
+async function getNextAnonymousId(): Promise<number> {
+  try {
+    // Check if counter table exists and get current max ID
+    const maxRecord = await db
+      .selectFrom('messages')
+      .select(db.fn.max('anonymous_id').as('maxId'))
+      .where('is_anonymous', '=', 1)
+      .executeTakeFirst();
+    
+    const currentMax = maxRecord?.maxId ? Number(maxRecord.maxId) : 0;
+    return currentMax + 1;
+  } catch (error) {
+    // Fallback: use timestamp-based ID
+    console.warn('[CHAT] Error getting next anonymous ID from database:', error);
+    return Math.floor(Date.now() / 1000) % 10000;
+  }
+}
+
 // ===============================================
 // MAIN SETUP FUNCTION
 // ===============================================
@@ -392,7 +411,7 @@ export function setupChat(io: SocketIOServer) {
       if (isAnonymous) {
         // They clicked "Post Anonymously?" - mark as anonymous
         isAnon = 1;
-        anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+        anonymousUsername = socket.anonymousId || 'Anonymous';
       } else {
         // They did NOT click "Post Anonymously?" - post as themselves
         isAnon = 0;
@@ -402,7 +421,7 @@ export function setupChat(io: SocketIOServer) {
       // NOT LOGGED-IN USER - Always anonymous
       userId = null;
       isAnon = 1;
-      anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+      anonymousUsername = socket.anonymousId || 'Anonymous';
     }
 
     // Save message to database
