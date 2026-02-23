@@ -477,13 +477,15 @@ const formatMessageTime = (isoString: string): string => {
       </>
     )}
     {!showArchive && (
-      <>
-        <Button 
-          className="bg-cyan-500 hover:bg-cyan-600 text-white w-full mb-4"
-          onClick={handleArchiveClick}
-        >
-          Archive
-        </Button>
+  <>
+    <Button 
+      className="bg-gray-500 text-white w-full mb-4 cursor-not-allowed opacity-50"
+      onClick={() => {}}
+      disabled={true}
+      title="Archive feature is currently disabled"
+    >
+      Archive
+    </Button>
         {messages.map((msg) => (
   <div key={msg.id}>
     <div className="flex items-baseline gap-2 mb-2">
