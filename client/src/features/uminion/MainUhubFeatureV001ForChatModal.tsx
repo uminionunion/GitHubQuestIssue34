@@ -612,8 +612,31 @@ const formatMessageTime = (isoString: string): string => {
         </DialogContent>
       </Dialog>
       {isProfileViewOpen && (
-        <MainUhubFeatureV001ForUserProfileModal isOpen={isProfileViewOpen} onClose={() => setProfileViewOpen(false)} user={viewedUser} />
-      )}
+  <MainUhubFeatureV001ForUserProfileModal 
+    isOpen={isProfileViewOpen} 
+    onClose={() => setProfileViewOpen(false)} 
+    user={viewedUser}
+    currentUser={user}
+    onBadgeZoomOpen={(badge) => {
+      console.log('[CHAT] Badge clicked in user profile:', badge);
+      // Dispatch custom event to parent to show zoom
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('showBadgeZoom', {
+          detail: badge
+        }));
+      }
+    }}
+    onProductView={(product) => {
+      console.log('[CHAT] Product clicked in user profile:', product);
+      // Dispatch custom event to parent to show product modal
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('showProductDetail', {
+          detail: product
+        }));
+      }
+    }}
+  />
+)}
     </>
   );
 };
