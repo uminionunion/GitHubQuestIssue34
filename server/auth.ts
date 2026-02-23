@@ -286,6 +286,58 @@ router.get('/me', async (req, res) => {
   }
 });
 
+
+
+
+// GET /api/users/by-username/:username
+// Fetch a user's basic profile info by their username (accessible to all)
+router.get('/users/by-username/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      res.status(400).json({ error: 'Username required' });
+      return;
+    }
+
+    console.log(`[AUTH] Fetching user by username: ${username}`);
+
+    // Search for user by exact username
+    let user = await db
+      .selectFrom('users')
+      .select(['id', 'username', 'profile_image_url', 'cover_photo_url'])
+      .where('username', '=', username)
+      .executeTakeFirst();
+
+    // If not found and doesn't start with 'u', try adding 'u' prefix
+    if (!user && !username.startsWith('u')) {
+      const prefixedUsername = 'u' + username;
+      user = await db
+        .selectFrom('users')
+        .select(['id', 'username', 'profile_image_url', 'cover_photo_url'])
+        .where('username', '=', prefixedUsername)
+        .executeTakeFirst();
+    }
+
+    if (!user) {
+      console.log(`[AUTH] User not found: ${username}`);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    console.log(`[AUTH] ✅ Found user: ${user.username} (ID: ${user.id})`);
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('[AUTH] Error fetching user by username:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+
+
+
 /**
  * POST /api/auth/profile-image
  * Upload and update user's profile image using express-fileupload
