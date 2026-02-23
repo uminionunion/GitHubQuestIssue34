@@ -1,4 +1,3 @@
-
 import type { ColumnType } from "kysely";
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
@@ -72,54 +71,9 @@ export interface MainHubUpgradeV001ForProducts {
   payment_url: string | null;
   is_in_trash: Boolean;
   sku_id: string | null;
+  url: string | null;
   created_at: Generated<string | null>;
   user_store_id: number | null;
-}
-
-export interface MainHubUpgradeV001ForProductTrash {
-  id: Generated<number>;
-  product_id: number;
-  user_id: number;
-  deleted_at: Generated<string | null>;
-}
-
-export interface MainHubUpgradeV001ForInternalCart {
-  id: Generated<number>;
-  user_id: number;
-  product_id: number;
-  quantity: Generated<number>;
-  added_at: Generated<string | null>;
-}
-
-export interface MainHubUpgradeV001ForLookingFor {
-  id: Generated<number>;
-  user_id: number;
-  store_id: number;
-  item_name: string;
-  description: string | null;
-  created_at: Generated<string | null>;
-}
-
-export interface MainHubUpgradeV001ForStores {
-  id: Generated<number>;
-  store_number: number;
-  store_name: string;
-  store_type: string;
-  chatroom_id: number | null;
-  description: string | null;
-  created_at: Generated<string | null>;
-}
-
-export interface UserStores {
-  id: Generated<number>;
-  user_id: number;
-  name: string;
-  subtitle: string | null;
-  description: string | null;
-  badge_url: string | null;
-  banner_url: string | null;
-  created_at: Generated<string | null>;
-  product_ids: string | null; // JSON array of product IDs
 }
 
 export interface Messages {
@@ -169,10 +123,51 @@ export interface Users {
   is_special_special_special_user: Boolean;
   is_blocked: Boolean;
   is_banned_from_chatrooms: Boolean;
-  is_new_user: Boolean;  // NEW: Track if user is new (0=existing, 1=new user subject to 7 uStore limit)
+  is_new_user: Boolean;
 }
 
+export interface MainHubUpgradeV001ForProductTrash {
+  id: Generated<number>;
+  product_id: number;
+  user_id: number;
+  deleted_at: string | null;
+}
 
+export interface MainHubUpgradeV001ForInternalCart {
+  id: Generated<number>;
+  user_id: number;
+  product_id: number;
+  quantity: Generated<number>;
+  added_at: string | null;
+}
+
+export interface MainHubUpgradeV001ForLookingFor {
+  id: Generated<number>;
+  user_id: number;
+  store_id: number;
+  item_name: string;
+  description: string | null;
+  created_at: string | null;
+}
+
+export interface MainHubUpgradeV001ForStores {
+  id: Generated<number>;
+  store_number: number;
+  store_name: string;
+  store_type: string;
+  chatroom_id: number | null;
+  description: string | null;
+  created_at: string | null;
+}
+
+export interface UserStores {
+  id: Generated<number>;
+  user_id: number;
+  name: string;
+  subtitle: string | null;
+  description: string | null;
+  created_at: Generated<string | null>;
+}
 
 export interface ChatMessageArchives {
   id: Generated<number>;
@@ -188,8 +183,15 @@ export interface ChatResetSchedule {
   last_reset_at: Generated<string | null>;
 }
 
+// ✅ MOVED HERE: This interface must be defined BEFORE the DB interface
+export interface ChatroomUnreadStatus {
+  id: Generated<number>;
+  user_id: number;
+  chatroom_room_name: string;
+  has_unread: Generated<Boolean>;
+}
 
-
+// ✅ Now the DB interface can reference ChatroomUnreadStatus
 export interface DB {
   blocked_users: BlockedUsers;
   friends: Friends;
