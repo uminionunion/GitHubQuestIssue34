@@ -115,6 +115,49 @@ app.use('/api/auth', authRouter);
 app.use('/api/friends', friendsRouter);
 app.use('/api/products', productsRouter);
 
+// NEW: User lookup route (accessible to all, no auth required)
+app.get('/api/users/by-username/:username', async (req: Request, res: Response) => {
+  try {
+    const { username } = req.params;
+
+    if (!username) {
+      res.status(400).json({ error: 'Username required' });
+      return;
+    }
+
+    console.log(`[API] Fetching user by username: ${username}`);
+
+    // Search for user by exact username
+    let user = await db
+      .selectFrom('users')
+      .select(['id', 'username', 'profile_image_url', 'cover_photo_url'])
+      .where('username', '=', username)
+      .executeTakeFirst();
+
+    // If not found and doesn't start with 'u', try adding 'u' prefix
+    if (!user && !username.startsWith('u')) {
+      const prefixedUsername = 'u' + username;
+      user = await db
+        .selectFrom('users')
+        .select(['id', 'username', 'profile_image_url', 'cover_photo_url'])
+        .where('username', '=', prefixedUsername)
+        .executeTakeFirst();
+    }
+
+    if (!user) {
+      console.log(`[API] User not found: ${username}`);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    console.log(`[API] ✅ Found user: ${user.username} (ID: ${user.id})`);
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('[API] Error fetching user by username:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 setupChat(io);
 
 function resolvePublicPath(): string {
