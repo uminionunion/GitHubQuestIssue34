@@ -305,10 +305,42 @@ const getChatTabs = () => {
    setCurrentFontColor(fontColors[randomIndex]);
  };
 
- const handleViewProfile = (username: string) => {
-   setViewedUser({ username });
-   setProfileViewOpen(true);
- };
+const handleViewProfile = (username: string) => {
+  // Don't open profile for anonymous users
+  if (username.startsWith('Anonymous')) {
+    return; // Anonymous users don't have profiles
+  }
+  
+  // For logged-in users, we need to fetch their user ID from the backend
+  // Since we only have username from the chatroom, fetch user data
+  fetch(`/api/users/by-username/${encodeURIComponent(username)}`, {
+    credentials: 'include',
+  })
+    .then(res => {
+      if (!res.ok) {
+        console.error(`[CHAT] User ${username} not found`);
+        alert(`Could not find user profile for ${username}`);
+        return null;
+      }
+      return res.json();
+    })
+    .then(userData => {
+      if (userData) {
+        setViewedUser({
+          id: userData.id,
+          username: userData.username,
+          profile_image_url: userData.profile_image_url,
+          cover_photo_url: userData.cover_photo_url || null,
+        });
+        setProfileViewOpen(true);
+        console.log(`[CHAT] Opening profile for user: ${username} (ID: ${userData.id})`);
+      }
+    })
+    .catch(error => {
+      console.error('[CHAT] Error fetching user data:', error);
+      alert(`Error loading profile for ${username}`);
+    });
+};
 
   const handleDividerMouseDown = () => {
     setIsDraggingDivider(true);
