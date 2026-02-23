@@ -213,15 +213,30 @@ function getBaseRoom(room: string): string {
 // Get next anonymous ID from database (ensures unique IDs across all users)
 async function getNextAnonymousId(): Promise<number> {
   try {
-    // Check if counter table exists and get current max ID
-    const maxRecord = await db
-      .selectFrom('messages')
-      .select(db.fn.max('anonymous_id').as('maxId'))
-      .where('is_anonymous', '=', 1)
+    // Get or initialize the global counter in the anonymous_counter table
+    let counter = await db
+      .selectFrom('anonymous_counter')
+      .selectAll()
       .executeTakeFirst();
     
-    const currentMax = maxRecord?.maxId ? Number(maxRecord.maxId) : 0;
-    return currentMax + 1;
+    if (!counter) {
+      // Initialize counter if it doesn't exist
+      await db
+        .insertInto('anonymous_counter')
+        .values({ next_id: 1 })
+        .execute();
+      return 1;
+    }
+    
+    // Increment the counter
+    const nextId = (counter.next_id || 0) + 1;
+    await db
+      .updateTable('anonymous_counter')
+      .set({ next_id: nextId })
+      .where('id', '=', counter.id)
+      .execute();
+    
+    return nextId;
   } catch (error) {
     // Fallback: use timestamp-based ID
     console.warn('[CHAT] Error getting next anonymous ID from database:', error);
