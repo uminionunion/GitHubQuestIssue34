@@ -1040,10 +1040,25 @@ router.get('/stores/all/with-products', async (req, res) => {
     // Get all user stores with their associated products
     const stores = await db
   .selectFrom('user_stores')
-  .leftJoin('MainHubUpgradeV001ForProducts', 'user_stores.id', 'MainHubUpgradeV001ForProducts.user_store_id')
-  .leftJoin('users', 'user_stores.user_id', 'users.id')
-  .selectAll('user_stores')
+  .leftJoin(
+    'MainHubUpgradeV001ForProducts',
+    'user_stores.id',
+    'MainHubUpgradeV001ForProducts.user_store_id'
+  )
+  .leftJoin(
+    'users',
+    'user_stores.user_id',
+    'users.id'
+  )
   .select([
+    'user_stores.id',
+    'user_stores.user_id',
+    'user_stores.name',
+    'user_stores.subtitle',
+    'user_stores.description',
+    'user_stores.badge_url',
+    'user_stores.banner_url',
+    'user_stores.created_at',
     'MainHubUpgradeV001ForProducts.id as product_id',
     'MainHubUpgradeV001ForProducts.name as product_name',
     'MainHubUpgradeV001ForProducts.price',
