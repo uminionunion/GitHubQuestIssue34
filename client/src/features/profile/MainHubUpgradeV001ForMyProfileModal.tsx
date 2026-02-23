@@ -269,6 +269,33 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
     }
   }, [user, isOpen]);
 
+
+
+// Fetch initial unread status on load
+useEffect(() => {
+  if (user && isOpen) {
+    fetch('/api/chat/unread-status', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const chatroomNums = new Set<number>();
+          data.forEach(item => {
+            // Extract chatroom number from room name
+            const match = item.chatroom_room_name.match(/SisterUnion(\d+)/);
+            if (match && item.has_unread === 1) {
+              chatroomNums.add(parseInt(match[1], 10));
+            }
+          });
+          setUnreadChatrooms(chatroomNums);
+          console.log(`[PROFILE] Initial unread chatrooms:`, Array.from(chatroomNums));
+        }
+      })
+      .catch(err => console.error('[PROFILE] Error fetching unread status:', err));
+  }
+}, [user, isOpen]);
+
+  
+
   // Effect to set up the product data for different views.
   useEffect(() => {
     const allProducts = {
@@ -474,8 +501,19 @@ const MainHubUpgradeV001ForMyProfileModal: React.FC<MainHubUpgradeV001ForMyProfi
             <h3 className="text-center font-bold mb-4">uHome-Hub:</h3>
             <div className="grid grid-cols-2 gap-2">
               {MainHubUpgradeV001ForUHomeHubButtons.map(num => (
-                <Button key={num} variant="outline" size="sm" onClick={() => handleUHomeHubClick(num)}>#{String(num).padStart(2, '0')}</Button>
-              ))}
+  <Button 
+    key={num} 
+    variant="outline" 
+    size="sm" 
+    onClick={() => handleUHomeHubClick(num)}
+    className="relative"
+  >
+    #{String(num).padStart(2, '0')}
+    {unreadChatrooms.has(num) && (
+      <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full transform translate-x-1 -translate-y-1"></div>
+    )}
+  </Button>
+))}
             </div>
           </div>
           <div id="MainHubUpgradeV001ForMyProfileSettingsCenterCenterSection" className="w-[60%] p-4 overflow-y-auto">
