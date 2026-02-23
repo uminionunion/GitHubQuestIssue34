@@ -16,6 +16,7 @@ import ProductSearchDropdown from './ProductSearchDropdown';
 import MainUhubFeatureV001ForEditProductModal from './MainUhubFeatureV001ForEditProductModal';
 import MainUhubFeatureV001ForUserProfileModal from './MainUhubFeatureV001ForUserProfileModal';
 import UserStoresQuadrantView from './UserStoresQuadrantView';
+import { io, Socket } from 'socket.io-client';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -1329,6 +1330,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isFriendProfileModalOpen, setIsFriendProfileModalOpen] = useState(false);
   const [isEditingProfileImage, setIsEditingProfileImage] = useState(false);
   const [unreadChatrooms, setUnreadChatrooms] = useState<Set<number>>(new Set());
+  const socketRef = useRef<Socket | null>(null);
 
 
 
@@ -1546,6 +1548,55 @@ useEffect(() => {
   }, [isOpen]);
 
 
+// Initialize Socket.IO to listen for unread notifications globally
+useEffect(() => {
+  if (isOpen) {
+    // Connect to socket server if not already connected
+    const socket = io(
+      process.env.NODE_ENV === 'production'
+        ? window.location.origin
+        : 'http://localhost:3001',
+      {
+        withCredentials: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5,
+        transports: ['websocket', 'polling'],
+      }
+    );
+
+    socketRef.current = socket;
+
+    // Listen for unread notifications from any chatroom
+    socket.on('chatroomUnreadNotification', (notification: { room: string; hasUnread: boolean }) => {
+      // Extract the chatroom number from the room name
+      // Room name format: "SisterUnion001NewEngland-chatroom-1"
+      const match = notification.room.match(/SisterUnion(\d+)/);
+      if (match) {
+        const chatroomNum = parseInt(match[1], 10);
+        setUnreadChatrooms(prev => {
+          const newSet = new Set(prev);
+          if (notification.hasUnread) {
+            newSet.add(chatroomNum);
+          } else {
+            newSet.delete(chatroomNum);
+          }
+          return newSet;
+        });
+        console.log(`[PROFILE] Green circle updated for chatroom: ${chatroomNum}`);
+      }
+    });
+
+    return () => {
+      socket.off('chatroomUnreadNotification');
+      socket.disconnect();
+    };
+  }
+}, [isOpen]);
+
+
+  
 
 // Fetch user's custom stores when modal opens (for logged-in users)
 useEffect(() => {
@@ -1658,7 +1709,15 @@ useEffect(() => {
   ];
   const MainUhubFeatureV001ForModalColors = Array.from({ length: 30 }, (_, i) => `hsl(${i * 12}, 70%, 50%)`);
 
-  const handleUHomeHubClick = (buttonNumber: number) => setActiveChatModal(buttonNumber);
+  const handleUHomeHubClick = (buttonNumber: number) => {
+  setActiveChatModal(buttonNumber);
+  // Clear the green circle for this chatroom
+  setUnreadChatrooms(prev => {
+    const newSet = new Set(prev);
+    newSet.delete(buttonNumber);
+    return newSet;
+  });
+};
   const handleCloseChatModal = async () => {
   if (activeChatModal !== null) {
     // Mark chatroom as read
