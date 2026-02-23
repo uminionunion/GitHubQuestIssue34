@@ -1648,6 +1648,38 @@ useEffect(() => {
 
 
 
+// Listen for badge zoom events from nested chatroom
+useEffect(() => {
+  const handleShowBadgeZoom = (event: Event) => {
+    const customEvent = event as CustomEvent;
+    const badge = customEvent.detail;
+    console.log('[MY PROFILE] Badge zoom requested from chatroom:', badge);
+    onBadgeZoom?.(badge);
+  };
+
+  const handleShowProductDetail = (event: Event) => {
+    const customEvent = event as CustomEvent;
+    const product = customEvent.detail;
+    console.log('[MY PROFILE] Product view requested from chatroom:', product);
+    setSelectedProduct(product);
+    setProductDetailModalOpen(true);
+  };
+
+  if (isOpen) {
+    window.addEventListener('showBadgeZoom', handleShowBadgeZoom);
+    window.addEventListener('showProductDetail', handleShowProductDetail);
+  }
+
+  return () => {
+    window.removeEventListener('showBadgeZoom', handleShowBadgeZoom);
+    window.removeEventListener('showProductDetail', handleShowProductDetail);
+  };
+}, [isOpen, onBadgeZoom]);
+
+
+
+
+  
 
 
 // Fetch friends' stores and products when modal opens
