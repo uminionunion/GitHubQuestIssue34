@@ -177,7 +177,37 @@ const authMiddleware = (req: Request, res: Response, next: Function) => {
   }
 };
 
-// Chat unread status routes
+// NEW: Check if rooms have any messages (for all users, logged in or not)
+app.get('/api/chat/rooms-with-messages', async (req: Request, res: Response) => {
+  try {
+    // Get all rooms that have messages
+    const roomsWithMessages = await db
+      .selectFrom('messages')
+      .select('room')
+      .distinct()
+      .execute();
+
+    // Extract unique room names and convert to chatroom numbers
+    const roomSet = new Set<number>();
+    roomsWithMessages.forEach(msg => {
+      // Extract chatroom number from room name
+      // Format: "SisterUnion001NewEngland-chatroom-1" -> number 1
+      const match = msg.room.match(/SisterUnion(\d+)/);
+      if (match) {
+        const chatroomNum = parseInt(match[1], 10);
+        roomSet.add(chatroomNum);
+      }
+    });
+
+    console.log('[API] Rooms with messages:', Array.from(roomSet));
+    res.status(200).json(Array.from(roomSet));
+  } catch (error) {
+    console.error('[API] Error fetching rooms with messages:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Chat unread status routes (authenticated users only)
 app.get('/api/chat/unread-status', authMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user?.userId) {
