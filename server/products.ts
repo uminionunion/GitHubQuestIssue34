@@ -663,31 +663,13 @@ router.get('/admin/all', authenticate, async (req, res) => {
 
     // Get ALL products from ALL sources, with creator info
     const products = await db
-      .selectFrom('MainHubUpgradeV001ForProducts')
-      .leftJoin(
-        'users',
-        'MainHubUpgradeV001ForProducts.user_id',
-        'users.id'
-      )
-      .select([
-        'MainHubUpgradeV001ForProducts.id',
-        'MainHubUpgradeV001ForProducts.name',
-        'MainHubUpgradeV001ForProducts.subtitle',
-        'MainHubUpgradeV001ForProducts.description',
-        'MainHubUpgradeV001ForProducts.price',
-        'MainHubUpgradeV001ForProducts.image_url',
-        'MainHubUpgradeV001ForProducts.store_type',
-        'MainHubUpgradeV001ForProducts.user_id',
-        'MainHubUpgradeV001ForProducts.store_id',
-        'MainHubUpgradeV001ForProducts.payment_method',
-        'MainHubUpgradeV001ForProducts.payment_url',
-        'MainHubUpgradeV001ForProducts.sku_id',
-        'MainHubUpgradeV001ForProducts.created_at',
-        'users.username as creator_username',
-      ])
-      .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
-      .orderBy('MainHubUpgradeV001ForProducts.created_at', 'desc')
-      .execute();
+  .selectFrom('MainHubUpgradeV001ForProducts')
+  .leftJoin('users', 'MainHubUpgradeV001ForProducts.user_id', 'users.id')
+  .selectAll('MainHubUpgradeV001ForProducts')
+  .select('users.username as creator_username')
+  .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
+  .orderBy('MainHubUpgradeV001ForProducts.created_at', 'desc')
+  .execute();
 
     res.json(products);
   } catch (error) {
@@ -907,25 +889,18 @@ router.put('/products/:productId/user-store', async (req, res) => {
 router.get('/user-stores/all', async (req, res) => {
   try {
     const stores = await db
-      .selectFrom('user_stores')
-      .leftJoin('MainHubUpgradeV001ForProducts', 'user_stores.id', 'MainHubUpgradeV001ForProducts.user_store_id') 
-      .select([
-        'user_stores.id',
-        'user_stores.name',
-        'user_stores.subtitle',
-        'user_stores.description',
-        'user_stores.badge_url',
-        'user_stores.banner_url',
-        'user_stores.created_at',
-        'user_stores.user_id',
-        'MainHubUpgradeV001ForProducts.id as product_id',
-        'MainHubUpgradeV001ForProducts.name as product_name',
-        'MainHubUpgradeV001ForProducts.price',
-        'MainHubUpgradeV001ForProducts.image_url',
-        'MainHubUpgradeV001ForProducts.description as product_description',
-      ])
-      .orderBy('user_stores.created_at', 'desc')
-      .execute();
+  .selectFrom('user_stores')
+  .leftJoin('MainHubUpgradeV001ForProducts', 'user_stores.id', 'MainHubUpgradeV001ForProducts.user_store_id') 
+  .selectAll('user_stores')
+  .select([
+    'MainHubUpgradeV001ForProducts.id as product_id',
+    'MainHubUpgradeV001ForProducts.name as product_name',
+    'MainHubUpgradeV001ForProducts.price',
+    'MainHubUpgradeV001ForProducts.image_url',
+    'MainHubUpgradeV001ForProducts.description as product_description',
+  ])
+  .orderBy('user_stores.created_at', 'desc')
+  .execute();
 
     // Transform flat results into nested structure
     const storesMap = new Map();
@@ -1064,37 +1039,22 @@ router.get('/stores/all/with-products', async (req, res) => {
 
     // Get all user stores with their associated products
     const stores = await db
-      .selectFrom('user_stores')
-      .leftJoin(
-        'MainHubUpgradeV001ForProducts',
-        'user_stores.id',
-        'MainHubUpgradeV001ForProducts.user_store_id'
-      )
-      .leftJoin(
-        'users',
-        'user_stores.user_id',
-        'users.id'
-      )
-      .select([
-        'user_stores.id',
-        'user_stores.name',
-        'user_stores.subtitle',
-        'user_stores.description',
-        'user_stores.badge_url',
-        'user_stores.banner_url',
-        'user_stores.user_id',
-        'user_stores.created_at as store_created_at',
-        'MainHubUpgradeV001ForProducts.id as product_id',
-        'MainHubUpgradeV001ForProducts.name as product_name',
-        'MainHubUpgradeV001ForProducts.price',
-        'MainHubUpgradeV001ForProducts.image_url',
-        'MainHubUpgradeV001ForProducts.description as product_description',
-        'MainHubUpgradeV001ForProducts.subtitle as product_subtitle',
-        'users.username as store_owner_username',
-      ])
-      .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
-      .orderBy('user_stores.created_at', 'desc')
-      .execute();
+  .selectFrom('user_stores')
+  .leftJoin('MainHubUpgradeV001ForProducts', 'user_stores.id', 'MainHubUpgradeV001ForProducts.user_store_id')
+  .leftJoin('users', 'user_stores.user_id', 'users.id')
+  .selectAll('user_stores')
+  .select([
+    'MainHubUpgradeV001ForProducts.id as product_id',
+    'MainHubUpgradeV001ForProducts.name as product_name',
+    'MainHubUpgradeV001ForProducts.price',
+    'MainHubUpgradeV001ForProducts.image_url',
+    'MainHubUpgradeV001ForProducts.description as product_description',
+    'MainHubUpgradeV001ForProducts.subtitle as product_subtitle',
+    'users.username as store_owner_username',
+  ])
+  .where('MainHubUpgradeV001ForProducts.is_in_trash', '=', 0)
+  .orderBy('user_stores.created_at', 'desc')
+  .execute();
 
     // Transform flat results into nested structure
     const storesMap = new Map();
@@ -1150,27 +1110,20 @@ router.get('/user/:userId/stores', async (req, res) => {
     'us.id',
     'p.user_store_id'
   )
+  .selectAll('us')
   .select([
-    'us.id',
-    'us.user_id',
-    'us.name',
-    'us.subtitle',
-    'us.description',
-    'us.badge_url',
-    'us.banner_url',
-    'us.created_at',
     'p.id as product_id',
-        'p.name as product_name',
-        'p.price as product_price',
-        'p.image_url as product_image_url',
-        'p.description as product_description',
-        'p.subtitle as product_subtitle',
-      ])
-      .where('us.user_id', '=', parsedUserId)
-      .where('p.is_in_trash', '=', 0)
-      .orderBy('us.created_at', 'desc')
-      .orderBy('p.created_at', 'desc')
-      .execute();
+    'p.name as product_name',
+    'p.price as product_price',
+    'p.image_url as product_image_url',
+    'p.description as product_description',
+    'p.subtitle as product_subtitle',
+  ])
+  .where('us.user_id', '=', parsedUserId)
+  .where('p.is_in_trash', '=', 0)
+  .orderBy('us.created_at', 'desc')
+  .orderBy('p.created_at', 'desc')
+  .execute();
 
     console.log(`[PRODUCTS] ✅ Fetched ${stores.length} records for user ${parsedUserId}`);
 
