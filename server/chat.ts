@@ -367,113 +367,120 @@ export function setupChat(io: SocketIOServer) {
     });
 
     socket.on('sendMessage', async (data: { room: string; content: string; isAnonymous: boolean }) => {
-      const { room, content, isAnonymous } = data;
+  const { room, content, isAnonymous } = data;
+  
+  try {
+    let userId: number | null = null;
+    let anonymousUsername: string | null = null;
+    let isAnon = 0;
+    
+    // DETERMINE WHO IS SENDING THE MESSAGE
+    if (socket.user) {
+      // LOGGED-IN USER
+      userId = socket.user.userId;
+      if (isAnonymous) {
+        // They clicked "Post Anonymously?" - mark as anonymous
+        isAnon = 1;
+        anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+      } else {
+        // They did NOT click "Post Anonymously?" - post as themselves
+        isAnon = 0;
+        anonymousUsername = null;  // No anonymous name needed
+      }
+    } else {
+      // NOT LOGGED-IN USER - Always anonymous
+      userId = null;
+      isAnon = 1;
+      anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+    }
+
+    // Save message to database
+    const newMessage = await db
+      .insertInto('messages')
+      .values({
+        content,
+        room,
+        user_id: userId,
+        is_anonymous: isAnon as any,
+        anonymous_username: anonymousUsername,
+      })
+      .returningAll()
+      .executeTakeFirst();
+
+    if (newMessage) {
+      // Determine display username for clients
+      let displayUsername: string;
+      if (isAnon === 1 && anonymousUsername) {
+        displayUsername = anonymousUsername;  // Show "AnonymousXXX"
+      } else if (socket.user) {
+        displayUsername = socket.user.username;  // Show their actual username
+      } else {
+        displayUsername = 'Anonymous';
+      }
+
+      const messageForClient = {
+        id: newMessage.id,
+        content: newMessage.content,
+        username: displayUsername,
+        is_anonymous: isAnon === 1,
+        timestamp: newMessage.timestamp,
+      };
+
+      console.log(`[CHAT] Message from: "${displayUsername}" | Anonymous: ${isAnon === 1 ? 'YES' : 'NO'} | UserID: ${userId}`);
       
-      try {
-        let userId: number | null = null;
-        let anonymousUsername: string | null = null;
-        let isAnon = 0;
+      // ✅ BROADCAST MESSAGE TO ALL USERS IN THE ROOM
+      io.to(room).emit('receiveMessage', messageForClient);
+
+      // ✅ UPDATE UNREAD STATUS FOR LOGGED-IN USERS
+      if (socket.user?.userId) {
+        // Get all sockets GLOBALLY (not just in room) to find all logged-in users
+        const allSockets = await io.fetchSockets();
+        const userIdsToUpdate = new Set<number>();
         
-        // DETERMINE WHO IS SENDING THE MESSAGE
-        if (socket.user) {
-          // LOGGED-IN USER
-          userId = socket.user.userId;
-          if (isAnonymous) {
-            // They clicked "Post Anonymously?" - mark as anonymous
-            isAnon = 1;
-            anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
-          } else {
-            // They did NOT click "Post Anonymously?" - post as themselves
-            isAnon = 0;
-            anonymousUsername = null;  // No anonymous name needed
+        allSockets.forEach(s => {
+          const userSocket = s as unknown as SocketWithUser;
+          // Update all logged-in users EXCEPT the sender
+          if (userSocket.user?.userId && userSocket.user.userId !== socket.user.userId) {
+            userIdsToUpdate.add(userSocket.user.userId);
           }
-        } else {
-          // NOT LOGGED-IN USER - Always anonymous
-          userId = null;
-          isAnon = 1;
-          anonymousUsername = socket.anonymousId || `Anonymous${anonymousCounter}`;
+        });
+        
+        // Insert/update unread records for all logged-in users
+        for (const userId of userIdsToUpdate) {
+          try {
+            await db
+              .insertInto('chatroom_unread_status')
+              .values({
+                user_id: userId,
+                chatroom_room_name: room,
+                has_unread: 1,
+              })
+              .onConflict(oc =>
+                oc
+                  .columns(['user_id', 'chatroom_room_name'])
+                  .doUpdateSet({ has_unread: 1 })
+              )
+              .execute();
+          } catch (err) {
+            console.error(`[CHAT] Error updating unread status for user ${userId}:`, err);
+          }
         }
+      }
 
-        // Save message to database
-        const newMessage = await db
-          .insertInto('messages')
-          .values({
-            content,
-            room,
-            user_id: userId,
-            is_anonymous: isAnon as any,
-            anonymous_username: anonymousUsername,
-          })
-          .returningAll()
-          .executeTakeFirst();
-
-        if (newMessage) {
-          // Determine display username for clients
-          let displayUsername: string;
-          if (isAnon === 1 && anonymousUsername) {
-            displayUsername = anonymousUsername;  // Show "AnonymousXXX"
-          } else if (socket.user) {
-            displayUsername = socket.user.username;  // Show their actual username
-          } else {
-            displayUsername = 'Anonymous';
-          }
-
-          const messageForClient = {
-            id: newMessage.id,
-            content: newMessage.content,
-            username: displayUsername,
-            is_anonymous: isAnon === 1,
-            timestamp: newMessage.timestamp,
-          };
-
-          console.log(`[CHAT] Message from: "${displayUsername}" | Anonymous: ${isAnon === 1 ? 'YES' : 'NO'} | UserID: ${userId}`);
-          io.to(room).emit('receiveMessage', messageForClient);
-
-
-
-// Update unread status for all users in the room (except sender)
-if (socket.user?.userId) {
-  // Get all sockets in the room and mark as unread for them
-  const socketsInRoom = await io.in(room).fetchSockets();
-const userIdsToUpdate = new Set<number>();
-
-socketsInRoom.forEach(s => {
-  const userSocket = s as unknown as SocketWithUser;  // ✅ Proper type casting
-  if (userSocket.user?.userId && userSocket.user.userId !== socket.user.userId) {
-    userIdsToUpdate.add(userSocket.user.userId);
+      // ✅ EMIT REAL-TIME NOTIFICATION TO ALL CONNECTED USERS (NEW!)
+      // This updates the UI immediately with the green circle for the chatroom
+      console.log(`[CHAT] Broadcasting unread notification for room: ${room}`);
+      io.emit('chatroomUnreadNotification', {
+        room: room,
+        hasUnread: true,
+        messageCount: 1,
+      });
+    }
+  } catch (error) {
+    console.error('Error saving message:', error);
+    socket.emit('error', { message: 'Failed to send message' });
   }
 });
-  
-  // Insert/update unread records
-  for (const userId of userIdsToUpdate) {
-    try {
-      await db
-  .insertInto('chatroom_unread_status')
-  .values({
-    user_id: userId,                    // ✅ Correct - matches db-types.ts line 189
-    chatroom_room_name: room,           // ✅ Correct - matches db-types.ts line 190
-    has_unread: 1,                      // ✅ Correct - matches db-types.ts line 191
-  })
-  .onConflict(oc =>                     // ✅ Use columns() instead of column()
-    oc
-      .columns(['user_id', 'chatroom_room_name'])  // ✅ Array of column names
-      .doUpdateSet({ has_unread: 1 })
-  )
-  .execute();
-    } catch (err) {
-      console.error(`[CHAT] Error updating unread status for user ${userId}:`, err);
-    }
-  }
-}
-
-
-          
-        }
-      } catch (error) {
-        console.error('Error saving message:', error);
-        socket.emit('error', { message: 'Failed to send message' });
-      }
-    });
 
     socket.on('leaveRoom', (room) => {
       socket.leave(room);
