@@ -205,6 +205,7 @@ export interface DB {
   MainHubUpgradeV001ForStores: MainHubUpgradeV001ForStores;
   chat_message_archives: ChatMessageArchives;
   chat_reset_schedule: ChatResetSchedule;
+  chatroom_unread_status: ChatroomUnreadStatus;
   messages: Messages;
   reports: Reports;
   user_chatrooms: UserChatrooms;
