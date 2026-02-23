@@ -1162,15 +1162,17 @@ router.get('/user/:userId/stores', async (req, res) => {
       }
       
       if (row.product_id) {
-        storesMap.get(row.id)!.products.push({
-          id: row.product_id,
-          name: row.product_name,
-          price: row.product_price,
-          image_url: row.product_image_url,
-          description: row.product_description,
-          subtitle: row.product_subtitle,
-        });
-      }
+  storesMap.get(row.id)!.products.push({
+    id: row.product_id,
+    name: row.product_name,
+    price: row.product_price,
+    image_url: row.product_image_url,
+    description: row.product_description,
+    subtitle: row.product_subtitle,
+    payment_method: row.product_payment_method,
+    payment_url: row.product_payment_url,
+  });
+}
     });
 
     const result = Array.from(storesMap.values());
@@ -1368,19 +1370,21 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
         'u.id'
       )
       .select([
-        'u.id as friend_id',
-        'u.username as friend_username',
-        'u.profile_image_url as friend_profile_image_url',
-        'us.id as user_store_id',
-        'us.name as user_store_name',
-        'us.badge_url as user_store_badge_url',
-        'us.banner_url as user_store_banner_url',
-        'p.id as product_id',
-        'p.name as product_name',
-        'p.price as product_price',
-        'p.image_url as product_image_url',
-        'p.description as product_description',
-      ])
+  'us.id',
+  'us.user_id',
+  'us.name',
+  'us.subtitle',
+  'us.description',
+  'us.created_at',
+  'p.id as product_id',
+  'p.name as product_name',
+  'p.price as product_price',
+  'p.image_url as product_image_url',
+  'p.description as product_description',
+  'p.subtitle as product_subtitle',
+  'p.payment_method as product_payment_method',
+  'p.payment_url as product_payment_url',
+])
       .where('us.user_id', 'in', friendIds)
       .where('p.is_in_trash', '=', 0)
       .orderBy('u.username')
