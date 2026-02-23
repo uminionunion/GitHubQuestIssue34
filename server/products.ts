@@ -1134,6 +1134,8 @@ router.get('/user/:userId/stores', async (req, res) => {
     'p.image_url as product_image_url',
     'p.description as product_description',
     'p.subtitle as product_subtitle',
+    'p.payment_method as product_payment_method',
+    'p.payment_url as product_payment_url',
   ])
   .where('us.user_id', '=', parsedUserId)
   .where('p.is_in_trash', '=', 0)
@@ -1370,21 +1372,26 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
         'u.id'
       )
       .select([
-  'us.id',
-  'us.user_id',
-  'us.name',
-  'us.subtitle',
-  'us.description',
-  'us.created_at',
-  'p.id as product_id',
-  'p.name as product_name',
-  'p.price as product_price',
-  'p.image_url as product_image_url',
-  'p.description as product_description',
-  'p.subtitle as product_subtitle',
-  'p.payment_method as product_payment_method',
-  'p.payment_url as product_payment_url',
-])
+        'us.id',
+        'us.user_id',
+        'us.name',
+        'us.subtitle',
+        'us.description',
+        'us.badge_url',
+        'us.banner_url',
+        'us.created_at',
+        'u.id as friend_id',
+        'u.username as friend_username',
+        'u.profile_image_url as friend_profile_image_url',
+        'p.id as product_id',
+        'p.name as product_name',
+        'p.price as product_price',
+        'p.image_url as product_image_url',
+        'p.description as product_description',
+        'p.subtitle as product_subtitle',
+        'p.payment_method as product_payment_method',
+        'p.payment_url as product_payment_url',
+      ])
       .where('us.user_id', 'in', friendIds)
       .where('p.is_in_trash', '=', 0)
       .orderBy('u.username')
@@ -1411,24 +1418,27 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
       const friend = friendsMap.get(row.friend_id)!;
 
       // Create uStore entry if not exists
-      if (!friend.uStores.has(row.user_store_id)) {
-        friend.uStores.set(row.user_store_id, {
-          id: row.user_store_id,
-          name: row.user_store_name,
-          badge_url: row.user_store_badge_url,
-          banner_url: row.user_store_banner_url,
+      if (!friend.uStores.has(row.id)) {
+        friend.uStores.set(row.id, {
+          id: row.id,
+          name: row.name,
+          badge_url: row.badge_url,
+          banner_url: row.banner_url,
           products: [],
         });
       }
 
       // Add product to uStore
       if (row.product_id) {
-        friend.uStores.get(row.user_store_id)!.products.push({
+        friend.uStores.get(row.id)!.products.push({
           id: row.product_id,
           name: row.product_name,
           price: row.product_price,
           image_url: row.product_image_url,
           description: row.product_description,
+          subtitle: row.product_subtitle,
+          payment_method: row.product_payment_method,
+          payment_url: row.product_payment_url,
         });
       }
     });
@@ -1448,7 +1458,6 @@ router.get('/friends/stores/all', authenticate, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch friends products' });
   }
 });
-
 
 
 
