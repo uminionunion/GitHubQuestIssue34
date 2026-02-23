@@ -183,6 +183,14 @@ socketRef.current.on('loadedArchivedMessages', (batch: ArchivedBatch) => {
 socketRef.current.on('error', (error: any) => {
   console.error('[CHAT] Socket error:', error);
 });
+
+// LISTEN FOR UNREAD NOTIFICATIONS (so other users see the green circle)
+socketRef.current.on('chatroomUnreadNotification', (notification: { room: string; hasUnread: boolean }) => {
+  console.log('[CHAT] Received unread notification for room:', notification.room);
+  // This event is listened to by the parent profile modal, not used here
+});
+
+          
         } catch (error) {
           console.error('Error initializing socket:', error);
         }
