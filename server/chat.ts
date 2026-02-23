@@ -435,27 +435,31 @@ export function setupChat(io: SocketIOServer) {
 if (socket.user?.userId) {
   // Get all sockets in the room and mark as unread for them
   const socketsInRoom = await io.in(room).fetchSockets();
-  const userIdsToUpdate = new Set<number>();
-  
-  socketsInRoom.forEach(s => {
-    const userSocket = s as SocketWithUser;
-    if (userSocket.user?.userId && userSocket.user.userId !== socket.user.userId) {
-      userIdsToUpdate.add(userSocket.user.userId);
-    }
-  });
+const userIdsToUpdate = new Set<number>();
+
+socketsInRoom.forEach(s => {
+  const userSocket = s as unknown as SocketWithUser;  // ✅ Proper type casting
+  if (userSocket.user?.userId && userSocket.user.userId !== socket.user.userId) {
+    userIdsToUpdate.add(userSocket.user.userId);
+  }
+});
   
   // Insert/update unread records
   for (const userId of userIdsToUpdate) {
     try {
       await db
-        .insertInto('chatroom_unread_status')
-        .values({
-          user_id: userId,
-          chatroom_room_name: room,
-          has_unread: 1,
-        })
-        .onConflict(oc => oc.column('user_id', 'chatroom_room_name').doUpdateSet({ has_unread: 1 }))
-        .execute();
+  .insertInto('chatroom_unread_status')
+  .values({
+    user_id: userId,                    // ✅ Correct - matches db-types.ts line 189
+    chatroom_room_name: room,           // ✅ Correct - matches db-types.ts line 190
+    has_unread: 1,                      // ✅ Correct - matches db-types.ts line 191
+  })
+  .onConflict(oc =>                     // ✅ Use columns() instead of column()
+    oc
+      .columns(['user_id', 'chatroom_room_name'])  // ✅ Array of column names
+      .doUpdateSet({ has_unread: 1 })
+  )
+  .execute();
     } catch (err) {
       console.error(`[CHAT] Error updating unread status for user ${userId}:`, err);
     }
