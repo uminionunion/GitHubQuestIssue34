@@ -467,7 +467,7 @@ const formatMessageTime = (isoString: string): string => {
             <span className={msg.is_anonymous ? 'text-orange-400 text-sm' : 'text-sm'}>{msg.content}</span>
           </div>
         ))}
-       {!showArchive && (
+        {!showArchive && (
   <>
     <Button 
       className="bg-gray-500 text-white w-full mb-4 cursor-not-allowed opacity-50"
