@@ -166,6 +166,8 @@ export interface UserStores {
   name: string;
   subtitle: string | null;
   description: string | null;
+  badge_url: string | null;
+  banner_url: string | null;
   created_at: Generated<string | null>;
 }
 
