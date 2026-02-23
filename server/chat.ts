@@ -210,36 +210,25 @@ function getBaseRoom(room: string): string {
   return room.replace(/-chatroom-\d+$/, '');
 }
 
-// Get next anonymous ID from database (ensures unique IDs across all users)
+// Get next anonymous ID from the messages table (query max ID, not a counter table)
 async function getNextAnonymousId(): Promise<number> {
   try {
-    // Get or initialize the global counter in the anonymous_counter table
-    let counter = await db
-      .selectFrom('anonymous_counter')
-      .selectAll()
+    // Query the messages table to find the highest anonymous_id that exists
+    // This works WITHOUT needing a separate counter table
+    const maxRecord = await db
+      .selectFrom('messages')
+      .select(db.fn.max('id').as('maxId'))
       .executeTakeFirst();
     
-    if (!counter) {
-      // Initialize counter if it doesn't exist
-      await db
-        .insertInto('anonymous_counter')
-        .values({ next_id: 1 })
-        .execute();
-      return 1;
-    }
+    // Get the max ID from messages and add 1
+    const currentMax = maxRecord?.maxId ? Number(maxRecord.maxId) : 0;
+    const nextId = currentMax + 1;
     
-    // Increment the counter
-    const nextId = (counter.next_id || 0) + 1;
-    await db
-      .updateTable('anonymous_counter')
-      .set({ next_id: nextId })
-      .where('id', '=', counter.id)
-      .execute();
-    
+    console.log(`[CHAT] Generated anonymous ID: Anonymous${String(nextId).padStart(3, '0')}`);
     return nextId;
   } catch (error) {
-    // Fallback: use timestamp-based ID
-    console.warn('[CHAT] Error getting next anonymous ID from database:', error);
+    console.error('[CHAT] Error getting next anonymous ID:', error);
+    // Fallback to timestamp-based ID if database fails
     return Math.floor(Date.now() / 1000) % 10000;
   }
 }
