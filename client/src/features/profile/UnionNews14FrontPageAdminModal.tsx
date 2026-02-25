@@ -2,57 +2,55 @@ import React, { useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { X } from 'lucide-react';
 
-interface UnionNews14Image {
+interface BroadcastItem {
   id: number;
-  imageUrl: string;
   title?: string;
-  description?: string;
+  imageUrl: string;
   clickUrl?: string;
+  description?: string;
 }
 
 interface UnionNews14FrontPageAdminModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImageAdded: (image: UnionNews14Image) => void;
+  onImageAdded: (newImage: BroadcastItem) => void;
 }
 
-const UnionNews14FrontPageAdminModal: React.FC<UnionNews14FrontPageAdminModalProps> = ({
+export const UnionNews14FrontPageAdminModal: React.FC<UnionNews14FrontPageAdminModalProps> = ({
   isOpen,
   onClose,
   onImageAdded,
 }) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [clickUrl, setClickUrl] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  if (!isOpen) return null;
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-      alert('Please upload a JPG, JPEG, or PNG image');
-      return;
+    if (file && ['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      setImageFile(file);
+      setErrorMessage('');
+    } else {
+      setErrorMessage('Please select a valid image (JPG, JPEG, or PNG)');
+      setImageFile(null);
     }
-
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!imageFile) {
-      alert('Please select an image');
+      setErrorMessage('Please select an image');
       return;
     }
 
-    setIsSubmitting(true);
+    setIsLoading(true);
+    setErrorMessage('');
 
     try {
       const formData = new FormData();
@@ -61,40 +59,50 @@ const UnionNews14FrontPageAdminModal: React.FC<UnionNews14FrontPageAdminModalPro
       formData.append('description', description);
       formData.append('clickUrl', clickUrl);
 
+      console.log('[UnionNews14] Submitting image upload...');
+
       const response = await fetch('/api/broadcasts/union-news-14/images/add', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add image');
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      onImageAdded(data.image);
+      console.log('[UnionNews14] Upload successful:', data);
+
+      // Call the callback with the new image
+      onImageAdded({
+        id: data.id,
+        title: data.title || undefined,
+        imageUrl: data.imageUrl,
+        clickUrl: data.clickUrl || undefined,
+        description: data.description || undefined,
+      });
 
       // Reset form
       setImageFile(null);
-      setImagePreview('');
       setTitle('');
       setDescription('');
       setClickUrl('');
-      onClose();
 
-      alert('Image added successfully!');
+      // Show success message briefly
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     } catch (error) {
       console.error('[UnionNews14] Error adding image:', error);
-      alert('Failed to add image: ' + error);
+      setErrorMessage(`Failed to add image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100002]">
-      <div className="bg-background border rounded-lg p-6 max-w-md w-[95%]">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100001]">
+      <div className="bg-background border rounded-lg p-6 max-w-md w-[90%] max-h-[90vh] overflow-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Add Image to UnionNews#14</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -102,24 +110,19 @@ const UnionNews14FrontPageAdminModal: React.FC<UnionNews14FrontPageAdminModalPro
           </Button>
         </div>
 
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-semibold mb-2">Image (JPG, JPEG, PNG)</label>
+            <label className="block text-sm font-semibold mb-2">Image (JPG, JPEG, or PNG) *</label>
             <input
               type="file"
               accept="image/jpeg,image/jpg,image/png"
               onChange={handleImageSelect}
               className="w-full p-2 border rounded bg-gray-800 text-white"
+              disabled={isLoading}
             />
-            {imagePreview && (
-              <div className="mt-2 h-40 rounded overflow-hidden">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+            {imageFile && (
+              <p className="text-xs text-green-400 mt-1">✓ File selected: {imageFile.name}</p>
             )}
           </div>
 
@@ -130,8 +133,9 @@ const UnionNews14FrontPageAdminModal: React.FC<UnionNews14FrontPageAdminModalPro
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Image title"
-              className="w-full p-2 border rounded bg-gray-800 text-white"
+              placeholder="e.g., Visit our shop"
+              className="w-full p-2 border rounded bg-gray-800 text-white placeholder-gray-500"
+              disabled={isLoading}
             />
           </div>
 
@@ -141,43 +145,54 @@ const UnionNews14FrontPageAdminModal: React.FC<UnionNews14FrontPageAdminModalPro
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Image description"
-              className="w-full p-2 border rounded bg-gray-800 text-white resize-none"
+              placeholder="Brief description..."
+              className="w-full p-2 border rounded bg-gray-800 text-white placeholder-gray-500 resize-none"
               rows={3}
+              disabled={isLoading}
             />
           </div>
 
-          {/* URL (Optional) */}
+          {/* Click URL (Optional) */}
           <div>
-            <label className="block text-sm font-semibold mb-2">URL to Open (Optional)</label>
+            <label className="block text-sm font-semibold mb-2">URL (Optional)</label>
             <input
-              type="text"
+              type="url"
               value={clickUrl}
               onChange={(e) => setClickUrl(e.target.value)}
               placeholder="https://example.com"
-              className="w-full p-2 border rounded bg-gray-800 text-white"
+              className="w-full p-2 border rounded bg-gray-800 text-white placeholder-gray-500"
+              disabled={isLoading}
             />
+            <p className="text-xs text-gray-400 mt-1">If provided, image becomes clickable</p>
           </div>
 
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="p-3 bg-red-900/30 border border-red-600 rounded text-red-200 text-sm">
+              {errorMessage}
+            </div>
+          )}
+
           {/* Buttons */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 pt-2">
             <Button
+              type="submit"
+              disabled={!imageFile || isLoading}
+              className="flex-1 bg-green-700 hover:bg-green-800"
+            >
+              {isLoading ? 'Adding...' : 'Add Image'}
+            </Button>
+            <Button
+              type="button"
               variant="outline"
-              className="flex-1"
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isLoading}
+              className="flex-1"
             >
               Cancel
             </Button>
-            <Button
-              className="flex-1 bg-orange-400 hover:bg-orange-500 text-white"
-              onClick={handleSubmit}
-              disabled={isSubmitting || !imageFile}
-            >
-              {isSubmitting ? 'Adding...' : 'Add Image'}
-            </Button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
