@@ -338,12 +338,12 @@ app.post('/api/broadcasts/union-news-14/images/:id/move-left', authMiddleware, a
       return;
     }
 
-    // Find the image with display_order one less
+    // Find the image with display_order one HIGHER (moves LEFT in desc-ordered carousel)
     const previousImage = await db
       .selectFrom('MainHubUpgradeV001ForBroadcasts')
       .select(['id', 'display_order'])
-      .where('display_order', '<', currentImage.display_order)
-      .orderBy('display_order', 'desc')
+      .where('display_order', '>', currentImage.display_order)  // ✅ FIXED: Look for HIGHER order
+      .orderBy('display_order', 'asc')
       .limit(1)
       .executeTakeFirst();
 
@@ -375,6 +375,11 @@ app.post('/api/broadcasts/union-news-14/images/:id/move-left', authMiddleware, a
     res.status(500).json({ error: 'Failed to move image' });
   }
 });
+
+
+
+
+
 
 // POST - Reorder image RIGHT (swap with next)
 app.post('/api/broadcasts/union-news-14/images/:id/move-right', authMiddleware, async (req: Request, res: Response) => {
@@ -414,12 +419,12 @@ app.post('/api/broadcasts/union-news-14/images/:id/move-right', authMiddleware, 
       return;
     }
 
-    // Find the image with display_order one more
+    // Find the image with display_order one LOWER (moves RIGHT in desc-ordered carousel)
     const nextImage = await db
       .selectFrom('MainHubUpgradeV001ForBroadcasts')
       .select(['id', 'display_order'])
-      .where('display_order', '>', currentImage.display_order)
-      .orderBy('display_order', 'asc')
+      .where('display_order', '<', currentImage.display_order)  // ✅ FIXED: Look for LOWER order
+      .orderBy('display_order', 'desc')
       .limit(1)
       .executeTakeFirst();
 
@@ -451,7 +456,6 @@ app.post('/api/broadcasts/union-news-14/images/:id/move-right', authMiddleware, 
     res.status(500).json({ error: 'Failed to move image' });
   }
 });
-
 
 
 
