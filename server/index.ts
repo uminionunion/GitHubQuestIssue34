@@ -158,6 +158,86 @@ app.get('/api/users/by-username/:username', async (req: Request, res: Response) 
   }
 });
 
+// /api/broadcasts - Handles broadcast-related endpoints
+app.post('/api/broadcasts/union-news-14/images/add', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    // Check if user is high-high-high admin
+    const user = await db
+      .selectFrom('users')
+      .select(['is_high_high_high_admin'])
+      .where('id', '=', req.user.userId)
+      .executeTakeFirst();
+
+    if (!user || user.is_high_high_high_admin !== 1) {
+      res.status(403).json({ error: 'Only high-high-high admins can add broadcast images' });
+      return;
+    }
+
+    // Check if file was uploaded
+    const files = req.files as any;
+    if (!files || !files.image) {
+      res.status(400).json({ error: 'No image file provided' });
+      return;
+    }
+
+    const uploadedFile = files.image as any;
+    const { title = '', description = '', clickUrl = '' } = req.body;
+
+    // Validate file is an image
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(uploadedFile.mimetype)) {
+      res.status(400).json({ error: 'Only JPG, JPEG, and PNG images are allowed' });
+      return;
+    }
+
+    // Create broadcast-images directory if it doesn't exist
+    const broadcastImagesDir = path.join(process.cwd(), 'data', 'broadcast-images');
+    if (!fs.existsSync(broadcastImagesDir)) {
+      fs.mkdirSync(broadcastImagesDir, { recursive: true });
+      console.log(`[BROADCASTS] Created broadcast-images directory: ${broadcastImagesDir}`);
+    }
+
+    // Generate filename
+    const fileName = `union-news-14-${Date.now()}.jpg`;
+    const filePath = path.join(broadcastImagesDir, fileName);
+
+    // Save file to disk
+    await uploadedFile.mv(filePath);
+    console.log(`[BROADCASTS] Image saved to disk: ${filePath}`);
+
+    // Build the full URL path for serving
+    const imageUrl = `/data/broadcast-images/${fileName}`;
+
+    // Insert into database
+    const newImage = await db
+      .insertInto('MainHubUpgradeV001ForBroadcasts')
+      .values({
+        user_id: req.user.userId,
+        name: title || `Image ${Date.now()}`,
+      })
+      .returning('id')
+      .executeTakeFirst();
+
+    console.log(`[BROADCASTS] Image record created with ID: ${newImage?.id}, URL: ${imageUrl}`);
+
+    res.status(200).json({
+      id: newImage?.id,
+      title: title || undefined,
+      imageUrl: imageUrl,
+      clickUrl: clickUrl || undefined,
+      description: description || undefined,
+    });
+  } catch (error) {
+    console.error('[BROADCASTS] Error adding image:', error);
+    res.status(500).json({ error: 'Failed to add image to broadcast' });
+  }
+});
+
+// Initialize Socket.IO chat functionality
 setupChat(io);
 
 function resolvePublicPath(): string {
