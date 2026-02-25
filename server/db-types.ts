@@ -28,7 +28,8 @@ export interface MainHubUpgradeV001ForBroadcasts {
   image_url: string | null;
   click_url: string | null;
   description: string | null;
-  created_at: string | null;
+  display_order: Generated<number>;
+  created_at?: Generated<string | null>;
 }
 
 export interface MainHubUpgradeV001ForCartItems {
