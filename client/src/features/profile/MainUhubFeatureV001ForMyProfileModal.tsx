@@ -162,7 +162,54 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
 };
 
 
-const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOpenUnionNews14Modal }) => (
+const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOpenUnionNews14Modal }) => {
+  const handleReorderLeft = async (imageId: number) => {
+    try {
+      const response = await fetch(`/api/broadcasts/union-news-14/images/${imageId}/move-left`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to move image');
+      }
+
+      // Refresh images after successful reorder
+      const refreshRes = await fetch('/api/broadcasts/union-news-14/images');
+      const freshData = await refreshRes.json();
+      setUnionNews14Images(Array.isArray(freshData) ? freshData : []);
+      console.log('[BROADCAST VIEW] ✅ Image moved left, refreshed carousel');
+    } catch (error) {
+      console.error('[BROADCAST VIEW] Error moving image left:', error);
+      throw error;
+    }
+  };
+
+  const handleReorderRight = async (imageId: number) => {
+    try {
+      const response = await fetch(`/api/broadcasts/union-news-14/images/${imageId}/move-right`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to move image');
+      }
+
+      // Refresh images after successful reorder
+      const refreshRes = await fetch('/api/broadcasts/union-news-14/images');
+      const freshData = await refreshRes.json();
+      setUnionNews14Images(Array.isArray(freshData) ? freshData : []);
+      console.log('[BROADCAST VIEW] ✅ Image moved right, refreshed carousel');
+    } catch (error) {
+      console.error('[BROADCAST VIEW] Error moving image right:', error);
+      throw error;
+    }
+  };
+
+  return (
     <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
             {/* MIDDLE-LEFT AREA - DO NOT CHANGE */}
@@ -185,22 +232,28 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
                 <div className="flex items-center gap-2 mb-4">
                     <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
                     {user?.is_high_high_high_admin === 1 && (
-    <Button 
-        className="bg-green-700 hover:bg-green-800 text-white text-sm"
-        onClick={() => onOpenUnionNews14Modal()}
-    >
-        Add Images to the UnionNews#14 Horizontal Feed 001?
-    </Button>
-)}
+                        <Button 
+                            className="bg-green-700 hover:bg-green-800 text-white text-sm"
+                            onClick={() => onOpenUnionNews14Modal()}
+                        >
+                            Add Images to the UnionNews#14 Horizontal Feed 001?
+                        </Button>
+                    )}
                 </div>
-                {/* #14ImageContainer - Displays carousel with images */}
+                {/* #14ImageContainer - Displays carousel with admin controls */}
                 <div className="flex-1 overflow-hidden">
-                    <BroadcastCarousel items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])} />
+                    <BroadcastCarousel 
+                      items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])} 
+                      isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
+                      onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
+                      onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
+                    />
                 </div>
             </div>
         </div>
     </div>
-);
+  );
+};
 
 // QUADRANTS MODAL - PAGE 1 REDESIGNED
 interface QuadrantsModalProps {
