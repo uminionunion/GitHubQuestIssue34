@@ -232,6 +232,14 @@ app.post('/api/broadcasts/union-news-14/images/add', authMiddleware, async (req:
     const imageUrl = `/data/broadcast-images/${fileName}`;
 
   // Insert into database
+// Get the max display_order to insert new image at the beginning
+const maxOrder = await db
+  .selectFrom('MainHubUpgradeV001ForBroadcasts')
+  .select(db.fn.max('display_order').as('maxOrder'))
+  .executeTakeFirst();
+
+const nextOrder = (maxOrder?.maxOrder || 0) + 1;
+
 const newImage = await db
   .insertInto('MainHubUpgradeV001ForBroadcasts')
   .values({
@@ -240,6 +248,7 @@ const newImage = await db
     image_url: imageUrl,
     click_url: clickUrl || null,
     description: description || null,
+    display_order: nextOrder,
   })
   .returning('id')
   .executeTakeFirst();
