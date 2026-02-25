@@ -161,7 +161,7 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
 };
 
 
-const BroadcastView = ({ broadcast }) => (
+const BroadcastView = ({ broadcast, user }) => (
     <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
             <div className="w-1/3">
@@ -2142,7 +2142,7 @@ default:
             </div>
             {broadcastView === 'MyBroadcasts' ? 
                 (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
-                : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
+                : (currentBroadcast : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} user={user} /> : <p>Broadcast not found.</p>)}? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
         </>
     );
     }
