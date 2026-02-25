@@ -107,6 +107,25 @@ const [{ setupStaticServing }, authMod, friendsMod, { setupChat }, productsMod] 
   import('./products.js'),
 ]);
 
+
+// Middleware for authentication
+const authMiddleware = (req: Request, res: Response, next: Function) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    res.status(401).json({ error: 'Not authenticated' });
+    return;
+  }
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-key') as any;
+    req.user = payload;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+
+
 const authRouter: Router = (authMod && (authMod as any).default) ? (authMod as any).default as Router : (authMod as any) as Router;
 const friendsRouter: Router = (friendsMod && (friendsMod as any).default) ? (friendsMod as any).default as Router : (friendsMod as any) as Router;
 const productsRouter: Router = (productsMod && (productsMod as any).default) ? (productsMod as any).default as Router : (productsMod as any) as Router;
@@ -284,21 +303,7 @@ function logRegisteredRoutes() {
   }
 }
 
-// Middleware for authentication
-const authMiddleware = (req: Request, res: Response, next: Function) => {
-  const token = req.cookies?.token;
-  if (!token) {
-    res.status(401).json({ error: 'Not authenticated' });
-    return;
-  }
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-key') as any;
-    req.user = payload;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-};
+
 
 // NEW: Check if rooms have any messages (for all users, logged in or not)
 app.get('/api/chat/rooms-with-messages', async (req: Request, res: Response) => {
