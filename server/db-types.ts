@@ -25,6 +25,10 @@ export interface MainHubUpgradeV001ForBroadcasts {
   id: Generated<number>;
   user_id: number;
   name: string;
+  image_url: string | null;
+  click_url: string | null;
+  description: string | null;
+  created_at: Generated<string | null>;
 }
 
 export interface MainHubUpgradeV001ForCartItems {
