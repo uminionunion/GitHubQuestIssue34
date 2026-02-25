@@ -1356,26 +1356,35 @@ const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([]);
 useEffect(() => {
   if (isOpen && broadcastView === 'UnionNews#14') {
     const fetchUnionNews14Images = async () => {
-      try {
-        console.log('[PROFILE MODAL] Fetching UnionNews14 images from database...');
-        const res = await fetch('/api/broadcasts/union-news-14/images');
-        if (!res.ok) {
-          console.error('[PROFILE MODAL] Failed to fetch images, status:', res.status);
-          return;
-        }
-        const data = await res.json();
-        console.log('[PROFILE MODAL] ✅ Fetched images:', data);
-        
-        if (Array.isArray(data) && data.length > 0) {
-          setUnionNews14Images(data);
-          console.log(`[PROFILE MODAL] ✅ Set ${data.length} images to state`);
-        } else {
-          console.warn('[PROFILE MODAL] No images returned from API');
-        }
-      } catch (error) {
-        console.error('[PROFILE MODAL] Error fetching UnionNews14 images:', error);
-      }
-    };
+  try {
+    console.log('[PROFILE MODAL] Fetching UnionNews14 images from database...');
+    const res = await fetch('/api/broadcasts/union-news-14/images');
+    if (!res.ok) {
+      console.error('[PROFILE MODAL] Failed to fetch images, status:', res.status);
+      return;
+    }
+    const data = await res.json();
+    console.log('[PROFILE MODAL] ✅ Fetched images:', data);
+    
+    if (Array.isArray(data) && data.length > 0) {
+      // FIXED: Sort by created_at descending to ensure newest images appear first
+      // The backend already does this, but we re-sort to be safe
+      const sortedData = data.sort((a, b) => {
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
+        return timeB - timeA; // Newest first
+      });
+      setUnionNews14Images(sortedData);
+      console.log(`[PROFILE MODAL] ✅ Set ${sortedData.length} images to state (sorted by newest first)`);
+    } else {
+      console.warn('[PROFILE MODAL] No images returned from API');
+      setUnionNews14Images([]);
+    }
+  } catch (error) {
+    console.error('[PROFILE MODAL] Error fetching UnionNews14 images:', error);
+    setUnionNews14Images([]);
+  }
+};
 
     fetchUnionNews14Images();
   }
@@ -2719,10 +2728,31 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
     onClose={() => setIsUnionNews14ModalOpen(false)}
     onImageAdded={(newImage) => {
       console.log('[PROFILE MODAL] New image added:', newImage);
-      // Simply prepend the new image to the current list
-      const updatedImages = [newImage, ...unionNews14Images];
-      setUnionNews14Images(updatedImages);
-      console.log('[PROFILE MODAL] Updated images list with', updatedImages.length, 'total images');
+      // FIXED: Re-fetch images from database instead of prepending to state
+      // This ensures the ordering matches what's in the database
+      const fetchUpdatedImages = async () => {
+        try {
+          const res = await fetch('/api/broadcasts/union-news-14/images');
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              // Sort by created_at descending to ensure newest first
+              const sortedData = data.sort((a, b) => {
+                const timeA = new Date(a.created_at || 0).getTime();
+                const timeB = new Date(b.created_at || 0).getTime();
+                return timeB - timeA; // Newest first
+              });
+              setUnionNews14Images(sortedData);
+              console.log('[PROFILE MODAL] ✅ Re-fetched and sorted', sortedData.length, 'images from database');
+            }
+          }
+        } catch (error) {
+          console.error('[PROFILE MODAL] Error re-fetching images:', error);
+        }
+      };
+      
+      // Delay slightly to allow backend to finish writing to database
+      setTimeout(fetchUpdatedImages, 500);
     }}
   />
 )}
