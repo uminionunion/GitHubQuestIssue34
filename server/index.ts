@@ -231,15 +231,18 @@ app.post('/api/broadcasts/union-news-14/images/add', authMiddleware, async (req:
     // Build the full URL path for serving
     const imageUrl = `/data/broadcast-images/${fileName}`;
 
-    // Insert into database
-    const newImage = await db
-      .insertInto('MainHubUpgradeV001ForBroadcasts')
-      .values({
-        user_id: req.user.userId,
-        name: title || `Image ${Date.now()}`,
-      })
-      .returning('id')
-      .executeTakeFirst();
+  // Insert into database
+const newImage = await db
+  .insertInto('MainHubUpgradeV001ForBroadcasts')
+  .values({
+    user_id: req.user.userId,
+    name: title || `Image ${Date.now()}`,
+    image_url: imageUrl,
+    click_url: clickUrl || null,
+    description: description || null,
+  })
+  .returning('id')
+  .executeTakeFirst();
 
     console.log(`[BROADCASTS] Image record created with ID: ${newImage?.id}, URL: ${imageUrl}`);
 
@@ -255,6 +258,41 @@ app.post('/api/broadcasts/union-news-14/images/add', authMiddleware, async (req:
     res.status(500).json({ error: 'Failed to add image to broadcast' });
   }
 });
+
+
+
+
+// GET - Retrieve all UnionNews14 broadcast images
+app.get('/api/broadcasts/union-news-14/images', async (req: Request, res: Response) => {
+  try {
+    const images = await db
+      .selectFrom('MainHubUpgradeV001ForBroadcasts')
+      .select(['id', 'name', 'image_url', 'click_url', 'description', 'created_at'])
+      .orderBy('created_at', 'desc')
+      .limit(100)
+      .execute();
+
+    console.log(`[BROADCASTS] Fetched ${images.length} UnionNews14 images from database`);
+
+    // Format for frontend (convert null click_url to empty string for carousel)
+    const formattedImages = images.map(img => ({
+      id: img.id,
+      title: img.name || '',
+      imageUrl: img.image_url || '',
+      clickUrl: img.click_url || '',
+      description: img.description || undefined,
+    }));
+
+    res.status(200).json(formattedImages);
+  } catch (error) {
+    console.error('[BROADCASTS] Error fetching images:', error);
+    res.status(500).json({ error: 'Failed to fetch broadcast images' });
+  }
+});
+
+
+
+
 
 // Initialize Socket.IO chat functionality
 setupChat(io);
