@@ -2141,8 +2141,8 @@ default:
                 </Button>
             </div>
             {broadcastView === 'MyBroadcasts' ? 
-                (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
-                : (currentBroadcast : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} user={user} /> : <p>Broadcast not found.</p>)}? <BroadcastView broadcast={currentBroadcast} /> : <p>Broadcast not found.</p>)}
+    (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
+    : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} user={user} /> : <p>Broadcast not found.</p>)}
         </>
     );
     }
