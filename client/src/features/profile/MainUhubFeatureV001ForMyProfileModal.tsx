@@ -1350,43 +1350,30 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
 
 const [isUnionNews14ModalOpen, setIsUnionNews14ModalOpen] = useState(false);
-const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([
-  {
-    id: 1,
-    title: "Visit our shop",
-    imageUrl: "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png",
-    clickUrl: "https://page001.uminion.com/shop/"
-  },
-  {
-    id: 2,
-    title: "Uminion Wristband",
-    imageUrl: "https://page001.uminion.com/wp-content/uploads/2025/12/Product-uminion-dot-com-wristband.jpg",
-    clickUrl: "https://page001.uminion.com/product/wristband-uminion-com-with-unionlegal23s-phone-number-on-it/"
-  },
-  {
-    id: 3,
-    title: "Ukraine Support",
-    imageUrl: "https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png",
-    clickUrl: "https://u24.gov.ua/"
-  },
-]);
+const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([]);
 
-// NEW: Fetch UnionNews14 images from database when modal opens
+// Fetch UnionNews14 images from database when modal opens
 useEffect(() => {
   if (isOpen && broadcastView === 'UnionNews#14') {
     const fetchUnionNews14Images = async () => {
       try {
+        console.log('[PROFILE MODAL] Fetching UnionNews14 images from database...');
         const res = await fetch('/api/broadcasts/union-news-14/images');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            console.log(`[PROFILE MODAL] ✅ Fetched ${data.length} UnionNews14 images from database`);
-            setUnionNews14Images(data);
-          }
+        if (!res.ok) {
+          console.error('[PROFILE MODAL] Failed to fetch images, status:', res.status);
+          return;
+        }
+        const data = await res.json();
+        console.log('[PROFILE MODAL] ✅ Fetched images:', data);
+        
+        if (Array.isArray(data) && data.length > 0) {
+          setUnionNews14Images(data);
+          console.log(`[PROFILE MODAL] ✅ Set ${data.length} images to state`);
+        } else {
+          console.warn('[PROFILE MODAL] No images returned from API');
         }
       } catch (error) {
         console.error('[PROFILE MODAL] Error fetching UnionNews14 images:', error);
-        // Keep default images if fetch fails
       }
     };
 
@@ -2731,13 +2718,11 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
     isOpen={isUnionNews14ModalOpen}
     onClose={() => setIsUnionNews14ModalOpen(false)}
     onImageAdded={(newImage) => {
-      // Rotate images: new image goes to left, old images shift right
-      const updatedImages = [
-        newImage, // New image at position 1 (far left)
-        unionNews14Images[0], // Old left → middle
-        unionNews14Images[1], // Old middle → right
-      ];
+      console.log('[PROFILE MODAL] New image added:', newImage);
+      // Simply prepend the new image to the current list
+      const updatedImages = [newImage, ...unionNews14Images];
       setUnionNews14Images(updatedImages);
+      console.log('[PROFILE MODAL] Updated images list with', updatedImages.length, 'total images');
     }}
   />
 )}
