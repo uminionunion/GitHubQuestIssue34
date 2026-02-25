@@ -162,7 +162,7 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
 };
 
 
-const BroadcastView = ({ broadcast, user }) => (
+const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOpenUnionNews14Modal }) => (
     <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
             {/* MIDDLE-LEFT AREA - DO NOT CHANGE */}
@@ -185,17 +185,17 @@ const BroadcastView = ({ broadcast, user }) => (
                 <div className="flex items-center gap-2 mb-4">
                     <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
                     {user?.is_high_high_high_admin === 1 && (
-                        <Button 
-                            className="bg-green-700 hover:bg-green-800 text-white text-sm"
-                            onClick={() => setIsUnionNews14ModalOpen(true)}
-                        >
-                            Add Images to the UnionNews#14 Horizontal Feed 001?
-                        </Button>
-                    )}
+    <Button 
+        className="bg-green-700 hover:bg-green-800 text-white text-sm"
+        onClick={() => onOpenUnionNews14Modal()}
+    >
+        Add Images to the UnionNews#14 Horizontal Feed 001?
+    </Button>
+)}
                 </div>
                 {/* #14ImageContainer - Displays carousel with images */}
                 <div className="flex-1 overflow-hidden">
-                    <BroadcastCarousel items={broadcastView === 'UnionNews#14' ? unionNews14Images : broadcast.extraImages || []} />
+                    <BroadcastCarousel items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])} />
                 </div>
             </div>
         </div>
@@ -2165,7 +2165,13 @@ default:
             </div>
             {broadcastView === 'MyBroadcasts' ? 
     (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
-    : (currentBroadcast ? <BroadcastView broadcast={currentBroadcast} user={user} /> : <p>Broadcast not found.</p>)}
+    : (currentBroadcast ? <BroadcastView 
+  broadcast={currentBroadcast} 
+  user={user}
+  broadcastView={broadcastView}
+  unionNews14Images={unionNews14Images}
+  onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
+/> : <p>Broadcast not found.</p>)}
         </>
     );
     }
