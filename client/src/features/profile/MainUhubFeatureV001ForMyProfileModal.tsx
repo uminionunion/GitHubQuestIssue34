@@ -17,6 +17,7 @@ import MainUhubFeatureV001ForEditProductModal from './MainUhubFeatureV001ForEdit
 import MainUhubFeatureV001ForUserProfileModal from './MainUhubFeatureV001ForUserProfileModal';
 import UserStoresQuadrantView from './UserStoresQuadrantView';
 import { io, Socket } from 'socket.io-client';
+import UnionNews14FrontPageAdminModal from './UnionNews14FrontPageAdminModal';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -164,6 +165,7 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
 const BroadcastView = ({ broadcast, user }) => (
     <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
+            {/* MIDDLE-LEFT AREA - DO NOT CHANGE */}
             <div className="w-1/3">
                 <h4 className="font-semibold">{broadcast.subtitle}</h4>
                 <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
@@ -173,6 +175,8 @@ const BroadcastView = ({ broadcast, user }) => (
                     <Button variant="ghost" size="icon"><ChevronRight /></Button>
                 </div>
             </div>
+
+            {/* MIDDLE-RIGHT AREA - UPGRADED */}
             <div className="w-2/3 flex flex-col">
                 <div className="flex items-center gap-2 mb-2">
                     <Button variant="outline" size="icon"><Play /></Button>
@@ -183,16 +187,15 @@ const BroadcastView = ({ broadcast, user }) => (
                     {user?.is_high_high_high_admin === 1 && (
                         <Button 
                             className="bg-green-700 hover:bg-green-800 text-white text-sm"
-                            onClick={() => {
-                                // Button functionality will be added in future upgrades
-                            }}
+                            onClick={() => setIsUnionNews14ModalOpen(true)}
                         >
                             Add Images to the UnionNews#14 Horizontal Feed 001?
                         </Button>
                     )}
                 </div>
+                {/* #14ImageContainer - Displays carousel with images */}
                 <div className="flex-1 overflow-hidden">
-                    <BroadcastCarousel />
+                    <BroadcastCarousel items={broadcastView === 'UnionNews#14' ? unionNews14Images : broadcast.extraImages || []} />
                 </div>
             </div>
         </div>
@@ -1346,7 +1349,27 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
 
 
-
+const [isUnionNews14ModalOpen, setIsUnionNews14ModalOpen] = useState(false);
+const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([
+  {
+    id: 1,
+    title: "Visit our shop",
+    imageUrl: "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png",
+    clickUrl: "https://page001.uminion.com/shop/"
+  },
+  {
+    id: 2,
+    title: "Uminion Wristband",
+    imageUrl: "https://page001.uminion.com/wp-content/uploads/2025/12/Product-uminion-dot-com-wristband.jpg",
+    clickUrl: "https://page001.uminion.com/product/wristband-uminion-com-with-unionlegal23s-phone-number-on-it/"
+  },
+  {
+    id: 3,
+    title: "Ukraine Support",
+    imageUrl: "https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png",
+    clickUrl: "https://u24.gov.ua/"
+  },
+]);
 
 
   // Load unread chatroom status for logged-in users OR load rooms with messages for all users
@@ -2674,7 +2697,21 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
 
 
 
-
+{isUnionNews14ModalOpen && (
+  <UnionNews14FrontPageAdminModal
+    isOpen={isUnionNews14ModalOpen}
+    onClose={() => setIsUnionNews14ModalOpen(false)}
+    onImageAdded={(newImage) => {
+      // Rotate images: new image goes to left, old images shift right
+      const updatedImages = [
+        newImage, // New image at position 1 (far left)
+        unionNews14Images[0], // Old left → middle
+        unionNews14Images[1], // Old middle → right
+      ];
+      setUnionNews14Images(updatedImages);
+    }}
+  />
+)}
 
       
       
