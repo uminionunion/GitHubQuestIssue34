@@ -4,9 +4,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface BroadcastItem {
   id: number;
-  title: string;
+  title?: string;
   imageUrl: string;
-  clickUrl: string;
+  clickUrl?: string;
+  description?: string;
 }
 
 interface BroadcastCarouselProps {
@@ -75,27 +76,54 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ items = de
 
       {/* Images */}
       <div className="flex gap-4 flex-1 justify-center">
-        {currentItems.map((item) => (
-          <a
-            key={item.id}
-            href={item.clickUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="cursor-pointer hover:opacity-80 transition-opacity"
-            title={item.title}
-          >
-            <div className="h-32 w-32 rounded-md overflow-hidden bg-background border">
+        {currentItems.map((item) => {
+          const hasUrl = item.clickUrl && item.clickUrl.trim() !== '';
+          const content = (
+            <div className="h-32 w-32 rounded-md overflow-hidden bg-background border flex flex-col">
               <img
                 src={item.imageUrl}
-                alt={item.title}
-                className="h-full w-full object-cover"
+                alt={item.title || 'Broadcast image'}
+                className="h-24 w-full object-cover"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://via.placeholder.com/128?text=Image';
                 }}
               />
+              <div className="flex-1 p-1 flex flex-col justify-between bg-gray-900">
+                {item.title && (
+                  <p className="text-xs font-semibold text-white truncate">{item.title}</p>
+                )}
+                {item.description && (
+                  <p className="text-xs text-gray-300 line-clamp-1">{item.description}</p>
+                )}
+              </div>
             </div>
-          </a>
-        ))}
+          );
+
+          if (hasUrl) {
+            return (
+              <a
+                key={item.id}
+                href={item.clickUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cursor-pointer hover:opacity-80 transition-opacity"
+                title={item.title}
+              >
+                {content}
+              </a>
+            );
+          }
+
+          return (
+            <div
+              key={item.id}
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              title={item.title}
+            >
+              {content}
+            </div>
+          );
+        })}
       </div>
 
       {/* Right Arrow */}
