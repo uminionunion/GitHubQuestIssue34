@@ -1371,6 +1371,29 @@ const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([
   },
 ]);
 
+// NEW: Fetch UnionNews14 images from database when modal opens
+useEffect(() => {
+  if (isOpen && broadcastView === 'UnionNews#14') {
+    const fetchUnionNews14Images = async () => {
+      try {
+        const res = await fetch('/api/broadcasts/union-news-14/images');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            console.log(`[PROFILE MODAL] ✅ Fetched ${data.length} UnionNews14 images from database`);
+            setUnionNews14Images(data);
+          }
+        }
+      } catch (error) {
+        console.error('[PROFILE MODAL] Error fetching UnionNews14 images:', error);
+        // Keep default images if fetch fails
+      }
+    };
+
+    fetchUnionNews14Images();
+  }
+}, [isOpen, broadcastView]);
+
 
   // Load unread chatroom status for logged-in users OR load rooms with messages for all users
 useEffect(() => {
