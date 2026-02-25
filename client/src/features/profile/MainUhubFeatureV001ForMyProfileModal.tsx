@@ -178,7 +178,19 @@ const BroadcastView = ({ broadcast }) => (
                     <Button variant="outline" size="icon"><Play /></Button>
                     <p className="text-sm text-muted-foreground flex-grow">{broadcast.description}</p>
                 </div>
-                <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm mb-4">Visit Website</a>
+                <div className="flex items-center gap-2 mb-4">
+                    <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
+                    {user?.is_high_high_high_admin === 1 && (
+                        <Button 
+                            className="bg-green-700 hover:bg-green-800 text-white text-sm"
+                            onClick={() => {
+                                // Button functionality will be added in future upgrades
+                            }}
+                        >
+                            Add Images to the UnionNews#14 Horizontal Feed 001?
+                        </Button>
+                    )}
+                </div>
                 <div className="flex-1 overflow-hidden">
                     <BroadcastCarousel />
                 </div>
