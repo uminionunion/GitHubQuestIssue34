@@ -267,14 +267,14 @@ app.get('/api/broadcasts/union-news-14/images', async (req: Request, res: Respon
   try {
     const images = await db
       .selectFrom('MainHubUpgradeV001ForBroadcasts')
-      .select(['id', 'name', 'image_url', 'click_url', 'description', 'created_at'])
-      .orderBy('created_at', 'desc')
+      .select(['id', 'name', 'image_url', 'click_url', 'description', 'created_at', 'display_order'])
+      .orderBy('display_order', 'desc')  // Changed: order by display_order DESC (newest first)
       .limit(100)
       .execute();
 
     console.log(`[BROADCASTS] Fetched ${images.length} UnionNews14 images from database`);
 
-    // Format for frontend (convert null click_url to empty string for carousel)
+    // Format for frontend
     const formattedImages = images.map(img => ({
       id: img.id,
       title: img.name || '',
@@ -289,6 +289,160 @@ app.get('/api/broadcasts/union-news-14/images', async (req: Request, res: Respon
     res.status(500).json({ error: 'Failed to fetch broadcast images' });
   }
 });
+
+
+// POST - Reorder image LEFT (swap with previous)
+app.post('/api/broadcasts/union-news-14/images/:id/move-left', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    // Check if user is high-high-high admin
+    const user = await db
+      .selectFrom('users')
+      .select(['is_high_high_high_admin'])
+      .where('id', '=', req.user.userId)
+      .executeTakeFirst();
+
+    if (!user || user.is_high_high_high_admin !== 1) {
+      res.status(403).json({ error: 'Only high-high-high admins can reorder images' });
+      return;
+    }
+
+    const imageId = parseInt(req.params.id, 10);
+    if (isNaN(imageId)) {
+      res.status(400).json({ error: 'Invalid image ID' });
+      return;
+    }
+
+    // Get the image we're moving
+    const currentImage = await db
+      .selectFrom('MainHubUpgradeV001ForBroadcasts')
+      .select(['id', 'display_order'])
+      .where('id', '=', imageId)
+      .executeTakeFirst();
+
+    if (!currentImage) {
+      res.status(404).json({ error: 'Image not found' });
+      return;
+    }
+
+    // Find the image with display_order one less
+    const previousImage = await db
+      .selectFrom('MainHubUpgradeV001ForBroadcasts')
+      .select(['id', 'display_order'])
+      .where('display_order', '<', currentImage.display_order)
+      .orderBy('display_order', 'desc')
+      .limit(1)
+      .executeTakeFirst();
+
+    if (!previousImage) {
+      res.status(400).json({ error: 'Cannot move further left' });
+      return;
+    }
+
+    // Swap their display_order values
+    const tempOrder = currentImage.display_order;
+    
+    await db
+      .updateTable('MainHubUpgradeV001ForBroadcasts')
+      .set({ display_order: previousImage.display_order })
+      .where('id', '=', currentImage.id)
+      .execute();
+
+    await db
+      .updateTable('MainHubUpgradeV001ForBroadcasts')
+      .set({ display_order: tempOrder })
+      .where('id', '=', previousImage.id)
+      .execute();
+
+    console.log(`[BROADCASTS] Swapped image ${imageId} left with ${previousImage.id}`);
+
+    res.status(200).json({ success: true, message: 'Image moved left' });
+  } catch (error) {
+    console.error('[BROADCASTS] Error moving image left:', error);
+    res.status(500).json({ error: 'Failed to move image' });
+  }
+});
+
+// POST - Reorder image RIGHT (swap with next)
+app.post('/api/broadcasts/union-news-14/images/:id/move-right', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.userId) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    // Check if user is high-high-high admin
+    const user = await db
+      .selectFrom('users')
+      .select(['is_high_high_high_admin'])
+      .where('id', '=', req.user.userId)
+      .executeTakeFirst();
+
+    if (!user || user.is_high_high_high_admin !== 1) {
+      res.status(403).json({ error: 'Only high-high-high admins can reorder images' });
+      return;
+    }
+
+    const imageId = parseInt(req.params.id, 10);
+    if (isNaN(imageId)) {
+      res.status(400).json({ error: 'Invalid image ID' });
+      return;
+    }
+
+    // Get the image we're moving
+    const currentImage = await db
+      .selectFrom('MainHubUpgradeV001ForBroadcasts')
+      .select(['id', 'display_order'])
+      .where('id', '=', imageId)
+      .executeTakeFirst();
+
+    if (!currentImage) {
+      res.status(404).json({ error: 'Image not found' });
+      return;
+    }
+
+    // Find the image with display_order one more
+    const nextImage = await db
+      .selectFrom('MainHubUpgradeV001ForBroadcasts')
+      .select(['id', 'display_order'])
+      .where('display_order', '>', currentImage.display_order)
+      .orderBy('display_order', 'asc')
+      .limit(1)
+      .executeTakeFirst();
+
+    if (!nextImage) {
+      res.status(400).json({ error: 'Cannot move further right' });
+      return;
+    }
+
+    // Swap their display_order values
+    const tempOrder = currentImage.display_order;
+    
+    await db
+      .updateTable('MainHubUpgradeV001ForBroadcasts')
+      .set({ display_order: nextImage.display_order })
+      .where('id', '=', currentImage.id)
+      .execute();
+
+    await db
+      .updateTable('MainHubUpgradeV001ForBroadcasts')
+      .set({ display_order: tempOrder })
+      .where('id', '=', nextImage.id)
+      .execute();
+
+    console.log(`[BROADCASTS] Swapped image ${imageId} right with ${nextImage.id}`);
+
+    res.status(200).json({ success: true, message: 'Image moved right' });
+  } catch (error) {
+    console.error('[BROADCASTS] Error moving image right:', error);
+    res.status(500).json({ error: 'Failed to move image' });
+  }
+});
+
 
 
 
