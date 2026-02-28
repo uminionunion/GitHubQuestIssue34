@@ -210,11 +210,11 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
     }
   };
 
-  // NEW: Handle image zoom
-  const handleCarouselImageZoom = (imageUrl: string, title: string) => {
-    console.log('[BROADCAST VIEW] Carousel image zoom requested:', title);
+// NEW: Handle image zoom - pass all required params
+  const handleCarouselImageZoom = (imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
+    console.log('[BROADCAST VIEW] Carousel image zoom requested:', title, 'Index:', currentIndex);
     if (onImageZoom) {
-      onImageZoom(imageUrl, title);
+      onImageZoom(imageUrl, title, items, currentIndex);
     }
   };
 
