@@ -162,7 +162,7 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
 };
 
 
-const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOpenUnionNews14Modal }) => {
+const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOpenUnionNews14Modal, onImageZoom }) => {
   const handleReorderLeft = async (imageId: number) => {
     try {
       const response = await fetch(`/api/broadcasts/union-news-14/images/${imageId}/move-left`, {
@@ -209,6 +209,14 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
     }
   };
 
+  // NEW: Handle image zoom
+  const handleCarouselImageZoom = (imageUrl: string, title: string) => {
+    console.log('[BROADCAST VIEW] Carousel image zoom requested:', title);
+    if (onImageZoom) {
+      onImageZoom(imageUrl, title);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
@@ -240,13 +248,14 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
                         </Button>
                     )}
                 </div>
-                {/* #14ImageContainer - Displays carousel with admin controls */}
+                {/* #14ImageContainer - Displays carousel with admin controls and NEW zoom prop */}
                 <div className="flex-1 overflow-hidden">
                     <BroadcastCarousel 
                       items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])} 
                       isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
                       onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
                       onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
+                      onImageZoom={handleCarouselImageZoom}
                     />
                 </div>
             </div>
@@ -2243,6 +2252,10 @@ default:
   broadcastView={broadcastView}
   unionNews14Images={unionNews14Images}
   onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
+  onImageZoom={(imageUrl: string, title: string) => {
+    console.log('[PROFILE MODAL] Broadcast carousel image zoom:', title);
+    onBadgeZoom?.({ url: imageUrl, name: title });
+  }}
 /> : <p>Broadcast not found.</p>)}
         </>
     );
