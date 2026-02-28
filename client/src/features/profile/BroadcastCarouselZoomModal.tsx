@@ -165,22 +165,65 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
 
         {/* Main Image with Zoom - Now Pannable */}
         <div 
-          className="rounded max-h-[50vh] w-full bg-gray-900 overflow-auto flex items-center justify-center"
+          className="rounded bg-gray-900"
           style={{
+            width: '100%',
+            height: '50vh',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             cursor: zoomLevel > 1 ? 'grab' : 'default',
-            overflow: zoomLevel > 1 ? 'auto' : 'hidden'
+            position: 'relative'
+          }}
+          onWheel={(e) => {
+            if (e.deltaY > 0) handleZoomOut();
+            else handleZoomIn();
+            e.preventDefault();
           }}
         >
           <img
+            ref={(el) => {
+              if (el && zoomLevel > 1) {
+                el.style.cursor = 'grabbing';
+              }
+            }}
             src={imageUrl}
             alt={title}
-            className="rounded transition-transform duration-200"
+            className="rounded transition-transform duration-200 select-none"
+            draggable="false"
             style={{ 
               transform: `scale(${zoomLevel})`,
-              minHeight: '50vh',
-              minWidth: '100%',
+              width: zoomLevel === 1 ? '100%' : 'auto',
+              height: zoomLevel === 1 ? '100%' : 'auto',
               objectFit: 'contain',
-              transformOrigin: 'center center'
+              transformOrigin: 'center center',
+              maxWidth: 'none'
+            }}
+            onMouseDown={(e) => {
+              if (zoomLevel <= 1) return;
+              
+              const img = e.currentTarget;
+              const rect = img.parentElement!.getBoundingClientRect();
+              const startX = e.clientX;
+              const startY = e.clientY;
+              const scrollLeft = img.parentElement!.scrollLeft;
+              const scrollTop = img.parentElement!.scrollTop;
+              
+              const handleMouseMove = (moveEvent: MouseEvent) => {
+                const deltaX = startX - moveEvent.clientX;
+                const deltaY = startY - moveEvent.clientY;
+                img.parentElement!.scrollLeft = scrollLeft + deltaX;
+                img.parentElement!.scrollTop = scrollTop + deltaY;
+              };
+              
+              const handleMouseUp = () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+              };
+              
+              document.addEventListener('mousemove', handleMouseMove);
+              document.addEventListener('mouseup', handleMouseUp);
             }}
             onClick={(e) => e.stopPropagation()}
           />
