@@ -457,7 +457,55 @@ app.post('/api/broadcasts/union-news-14/images/:id/move-right', authMiddleware, 
 });
 
 
+// Get comments for a broadcast image
+router.get('/broadcasts/images/:imageId/comments', async (req, res) => {
+  try {
+    const { imageId } = req.params;
 
+    const comments = await db
+      .selectFrom('broadcast_image_comments')
+      .selectAll()
+      .where('image_id', '=', parseInt(imageId))
+      .orderBy('created_at', 'asc')
+      .execute();
+
+    console.log(`[BROADCASTS] Fetched ${comments.length} comments for image ${imageId}`);
+    res.json(comments);
+  } catch (error) {
+    console.error('[BROADCASTS] Error fetching comments:', error);
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
+// Add comment to broadcast image
+router.post('/broadcasts/images/:imageId/comments', async (req, res) => {
+  try {
+    const { imageId } = req.params;
+    const { comment_text, username } = req.body;
+
+    if (!comment_text || !comment_text.trim()) {
+      return res.status(400).json({ error: 'Comment cannot be empty' });
+    }
+
+    const comment = await db
+      .insertInto('broadcast_image_comments')
+      .values({
+        image_id: parseInt(imageId),
+        user_id: (req as any).user?.id || null,
+        username: username || 'Anonymous User',
+        comment_text: comment_text.trim(),
+        created_at: new Date().toISOString()
+      })
+      .returningAll()
+      .executeTakeFirst();
+
+    console.log(`[BROADCASTS] Comment added for image ${imageId}`);
+    res.json(comment);
+  } catch (error) {
+    console.error('[BROADCASTS] Error adding comment:', error);
+    res.status(500).json({ error: 'Failed to add comment' });
+  }
+});
 
 
 // Initialize Socket.IO chat functionality
