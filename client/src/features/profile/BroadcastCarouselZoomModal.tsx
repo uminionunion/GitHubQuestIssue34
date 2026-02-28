@@ -222,7 +222,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
       objectFit: 'contain',
       transformOrigin: 'center center',
       minWidth: zoomLevel > 1 ? 'max(100%, 1000px)' : '100%',  // ✅ FIXED: Force larger container ***Update:> I dont like this at 900%. 100% seems okayyyy -3:23pm on 2/28/26
-      minHeight: zoomLevel > 1 ? 'max(100%, 700px)' : '900%'  // ✅ FIXED: Force larger container
+      minHeight: zoomLevel > 1 ? 'max(100%, 700px)' : '25%'  // ✅ FIXED: Force larger container ***Update:> 900% makes us be able to scrolllllll down.
     }}
     onClick={(e) => e.stopPropagation()}
   />
