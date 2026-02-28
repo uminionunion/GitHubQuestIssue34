@@ -197,36 +197,36 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
 
         {/* Main Image Container - ✅ FIXED: overflow-auto for panning */}
         <div 
-          ref={imageContainerRef}
-          className="rounded bg-gray-900 overflow-auto"
-          style={{
-            width: '100%',
-            height: '50vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: zoomLevel > 1 ? 'grab' : 'default',
-            position: 'relative',
-            scrollBehavior: 'smooth'
-          }}
-        >
-          <img
-            src={imageUrl}
-            alt={title}
-            className="rounded transition-transform duration-200 select-none"
-            draggable="false"
-            style={{ 
-              transform: `scale(${zoomLevel})`,
-              width: zoomLevel === 1 ? '100%' : 'auto',
-              height: zoomLevel === 1 ? '100%' : 'auto',
-              objectFit: 'contain',
-              transformOrigin: 'center center',
-              minWidth: zoomLevel === 1 ? 'auto' : '100%',
-              minHeight: zoomLevel === 1 ? 'auto' : '100%'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+  ref={imageContainerRef}
+  className="rounded bg-gray-900 overflow-auto"
+  style={{
+    width: '100%',
+    height: '50vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: zoomLevel > 1 ? 'grab' : 'default',
+    position: 'relative',
+    scrollBehavior: 'smooth'
+  }}
+>
+  <img
+    src={imageUrl}
+    alt={title}
+    className="rounded transition-transform duration-200 select-none"
+    draggable="false"
+    style={{ 
+      transform: `scale(${zoomLevel})`,
+      width: '100%',  // ✅ FIXED: Always 100%
+      height: 'auto',  // ✅ FIXED: Let it size naturally
+      objectFit: 'contain',
+      transformOrigin: 'center center',
+      minWidth: zoomLevel > 1 ? 'max(100%, 1000px)' : '100%',  // ✅ FIXED: Force larger container
+      minHeight: zoomLevel > 1 ? 'max(100%, 700px)' : '100%'  // ✅ FIXED: Force larger container
+    }}
+    onClick={(e) => e.stopPropagation()}
+  />
+</div>
 
         {/* Image Title & Counter */}
         <div className="text-center w-full">
