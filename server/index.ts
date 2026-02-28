@@ -465,7 +465,7 @@ app.get('/api/broadcasts/images/:imageId/comments', async (req: Request, res: Re
     const comments = await db
       .selectFrom('broadcast_image_comments')
       .selectAll()
-      .where('broadcast_image_id', '=', parseInt(imageId))
+      .where('image_id', '=', parseInt(imageId))
       .orderBy('created_at', 'asc')
       .execute();
 
@@ -492,13 +492,13 @@ app.post('/api/broadcasts/images/:imageId/comments', async (req: Request, res: R
   .insertInto('broadcast_image_comments')
   .values({
     image_id: parseInt(imageId),
-        user_id: (req as any).user?.userId || null,
-        username: username || 'Anonymous User',
-        comment_text: comment_text.trim(),
-        created_at: new Date().toISOString()
-      })
-      .returningAll()
-      .executeTakeFirst();
+    user_id: (req as any).user?.userId || null,
+    username: username || 'Anonymous User',
+    comment_text: comment_text.trim(),
+    created_at: new Date().toISOString()
+  })
+  .returningAll()
+  .executeTakeFirst();
 
     console.log(`[BROADCASTS] Comment added for image ${imageId}`);
     res.status(200).json(comment);
