@@ -217,6 +217,8 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
       width: 'auto',  
       height: 'auto',  
       objectFit: 'unset',
+      maxWidth: 'none', 
+      maxHeight: 'none',
       transformOrigin: 'center center',
       display: 'block'
     }}
