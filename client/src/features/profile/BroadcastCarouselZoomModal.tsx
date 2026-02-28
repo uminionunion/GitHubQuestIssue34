@@ -200,7 +200,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
   ref={imageContainerRef}
   className="rounded bg-gray-900 overflow-auto"
   style={{
-    width: '25%',
+    width: '100%', // i like it at a 100%, because when the broadcast carousel image launches? it takes up the whole space properly. -3:06pm on 2/28/26
     height: '50vh',
     display: 'flex',
     alignItems: 'center',
