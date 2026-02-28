@@ -163,17 +163,24 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
           <X className="h-6 w-6" />
         </Button>
 
-        {/* Main Image with Zoom */}
-        <div className="overflow-hidden rounded max-h-[50vh] flex items-center justify-center bg-gray-900 w-full">
+        {/* Main Image with Zoom - Now Pannable */}
+        <div 
+          className="rounded max-h-[50vh] w-full bg-gray-900 overflow-auto flex items-center justify-center"
+          style={{
+            cursor: zoomLevel > 1 ? 'grab' : 'default',
+            overflow: zoomLevel > 1 ? 'auto' : 'hidden'
+          }}
+        >
           <img
             src={imageUrl}
             alt={title}
             className="rounded transition-transform duration-200"
             style={{ 
               transform: `scale(${zoomLevel})`,
-              maxHeight: '50vh',
-              maxWidth: '100%',
-              objectFit: 'contain'
+              minHeight: '50vh',
+              minWidth: '100%',
+              objectFit: 'contain',
+              transformOrigin: 'center center'
             }}
             onClick={(e) => e.stopPropagation()}
           />
