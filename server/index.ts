@@ -500,7 +500,8 @@ app.post('/api/broadcasts/images/:imageId/comments', async (req: Request, res: R
         image_id: parseInt(imageId),
         user_id: (req as any).user?.userId || null,
         username: username || 'Anonymous User',
-        comment_text: comment_text.trim()
+        comment_text: comment_text.trim(),
+        created_at: new Date().toISOString()
       })
       .returningAll()
       .executeTakeFirst();
