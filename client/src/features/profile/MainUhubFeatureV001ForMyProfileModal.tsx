@@ -18,6 +18,7 @@ import MainUhubFeatureV001ForUserProfileModal from './MainUhubFeatureV001ForUser
 import UserStoresQuadrantView from './UserStoresQuadrantView';
 import { io, Socket } from 'socket.io-client';
 import UnionNews14FrontPageAdminModal from './UnionNews14FrontPageAdminModal';
+import BroadcastCarouselZoomModal from './BroadcastCarouselZoomModal';
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -1414,6 +1415,23 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 const [isUnionNews14ModalOpen, setIsUnionNews14ModalOpen] = useState(false);
 const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([]);
 
+
+  const [broadcastZoomState, setBroadcastZoomState] = useState<{
+  isOpen: boolean;
+  imageUrl: string;
+  title: string;
+  items: BroadcastItem[];
+  currentIndex: number;
+}>({
+  isOpen: false,
+  imageUrl: '',
+  title: '',
+  items: [],
+  currentIndex: 0,
+});
+
+  
+
 // Fetch UnionNews14 images from database when modal opens
 useEffect(() => {
   if (isOpen && broadcastView === 'UnionNews#14') {
@@ -1451,6 +1469,11 @@ useEffect(() => {
     fetchUnionNews14Images();
   }
 }, [isOpen, broadcastView]);
+
+
+
+
+  
 
 
   // Load unread chatroom status for logged-in users OR load rooms with messages for all users
@@ -2252,10 +2275,16 @@ default:
   broadcastView={broadcastView}
   unionNews14Images={unionNews14Images}
   onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
-  onImageZoom={(imageUrl: string, title: string) => {
-    console.log('[PROFILE MODAL] Broadcast carousel image zoom:', title);
-    onBadgeZoom?.({ url: imageUrl, name: title });
-  }}
+  onImageZoom={(imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
+                    console.log('[PROFILE MODAL] Broadcast carousel image zoom:', title, 'Index:', currentIndex);
+                    setBroadcastZoomState({
+                      isOpen: true,
+                      imageUrl,
+                      title,
+                      items,
+                      currentIndex,
+                    });
+                  }}
 /> : <p>Broadcast not found.</p>)}
         </>
     );
@@ -2822,6 +2851,19 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
     }}
   />
 )}
+
+
+ {/* Broadcast Carousel Zoom Modal - ONLY for carousel images */}
+      {broadcastZoomState.isOpen && (
+        <BroadcastCarouselZoomModal
+          imageUrl={broadcastZoomState.imageUrl}
+          title={broadcastZoomState.title}
+          items={broadcastZoomState.items}
+          currentIndex={broadcastZoomState.currentIndex}
+          onClose={() => setBroadcastZoomState(prev => ({ ...prev, isOpen: false }))}
+        />
+      )}
+
 
       
       
