@@ -211,7 +211,12 @@ export interface BroadcastImageComments {
 
 
 
-
+export interface AnonymousCounter {
+  id: Generated<number>;
+  room: string;
+  count: Generated<number>;
+  last_reset_at: Generated<string | null>;
+}
 
 
 
