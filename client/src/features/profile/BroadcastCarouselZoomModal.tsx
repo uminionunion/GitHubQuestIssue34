@@ -204,7 +204,8 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
     height: '50vh',
     cursor: zoomLevel > 1 ? 'grab' : 'default',
     position: 'relative',
-    scrollBehavior: 'smooth'
+    scrollBehavior: 'smooth',
+    flexShrink: 0
   }}
 >
   <img
