@@ -200,7 +200,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
   ref={imageContainerRef}
   className="rounded bg-gray-900 overflow-auto"
   style={{
-    width: '100%',
+    width: '25%',
     height: '50vh',
     display: 'flex',
     alignItems: 'center',
