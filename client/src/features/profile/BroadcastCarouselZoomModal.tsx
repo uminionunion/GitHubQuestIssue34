@@ -217,12 +217,12 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
     draggable="false"
     style={{ 
       transform: `scale(${zoomLevel})`,
-      width: '50%',  // ✅ FIXED: Always 100%
+      width: '100%',  // ✅ FIXED: Always 100%
       height: 'auto',  // ✅ FIXED: Let it size naturally
       objectFit: 'contain',
       transformOrigin: 'center center',
-      minWidth: zoomLevel > 1 ? 'max(100%, 1000px)' : '50%',  // ✅ FIXED: Force larger container
-      minHeight: zoomLevel > 1 ? 'max(100%, 700px)' : '50%'  // ✅ FIXED: Force larger container
+      minWidth: zoomLevel > 1 ? 'max(100%, 1000px)' : '100%',  // ✅ FIXED: Force larger container
+      minHeight: zoomLevel > 1 ? 'max(100%, 700px)' : '100%'  // ✅ FIXED: Force larger container
     }}
     onClick={(e) => e.stopPropagation()}
   />
