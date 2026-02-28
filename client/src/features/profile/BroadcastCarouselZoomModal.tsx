@@ -96,30 +96,23 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
     setZoomLevel(prev => Math.max(prev - 0.2, 1));
   };
 
-  // ✅ NEW: Pan controls
-  const handlePanLeft = () => {
-    if (imageContainerRef.current) {
-      imageContainerRef.current.scrollLeft -= 50;
-    }
-  };
 
-  const handlePanRight = () => {
-    if (imageContainerRef.current) {
-      imageContainerRef.current.scrollLeft += 50;
-    }
-  };
 
-  const handlePanUp = () => {
-    if (imageContainerRef.current) {
-      imageContainerRef.current.scrollTop -= 50;
-    }
-  };
+  
+  
+const [panX, setPanX] = useState(0);
+const [panY, setPanY] = useState(0);
 
-  const handlePanDown = () => {
-    if (imageContainerRef.current) {
-      imageContainerRef.current.scrollTop += 50;
-    }
-  };
+const handlePanLeft = () => setPanX(x => x + 50);
+const handlePanRight = () => setPanX(x => x - 50);
+const handlePanUp = () => setPanY(y => y + 50);
+const handlePanDown = () => setPanY(y => y - 50);
+
+
+
+
+
+  
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,6 +167,16 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
     }
   };
 
+
+
+
+
+
+
+
+
+
+  
   return (
     <div
       className="fixed inset-0 z-[999999] !z-[999999] flex items-center justify-center bg-black/70 pointer-events-auto"
@@ -195,37 +198,40 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
           <X className="h-6 w-6" />
         </Button>
 
-        {/* Main Image Container - ✅ FIXED: overflow-auto for panning */}
-        <div 
+        {/* Main Image Container — REPLACED FOR TRUE ZOOM + INFINITE PAN */}
+<div
   ref={imageContainerRef}
-  className="rounded bg-gray-900 overflow-auto"
+  className="rounded bg-gray-900"
   style={{
-    width: '100%', // i like it at a 100%, because when the broadcast carousel image launches? it takes up the whole space properly. -3:06pm on 2/28/26
+    width: '100%',
     height: '50vh',
-    cursor: zoomLevel > 1 ? 'grab' : 'default',
     position: 'relative',
-    scrollBehavior: 'smooth',
-    flexShrink: 0
+    overflow: 'hidden',
+    flexShrink: 0,
+    cursor: zoomLevel > 1 ? 'grab' : 'default'
   }}
 >
   <img
     src={imageUrl}
     alt={title}
-    className="rounded transition-transform duration-200 select-none"
+    className="rounded select-none"
     draggable="false"
-    style={{ 
-      transform: `scale(${zoomLevel})`,
-      width: 'auto',  
-      height: 'auto',  
-      objectFit: 'unset',
-      maxWidth: 'none', 
-      maxHeight: 'none',
+    style={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: `translate(${panX}px, ${panY}px) scale(${zoomLevel}) translate(-50%, -50%)`,
       transformOrigin: 'center center',
-      display: 'block'
+      width: 'auto',
+      height: 'auto',
+      maxWidth: 'none',
+      maxHeight: 'none',
+      objectFit: 'unset',
+      pointerEvents: 'none'
     }}
-    onClick={(e) => e.stopPropagation()}
   />
 </div>
+
 
         {/* Image Title & Counter */}
         <div className="text-center w-full">
