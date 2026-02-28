@@ -278,7 +278,6 @@ app.get('/api/broadcasts/union-news-14/images', async (req: Request, res: Respon
       .selectFrom('MainHubUpgradeV001ForBroadcasts')
       .select(['id', 'name', 'image_url', 'click_url', 'description', 'created_at', 'display_order'])
       .orderBy('display_order', 'desc')  // Changed: order by display_order DESC (newest first)
-      .limit(100)
       .execute();
 
     console.log(`[BROADCASTS] Fetched ${images.length} UnionNews14 images from database`);
