@@ -214,7 +214,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
     draggable="false"
     style={{ 
       transform: `scale(${zoomLevel})`,
-      width: 'auto%',  
+      width: 'auto',  
       height: 'auto',  
       objectFit: 'unset',
       transformOrigin: 'center center',
