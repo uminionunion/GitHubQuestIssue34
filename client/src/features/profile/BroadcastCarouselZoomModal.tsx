@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Send } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Send, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 
 interface BroadcastItem {
@@ -41,6 +41,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentsScrollRef, setCommentsScrollRef] = React.useState<HTMLDivElement | null>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const currentItem = items[currentIndex];
   const imageUrl = currentItem?.imageUrl || initialImageUrl;
@@ -68,7 +69,6 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
     };
 
     fetchComments();
-    // Reset zoom level when changing images
     setZoomLevel(1);
     setCommentText('');
   }, [currentImageId]);
@@ -96,6 +96,31 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
     setZoomLevel(prev => Math.max(prev - 0.2, 1));
   };
 
+  // ✅ NEW: Pan controls
+  const handlePanLeft = () => {
+    if (imageContainerRef.current) {
+      imageContainerRef.current.scrollLeft -= 50;
+    }
+  };
+
+  const handlePanRight = () => {
+    if (imageContainerRef.current) {
+      imageContainerRef.current.scrollLeft += 50;
+    }
+  };
+
+  const handlePanUp = () => {
+    if (imageContainerRef.current) {
+      imageContainerRef.current.scrollTop -= 50;
+    }
+  };
+
+  const handlePanDown = () => {
+    if (imageContainerRef.current) {
+      imageContainerRef.current.scrollTop += 50;
+    }
+  };
+
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -103,6 +128,12 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
 
     setIsSubmittingComment(true);
     try {
+      console.log('[ZOOM MODAL] Submitting comment:', {
+        imageId: currentImageId,
+        comment_text: commentText.trim(),
+        username: currentUser?.username || 'Anonymous User'
+      });
+
       const response = await fetch(`/api/broadcasts/images/${currentImageId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -114,11 +145,12 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
 
       if (response.ok) {
         const newComment = await response.json();
+        console.log('[ZOOM MODAL] ✅ Comment added successfully:', newComment);
         setComments(prev => [...prev, newComment]);
         setCommentText('');
-        console.log('[ZOOM MODAL] Comment added successfully');
       } else {
         const error = await response.json();
+        console.error('[ZOOM MODAL] Server error response:', error);
         alert(`Failed to add comment: ${error.error}`);
       }
     } catch (error) {
@@ -163,31 +195,22 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
           <X className="h-6 w-6" />
         </Button>
 
-        {/* Main Image with Zoom - Now Pannable */}
+        {/* Main Image Container - ✅ FIXED: overflow-auto for panning */}
         <div 
-          className="rounded bg-gray-900"
+          ref={imageContainerRef}
+          className="rounded bg-gray-900 overflow-auto"
           style={{
             width: '100%',
             height: '50vh',
-            overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: zoomLevel > 1 ? 'grab' : 'default',
-            position: 'relative'
-          }}
-          onWheel={(e) => {
-            if (e.deltaY > 0) handleZoomOut();
-            else handleZoomIn();
-            e.preventDefault();
+            position: 'relative',
+            scrollBehavior: 'smooth'
           }}
         >
           <img
-            ref={(el) => {
-              if (el && zoomLevel > 1) {
-                el.style.cursor = 'grabbing';
-              }
-            }}
             src={imageUrl}
             alt={title}
             className="rounded transition-transform duration-200 select-none"
@@ -198,32 +221,8 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
               height: zoomLevel === 1 ? '100%' : 'auto',
               objectFit: 'contain',
               transformOrigin: 'center center',
-              maxWidth: 'none'
-            }}
-            onMouseDown={(e) => {
-              if (zoomLevel <= 1) return;
-              
-              const img = e.currentTarget;
-              const rect = img.parentElement!.getBoundingClientRect();
-              const startX = e.clientX;
-              const startY = e.clientY;
-              const scrollLeft = img.parentElement!.scrollLeft;
-              const scrollTop = img.parentElement!.scrollTop;
-              
-              const handleMouseMove = (moveEvent: MouseEvent) => {
-                const deltaX = startX - moveEvent.clientX;
-                const deltaY = startY - moveEvent.clientY;
-                img.parentElement!.scrollLeft = scrollLeft + deltaX;
-                img.parentElement!.scrollTop = scrollTop + deltaY;
-              };
-              
-              const handleMouseUp = () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-              };
-              
-              document.addEventListener('mousemove', handleMouseMove);
-              document.addEventListener('mouseup', handleMouseUp);
+              minWidth: zoomLevel === 1 ? 'auto' : '100%',
+              minHeight: zoomLevel === 1 ? 'auto' : '100%'
             }}
             onClick={(e) => e.stopPropagation()}
           />
@@ -237,69 +236,115 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
           </p>
         </div>
 
-        {/* Navigation Arrows & Zoom Controls */}
-        {items.length > 1 && (
-          <div className="flex gap-4 justify-center w-full flex-wrap">
-            {/* Left Arrow */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handlePrevious}
-              className="h-10 w-10 bg-black/50 hover:bg-black/80 text-white border-gray-600"
-              title="Previous image (← Arrow)"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
+        {/* Control Sections */}
+        <div className="flex gap-6 justify-center w-full flex-wrap">
+          {/* PAGE SECTION - Image navigation and zoom */}
+          <div className="flex flex-col gap-2 items-center">
+            <p className="text-gray-400 text-xs font-semibold mb-1">Page</p>
+            <div className="flex gap-2">
+              {items.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePrevious}
+                  className="h-10 w-10 bg-black/50 hover:bg-black/80 text-white border-gray-600"
+                  title="Previous image"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+              )}
+              
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 1}
+                className="h-10 w-10 bg-black/50 hover:bg-black/80 disabled:bg-gray-600 text-white border-gray-600"
+                title="Zoom out"
+              >
+                <ZoomOut className="h-6 w-6" />
+              </Button>
 
-            {/* Zoom Out Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleZoomOut}
-              disabled={zoomLevel <= 1}
-              className="h-10 w-10 bg-black/50 hover:bg-black/80 disabled:bg-gray-600 text-white border-gray-600"
-              title="Zoom out (↓)"
-              aria-label="Zoom out"
-            >
-              <ZoomOut className="h-6 w-6" />
-            </Button>
+              <div className="h-10 px-3 bg-black/50 text-white border border-gray-600 rounded flex items-center justify-center text-xs font-semibold">
+                {(zoomLevel * 100).toFixed(0)}%
+              </div>
 
-            {/* Zoom Level Display */}
-            <div className="h-10 px-3 bg-black/50 text-white border border-gray-600 rounded flex items-center justify-center text-xs font-semibold">
-              {(zoomLevel * 100).toFixed(0)}%
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 3}
+                className="h-10 w-10 bg-black/50 hover:bg-black/80 disabled:bg-gray-600 text-white border-gray-600"
+                title="Zoom in"
+              >
+                <ZoomIn className="h-6 w-6" />
+              </Button>
+
+              {items.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNext}
+                  className="h-10 w-10 bg-black/50 hover:bg-black/80 text-white border-gray-600"
+                  title="Next image"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+              )}
             </div>
-
-            {/* Zoom In Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleZoomIn}
-              disabled={zoomLevel >= 3}
-              className="h-10 w-10 bg-black/50 hover:bg-black/80 disabled:bg-gray-600 text-white border-gray-600"
-              title="Zoom in (↑)"
-              aria-label="Zoom in"
-            >
-              <ZoomIn className="h-6 w-6" />
-            </Button>
-
-            {/* Right Arrow */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleNext}
-              className="h-10 w-10 bg-black/50 hover:bg-black/80 text-white border-gray-600"
-              title="Next image (→ Arrow)"
-              aria-label="Next image"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
           </div>
-        )}
+
+          {/* PAN SECTION - Explicit pan controls when zoomed */}
+          {zoomLevel > 1 && (
+            <div className="flex flex-col gap-2 items-center">
+              <p className="text-gray-400 text-xs font-semibold mb-1">Pan</p>
+              <div className="flex flex-col gap-1 items-center">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePanUp}
+                  className="h-10 w-10 bg-purple-600 hover:bg-purple-700 text-white border-purple-500"
+                  title="Pan up"
+                >
+                  <ArrowUp className="h-6 w-6" />
+                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePanLeft}
+                    className="h-10 w-10 bg-purple-600 hover:bg-purple-700 text-white border-purple-500"
+                    title="Pan left"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePanDown}
+                    className="h-10 w-10 bg-purple-600 hover:bg-purple-700 text-white border-purple-500"
+                    title="Pan down"
+                  >
+                    <ArrowDown className="h-6 w-6" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePanRight}
+                    className="h-10 w-10 bg-purple-600 hover:bg-purple-700 text-white border-purple-500"
+                    title="Pan right"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Keyboard Hints */}
         <p className="text-gray-500 text-xs text-center">
-          Use ← → to navigate • ↑ ↓ to zoom • ESC to close
+          Use ← → to navigate • ↑ ↓ to zoom • ESC to close {zoomLevel > 1 && '• Click pan buttons to move around zoomed image'}
         </p>
 
         {/* Comments Section */}
