@@ -15,7 +15,7 @@ interface BroadcastCarouselProps {
   isAdmin?: boolean;
   onReorderLeft?: (itemId: number) => Promise<void>;
   onReorderRight?: (itemId: number) => Promise<void>;
-  onImageZoom?: (imageUrl: string, title: string) => void;
+  onImageZoom?: (imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => void;
 }
 
 export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ 
@@ -73,7 +73,7 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
     }
   };
 
-  // NEW: Handle image click for zoom
+  // NEW: Handle image click for zoom (UPGRADED: pass all items and index)
   const handleImageClick = (e: React.MouseEvent, item: BroadcastItem) => {
     // If image has a clickUrl, allow navigation
     if (item.clickUrl) {
@@ -85,8 +85,9 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
     e.stopPropagation();
     
     if (onImageZoom) {
-      console.log('[CAROUSEL] Image clicked for zoom:', item.title);
-      onImageZoom(item.imageUrl, item.title);
+      const currentIndex = items.findIndex(i => i.id === item.id);
+      console.log('[CAROUSEL] Image clicked for zoom:', item.title, 'Index:', currentIndex);
+      onImageZoom(item.imageUrl, item.title, items, currentIndex);
     }
   };
 
