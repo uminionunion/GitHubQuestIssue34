@@ -494,14 +494,14 @@ app.post('/api/broadcasts/images/:imageId/comments', async (req: Request, res: R
       user_id: (req as any).user?.userId || null
     });
 
+    // ✅ FIXED: Do NOT include created_at - let database generate it
     const comment = await db
       .insertInto('broadcast_image_comments')
       .values({
         image_id: parseInt(imageId),
         user_id: (req as any).user?.userId || null,
         username: username || 'Anonymous User',
-        comment_text: comment_text.trim(),
-        created_at: new Date().toISOString()
+        comment_text: comment_text.trim()
       })
       .returningAll()
       .executeTakeFirst();
