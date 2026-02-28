@@ -2861,6 +2861,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
           items={broadcastZoomState.items}
           currentIndex={broadcastZoomState.currentIndex}
           onClose={() => setBroadcastZoomState(prev => ({ ...prev, isOpen: false }))}
+          currentUser={user}
         />
       )}
 
