@@ -202,9 +202,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
   style={{
     width: '100%', // i like it at a 100%, because when the broadcast carousel image launches? it takes up the whole space properly. -3:06pm on 2/28/26
     height: '50vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: 'block',
     cursor: zoomLevel > 1 ? 'grab' : 'default',
     position: 'relative',
     scrollBehavior: 'smooth'
@@ -219,10 +217,9 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
       transform: `scale(${zoomLevel})`,
       width: '100%',  // ✅ FIXED: Always '100%',
       height: 'auto',  // ✅ FIXED: Let it size naturally
-      objectFit: 'contain',
+      objectFit: 'unset',
       transformOrigin: 'center center',
-      minWidth: zoomLevel > 1 ? 'max(100%, 1000px)' : '100%',  // ✅ FIXED: Force larger container ***Update:> I dont like this at 900%. 100% seems okayyyy -3:23pm on 2/28/26
-      minHeight: zoomLevel > 1 ? 'max(100%, 700px)' : '25%'  // ✅ FIXED: Force larger container ***Update:> 900% makes us be able to scrolllllll down.
+      display: 'block'
     }}
     onClick={(e) => e.stopPropagation()}
   />
