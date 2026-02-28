@@ -489,9 +489,9 @@ app.post('/api/broadcasts/images/:imageId/comments', async (req: Request, res: R
     }
 
     const comment = await db
-      .insertInto('broadcast_image_comments')
-      .values({
-        broadcast_image_id: parseInt(imageId),
+  .insertInto('broadcast_image_comments')
+  .values({
+    image_id: parseInt(imageId),
         user_id: (req as any).user?.userId || null,
         username: username || 'Anonymous User',
         comment_text: comment_text.trim(),
