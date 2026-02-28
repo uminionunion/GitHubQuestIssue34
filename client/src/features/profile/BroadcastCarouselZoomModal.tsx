@@ -182,7 +182,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
       role="dialog"
       aria-label="Zoomed broadcast image viewer"
     >
-      <div className="relative bg-black rounded-lg p-6 max-w-4xl max-h-[90vh] overflow-y-auto z-[9999999] !z-[9999999] flex flex-col items-center gap-4 w-[95%]">
+      <div className="relative bg-black rounded-lg p-6 max-w-4xl max-h-[90vh] overflow-y-auto z-[9999999] !z-[9999999] flex flex-col gap-4 w-[95%]">
         {/* Close Button - Top Right */}
         <Button
           variant="ghost"
