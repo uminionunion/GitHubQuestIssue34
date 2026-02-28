@@ -198,8 +198,28 @@ export interface ChatroomUnreadStatus {
   has_unread: Generated<Boolean>;
 }
 
+
+
+export interface BroadcastImageComments {
+  id: Generated<number>;
+  image_id: number;
+  user_id: number | null;
+  username: string;
+  comment_text: string;
+  created_at: Generated<string | null>;
+}
+
+
+
+
+
+
+
+
 // ✅ Now the DB interface can reference ChatroomUnreadStatus
 export interface DB {
+  anonymous_counter: AnonymousCounter;
+  broadcast_image_comments: BroadcastImageComments;
   blocked_users: BlockedUsers;
   friends: Friends;
   MainHubUpgradeV001ForBroadcasts: MainHubUpgradeV001ForBroadcasts;
