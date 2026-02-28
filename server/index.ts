@@ -488,26 +488,30 @@ app.post('/api/broadcasts/images/:imageId/comments', async (req: Request, res: R
       return;
     }
 
-    const comment = await db
-  .insertInto('broadcast_image_comments')
-  .values({
-    image_id: parseInt(imageId),
-    user_id: (req as any).user?.userId || null,
-    username: username || 'Anonymous User',
-    comment_text: comment_text.trim(),
-    created_at: new Date().toISOString()
-  })
-  .returningAll()
-  .executeTakeFirst();
+    console.log(`[BROADCASTS] Creating comment for image ${imageId}:`, {
+      comment_text: comment_text.trim(),
+      username: username || 'Anonymous User',
+      user_id: (req as any).user?.userId || null
+    });
 
-    console.log(`[BROADCASTS] Comment added for image ${imageId}`);
+    const comment = await db
+      .insertInto('broadcast_image_comments')
+      .values({
+        image_id: parseInt(imageId),
+        user_id: (req as any).user?.userId || null,
+        username: username || 'Anonymous User',
+        comment_text: comment_text.trim()
+      })
+      .returningAll()
+      .executeTakeFirst();
+
+    console.log(`[BROADCASTS] ✅ Comment added for image ${imageId}:`, comment);
     res.status(200).json(comment);
   } catch (error) {
-    console.error('[BROADCASTS] Error adding comment:', error);
+    console.error('[BROADCASTS] ❌ Error adding comment:', error);
     res.status(500).json({ error: 'Failed to add comment' });
   }
 });
-
 
 // Initialize Socket.IO chat functionality
 setupChat(io);
