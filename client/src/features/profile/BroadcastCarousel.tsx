@@ -15,13 +15,15 @@ interface BroadcastCarouselProps {
   isAdmin?: boolean;
   onReorderLeft?: (itemId: number) => Promise<void>;
   onReorderRight?: (itemId: number) => Promise<void>;
+  onImageZoom?: (imageUrl: string, title: string) => void;
 }
 
 export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({ 
   items = [], 
   isAdmin = false,
   onReorderLeft,
-  onReorderRight
+  onReorderRight,
+  onImageZoom
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [isReordering, setIsReordering] = useState(false);
@@ -71,6 +73,23 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
     }
   };
 
+  // NEW: Handle image click for zoom
+  const handleImageClick = (e: React.MouseEvent, item: BroadcastItem) => {
+    // If image has a clickUrl, allow navigation
+    if (item.clickUrl) {
+      return; // Let the link handle it
+    }
+    
+    // Otherwise, show zoom overlay
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onImageZoom) {
+      console.log('[CAROUSEL] Image clicked for zoom:', item.title);
+      onImageZoom(item.imageUrl, item.title);
+    }
+  };
+
   const currentItems = getCurrentItems();
 
   // If no items, show empty state
@@ -99,22 +118,18 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
       {/* Images with Admin Controls */}
       <div className="flex gap-4 flex-1 justify-center">
         {currentItems.map((item, index) => (
-          <a
+          <div
             key={item.id}
-            href={item.clickUrl || '#'}
-            target={item.clickUrl ? '_blank' : undefined}
-            rel={item.clickUrl ? 'noopener noreferrer' : undefined}
-            onClick={(e) => {
-              if (!item.clickUrl) e.preventDefault();
-            }}
             className="cursor-pointer hover:opacity-80 transition-opacity relative group"
             title={item.title}
           >
+            {/* NEW: Wrapper div instead of <a> tag for better control */}
             <div className="h-32 w-32 rounded-md overflow-hidden bg-background border relative">
               <img
                 src={item.imageUrl}
                 alt={item.title}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover cursor-pointer"
+                onClick={(e) => handleImageClick(e, item)}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://via.placeholder.com/128?text=Image';
                 }}
@@ -153,7 +168,18 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
                 </div>
               )}
             </div>
-          </a>
+
+            {/* NEW: External link handler if URL exists */}
+            {item.clickUrl && (
+              <a
+                href={item.clickUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 rounded-md"
+                title="Open external link"
+              />
+            )}
+          </div>
         ))}
       </div>
 
