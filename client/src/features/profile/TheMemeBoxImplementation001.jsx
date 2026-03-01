@@ -1705,8 +1705,3 @@ export default function TheMemeBoxImplementation001() {
         </div>
     );
 }
-
-
-export default function App() {
-    return <TheMemeBoxImplementation001 />;
-}
