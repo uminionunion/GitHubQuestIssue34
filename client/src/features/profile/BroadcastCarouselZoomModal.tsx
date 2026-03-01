@@ -347,10 +347,22 @@ const handlePanDown = () => setPanY(y => y - 50);
           )}
         </div>
 
-        {/* Keyboard Hints */}
+        {/* UnionNews#14's Patreon Section that appears between the comments and th uHeadlines */}
         <p className="text-gray-500 text-xs text-center">
-          Use ← → to navigate • ↑ ↓ to zoom • ESC to close {zoomLevel > 1 && '• Click pan buttons to move around zoomed image'}
-        </p>
+  These uHeadlines are provided by unionNews#14. They're free — but you can find our Patreon 
+  <a 
+    href="https://patreon.com/uminion" 
+    target="_blank" 
+    rel="noopener noreferrer" 
+    className="text-blue-400 underline hover:text-blue-300"
+  >
+    here
+  </a>
+  ! Supporting our Patreon will help our union grow its own News Network, hiring our own people at a $36.26/hr+ rate. 
+  Join the uminion union! It's free! Sign up today and enjoy our free uHeadlines. 
+  See something you want to comment on and share your thoughts? Feel free to do so below on any you see above!
+</p>
+
 
         {/* Comments Section */}
         <div className="w-full border-t border-gray-700 pt-4 flex flex-col gap-3 max-h-[25vh]">
