@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from './db.js';
+import { sql } from 'kysely';
 import { requireAuth } from './auth-middleware.js';
 
 const router = Router();
@@ -83,7 +84,7 @@ router.get('/api/memes/posts/:id', async (req: Request, res: Response) => {
 router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response) => {
   try {
     const { title, description, images } = req.body;
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
 
     if (!title || !images || images.length === 0) {
       return res.status(400).json({ error: 'Title and images required' });
@@ -131,7 +132,7 @@ router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response)
 router.delete('/api/memes/posts/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
 
     console.log('[MEME API] Deleting post', id);
 
@@ -157,7 +158,7 @@ router.delete('/api/memes/posts/:id', requireAuth, async (req: Request, res: Res
 router.post('/api/memes/posts/:id/upvote', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
     const postId = parseInt(id);
 
     console.log('[MEME API] User', userId, 'upvoting post', postId);
@@ -165,6 +166,8 @@ router.post('/api/memes/posts/:id/upvote', requireAuth, async (req: Request, res
     // Check if user already voted
     const existingVote = await db
       .selectFrom('MemeImplementation001PostVotes')
+      .select(['id', 'vote_type'])
+      .selectAll()
       .where('post_id', '=', postId)
       .where('user_id', '=', userId)
       .executeTakeFirst();
@@ -180,7 +183,7 @@ router.post('/api/memes/posts/:id/upvote', requireAuth, async (req: Request, res
 
         await db
           .updateTable('MemeImplementation001Posts')
-          .set({ upvotes: db.raw('upvotes - 1') })
+          .set({ upvotes: sql<number>`upvotes - 1` })
           .where('id', '=', postId)
           .execute();
       } else {
@@ -195,8 +198,8 @@ router.post('/api/memes/posts/:id/upvote', requireAuth, async (req: Request, res
         await db
           .updateTable('MemeImplementation001Posts')
           .set({
-            upvotes: db.raw('upvotes + 1'),
-            downvotes: db.raw('downvotes - 1'),
+            upvotes: sql<number>`upvotes + 1`,
+            downvotes: sql<number>`downvotes - 1`,
           })
           .where('id', '=', postId)
           .execute();
@@ -210,7 +213,7 @@ router.post('/api/memes/posts/:id/upvote', requireAuth, async (req: Request, res
 
       await db
         .updateTable('MemeImplementation001Posts')
-        .set({ upvotes: db.raw('upvotes + 1') })
+        .set({ upvotes: sql<number>`upvotes + 1` })
         .where('id', '=', postId)
         .execute();
     }
@@ -227,7 +230,7 @@ router.post('/api/memes/posts/:id/upvote', requireAuth, async (req: Request, res
 router.post('/api/memes/posts/:id/downvote', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
     const postId = parseInt(id);
 
     console.log('[MEME API] User', userId, 'downvoting post', postId);
@@ -235,6 +238,8 @@ router.post('/api/memes/posts/:id/downvote', requireAuth, async (req: Request, r
     // Check if user already voted
     const existingVote = await db
       .selectFrom('MemeImplementation001PostVotes')
+      .selectAll()
+      .select(['id', 'vote_type'])
       .where('post_id', '=', postId)
       .where('user_id', '=', userId)
       .executeTakeFirst();
@@ -250,7 +255,7 @@ router.post('/api/memes/posts/:id/downvote', requireAuth, async (req: Request, r
 
         await db
           .updateTable('MemeImplementation001Posts')
-          .set({ downvotes: db.raw('downvotes - 1') })
+          .set({ downvotes: sql<number>`downvotes - 1` })
           .where('id', '=', postId)
           .execute();
       } else {
@@ -265,8 +270,8 @@ router.post('/api/memes/posts/:id/downvote', requireAuth, async (req: Request, r
         await db
           .updateTable('MemeImplementation001Posts')
           .set({
-            downvotes: db.raw('downvotes + 1'),
-            upvotes: db.raw('upvotes - 1'),
+            downvotes: sql<number>`downvotes + 1`,
+            upvotes: sql<number>`upvotes - 1`,
           })
           .where('id', '=', postId)
           .execute();
@@ -280,7 +285,7 @@ router.post('/api/memes/posts/:id/downvote', requireAuth, async (req: Request, r
 
       await db
         .updateTable('MemeImplementation001Posts')
-        .set({ downvotes: db.raw('downvotes + 1') })
+        .set({ downvotes: sql<number>`downvotes + 1` })
         .where('id', '=', postId)
         .execute();
     }
@@ -288,7 +293,7 @@ router.post('/api/memes/posts/:id/downvote', requireAuth, async (req: Request, r
     // Check if post should be auto-deleted (10+ downvotes)
     const post = await db
       .selectFrom('MemeImplementation001Posts')
-      .selectAll()
+      .select(['id', 'downvotes'])
       .where('id', '=', postId)
       .executeTakeFirst();
 
@@ -339,7 +344,7 @@ router.post('/api/memes/posts/:id/comments', requireAuth, async (req: Request, r
   try {
     const { id } = req.params;
     const { title, description, image } = req.body;
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
 
     if (!title && !description) {
       return res.status(400).json({ error: 'Title or description required' });
@@ -372,7 +377,7 @@ router.post('/api/memes/posts/:id/comments', requireAuth, async (req: Request, r
 router.delete('/api/memes/comments/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
 
     console.log('[MEME API] Deleting comment', id);
 
@@ -393,13 +398,15 @@ router.delete('/api/memes/comments/:id', requireAuth, async (req: Request, res: 
 router.post('/api/memes/comments/:id/upvote', requireAuth, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
     const commentId = parseInt(id);
 
     console.log('[MEME API] User', userId, 'upvoting comment', commentId);
 
     const existingVote = await db
       .selectFrom('MemeImplementation001CommentVotes')
+      .selectAll()
+      .select(['id', 'vote_type'])
       .where('comment_id', '=', commentId)
       .where('user_id', '=', userId)
       .executeTakeFirst();
@@ -414,7 +421,7 @@ router.post('/api/memes/comments/:id/upvote', requireAuth, async (req: Request, 
 
         await db
           .updateTable('MemeImplementation001Comments')
-          .set({ upvotes: db.raw('upvotes - 1') })
+          .set({ upvotes: sql<number>`upvotes - 1` })
           .where('id', '=', commentId)
           .execute();
       } else {
@@ -428,8 +435,8 @@ router.post('/api/memes/comments/:id/upvote', requireAuth, async (req: Request, 
         await db
           .updateTable('MemeImplementation001Comments')
           .set({
-            upvotes: db.raw('upvotes + 1'),
-            downvotes: db.raw('downvotes - 1'),
+            upvotes: sql<number>`upvotes + 1`,
+            downvotes: sql<number>`downvotes - 1`,
           })
           .where('id', '=', commentId)
           .execute();
@@ -442,7 +449,7 @@ router.post('/api/memes/comments/:id/upvote', requireAuth, async (req: Request, 
 
       await db
         .updateTable('MemeImplementation001Comments')
-        .set({ upvotes: db.raw('upvotes + 1') })
+        .set({ upvotes: sql<number>`upvotes + 1` })
         .where('id', '=', commentId)
         .execute();
     }
