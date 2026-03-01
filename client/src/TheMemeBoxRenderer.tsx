@@ -12,6 +12,7 @@ export function renderTheMemeBox(data: any) {
   const root = ReactDOM.createRoot(container);
   root.render(
     <React.StrictMode>
+      {/* Pass broadcast data to component - currently uses sample data */}
       <TheMemeBoxImplementation001 data={data} />
     </React.StrictMode>
   );
