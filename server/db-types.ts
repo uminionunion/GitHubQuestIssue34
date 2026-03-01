@@ -215,7 +215,6 @@ export interface AnonymousCounter {
 // ✅ Now the DB interface can reference ChatroomUnreadStatus
 export interface DB {
   anonymous_counter: AnonymousCounter;
-  broadcast_image_comments: BroadcastImageComments;
   blocked_users: BlockedUsers;
   friends: Friends;
   MainHubUpgradeV001ForBroadcasts: MainHubUpgradeV001ForBroadcasts;
