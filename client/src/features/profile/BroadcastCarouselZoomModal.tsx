@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Send, ArrowUp, ArrowDown } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 
 interface BroadcastItem {
@@ -10,20 +10,12 @@ interface BroadcastItem {
   description?: string;
 }
 
-interface Comment {
-  id: number;
-  username: string;
-  comment_text: string;
-  created_at: string;
-}
-
 interface BroadcastCarouselZoomModalProps {
   imageUrl: string;
   title: string;
   items: BroadcastItem[];
   currentIndex: number;
   onClose: () => void;
-  currentUser?: any;
 }
 
 const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
@@ -36,11 +28,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [commentText, setCommentText] = useState('');
-  const [isLoadingComments, setIsLoadingComments] = useState(false);
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  const [commentsScrollRef, setCommentsScrollRef] = React.useState<HTMLDivElement | null>(null);
+  
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const currentItem = items[currentIndex];
@@ -48,37 +36,7 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
   const title = currentItem?.title || initialTitle;
   const currentImageId = currentItem?.id;
 
-  // Fetch comments for current image
-  useEffect(() => {
-    if (!currentImageId) return;
-
-    const fetchComments = async () => {
-      setIsLoadingComments(true);
-      try {
-        const response = await fetch(`/api/broadcasts/images/${currentImageId}/comments`);
-        if (response.ok) {
-          const data = await response.json();
-          setComments(Array.isArray(data) ? data : []);
-          console.log('[ZOOM MODAL] Loaded', data.length, 'comments for image', currentImageId);
-        }
-      } catch (error) {
-        console.error('[ZOOM MODAL] Error loading comments:', error);
-      } finally {
-        setIsLoadingComments(false);
-      }
-    };
-
-    fetchComments();
-    setZoomLevel(1);
-    setCommentText('');
-  }, [currentImageId]);
-
-  // Auto-scroll comments to bottom when new ones added
-  useEffect(() => {
-    if (commentsScrollRef) {
-      commentsScrollRef.scrollTop = commentsScrollRef.scrollHeight;
-    }
-  }, [comments]);
+  
 
   const handlePrevious = () => {
     setCurrentIndex(prev => (prev === 0 ? items.length - 1 : prev - 1));
@@ -114,45 +72,7 @@ const handlePanDown = () => setPanY(y => y - 125);
 
   
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!commentText.trim() || !currentImageId) return;
-
-    setIsSubmittingComment(true);
-    try {
-      console.log('[ZOOM MODAL] Submitting comment:', {
-        imageId: currentImageId,
-        comment_text: commentText.trim(),
-        username: currentUser?.username || 'Anonymous User'
-      });
-
-      const response = await fetch(`/api/broadcasts/images/${currentImageId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          comment_text: commentText.trim(),
-          username: currentUser?.username || 'Anonymous User'
-        })
-      });
-
-      if (response.ok) {
-        const newComment = await response.json();
-        console.log('[ZOOM MODAL] ✅ Comment added successfully:', newComment);
-        setComments(prev => [...prev, newComment]);
-        setCommentText('');
-      } else {
-        const error = await response.json();
-        console.error('[ZOOM MODAL] Server error response:', error);
-        alert(`Failed to add comment: ${error.error}`);
-      }
-    } catch (error) {
-      console.error('[ZOOM MODAL] Error submitting comment:', error);
-      alert('Error submitting comment');
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  };
+  
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
@@ -359,62 +279,11 @@ const handlePanDown = () => setPanY(y => y - 125);
     here
   </a>
   ! Supporting our Patreon will help our union grow its own News Network, hiring our own people at a $36.26/hr+ rate. 
-  Join the uminion union! It's free! Sign up today and enjoy our free uHeadlines. 
-  See something you want to comment on and share your thoughts? Feel free to do so below on any you see above!
+  Join the uminion union! It's free! Sign up today! & enjoy our free uHeadlines eitherway!
 </p>
 
 
-        {/* Comments Section */}
-        <div className="w-full border-t border-gray-700 pt-4 flex flex-col gap-3 max-h-[25vh]">
-          <h3 className="text-white text-sm font-semibold">Comments</h3>
-
-          {/* Comments Display */}
-          <div
-            ref={setCommentsScrollRef}
-            className="flex-1 overflow-y-auto space-y-2 border border-gray-700 rounded p-3 bg-gray-900/50"
-          >
-            {isLoadingComments ? (
-              <p className="text-gray-400 text-xs">Loading comments...</p>
-            ) : comments.length > 0 ? (
-              comments.map((comment) => (
-                <div key={comment.id} className="border-b border-gray-700 pb-2 last:border-b-0">
-                  <div className="flex justify-between items-start gap-2">
-                    <p className="text-gray-300 text-xs font-semibold">{comment.username}</p>
-                    <p className="text-gray-500 text-xs">
-                      {new Date(comment.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <p className="text-gray-200 text-xs mt-1">{comment.comment_text}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400 text-xs italic">No comments yet. Be the first!</p>
-            )}
-          </div>
-
-          {/* Comment Form */}
-          {currentUser ? (
-            <form onSubmit={handleSubmitComment} className="flex gap-2 w-full">
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-gray-500"
-                disabled={isSubmittingComment}
-              />
-              <Button
-                type="submit"
-                disabled={!commentText.trim() || isSubmittingComment}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white h-10 px-3"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          ) : (
-            <p className="text-gray-400 text-xs italic">Login to add a comment</p>
-          )}
-        </div>
+        
       </div>
     </div>
   );
