@@ -9,6 +9,7 @@ import path from 'path';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import { db } from './db.js';
+import memesRouter from './memes.js';
 
 dotenv.config();
 
@@ -133,6 +134,9 @@ const productsRouter: Router = (productsMod && (productsMod as any).default) ? (
 app.use('/api/auth', authRouter);
 app.use('/api/friends', friendsRouter);
 app.use('/api/products', productsRouter);
+
+// Register meme routes
+app.use(memesRouter);
 
 // NEW: User lookup route (accessible to all, no auth required)
 app.get('/api/users/by-username/:username', async (req: Request, res: Response) => {
