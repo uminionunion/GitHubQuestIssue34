@@ -20,6 +20,9 @@ import { io, Socket } from 'socket.io-client';
 import UnionNews14FrontPageAdminModal from './UnionNews14FrontPageAdminModal';
 import BroadcastCarouselZoomModal from './BroadcastCarouselZoomModal';
 import TheMemeBoxImplementation001 from './TheMemeBoxImplementation001';
+import { renderTheMemeBox, unmountTheMemeBox } from '@/TheMemeBoxRenderer';
+
+
 
 interface MainUhubFeatureV001ForMyProfileModalProps {
   isOpen: boolean;
@@ -1652,6 +1655,27 @@ useEffect(() => {
 // }, [isOpen]);
 
 
+
+  
+
+// When you want to render UnionNews#14:
+useEffect(() => {
+  if (isOpen && broadcasts['UnionNews#14']) {
+    renderTheMemeBox(broadcasts['UnionNews#14']);
+  }
+  
+  return () => {
+    unmountTheMemeBox();
+  };
+}, [isOpen]);
+
+
+
+
+
+
+
+  
 
 // Listen for new messages in chatrooms
 useEffect(() => {
