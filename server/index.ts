@@ -483,22 +483,26 @@ app.post('/api/broadcasts/images/:imageId/comments', async (req: Request, res: R
     const { imageId } = req.params;
     const { comment_text, username } = req.body;
 
+    console.log('[BROADCASTS] ✅ Comment endpoint hit with:', {
+      imageId,
+      comment_text: comment_text?.substring(0, 50),
+      username,
+      user_id: (req as any).user?.userId
+    });
+
     if (!comment_text || !comment_text.trim()) {
+      console.log('[BROADCASTS] ❌ Comment text empty');
       res.status(400).json({ error: 'Comment cannot be empty' });
       return;
     }
 
-    console.log(`[BROADCASTS] Creating comment for image ${imageId}:`, {
-      comment_text: comment_text.trim(),
-      username: username || 'Anonymous User',
-      user_id: (req as any).user?.userId || null
-    });
+    console.log('[BROADCASTS] About to insert into database...');
 
     // ✅ FIXED: Do NOT include created_at - let database generate it
     const comment = await db
       .insertInto('broadcast_image_comments')
       .values({
-        image_id: parseInt(imageId),
+        image_id: parseInt(imageId, 10),
         user_id: (req as any).user?.userId || null,
         username: username || 'Anonymous User',
         comment_text: comment_text.trim()
@@ -506,10 +510,12 @@ app.post('/api/broadcasts/images/:imageId/comments', async (req: Request, res: R
       .returningAll()
       .executeTakeFirst();
 
-    console.log(`[BROADCASTS] ✅ Comment added for image ${imageId}:`, comment);
+    console.log('[BROADCASTS] ✅ Comment inserted successfully:', comment);
     res.status(200).json(comment);
   } catch (error) {
-    console.error('[BROADCASTS] ❌ Error adding comment:', error);
+    console.error('[BROADCASTS] ❌ Error adding comment - FULL ERROR:', error);
+    console.error('[BROADCASTS] Error message:', (error as any)?.message);
+    console.error('[BROADCASTS] Error code:', (error as any)?.code);
     res.status(500).json({ error: 'Failed to add comment' });
   }
 });
