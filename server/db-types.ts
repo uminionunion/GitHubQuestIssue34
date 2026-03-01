@@ -212,6 +212,72 @@ export interface AnonymousCounter {
 
 
 
+
+
+
+// Add these new interfaces before the DB interface
+
+export interface MemeImplementation001Posts {
+  id: Generated<number>;
+  user_id: number | null;
+  title: string;
+  description: string | null;
+  upvotes: Generated<number>;
+  downvotes: Generated<number>;
+  created_at: Generated<string | null>;
+}
+
+export interface MemeImplementation001Images {
+  id: Generated<number>;
+  post_id: number;
+  image_url: string;
+  title: string | null;
+  description: string | null;
+  display_order: Generated<number>;
+  created_at: Generated<string | null>;
+}
+
+export interface MemeImplementation001Comments {
+  id: Generated<number>;
+  post_id: number;
+  user_id: number | null;
+  title: string | null;
+  description: string | null;
+  image_url: string | null;
+  upvotes: Generated<number>;
+  downvotes: Generated<number>;
+  created_at: Generated<string | null>;
+}
+
+export interface MemeImplementation001PostVotes {
+  id: Generated<number>;
+  post_id: number;
+  user_id: number;
+  vote_type: -1 | 1;
+  created_at: Generated<string | null>;
+}
+
+export interface MemeImplementation001CommentVotes {
+  id: Generated<number>;
+  comment_id: number;
+  user_id: number;
+  vote_type: -1 | 1;
+  created_at: Generated<string | null>;
+}
+
+export interface MemeImplementation001Favorites {
+  id: Generated<number>;
+  post_id: number;
+  user_id: number;
+  created_at: Generated<string | null>;
+}
+
+
+
+
+
+
+
 // ✅ Now the DB interface can reference ChatroomUnreadStatus
 export interface DB {
   anonymous_counter: AnonymousCounter;
@@ -235,4 +301,10 @@ export interface DB {
   user_chatrooms: UserChatrooms;
   users: Users;
   user_stores: UserStores;
+  MemeImplementation001Posts: MemeImplementation001Posts;
+  MemeImplementation001Images: MemeImplementation001Images;
+  MemeImplementation001Comments: MemeImplementation001Comments;
+  MemeImplementation001PostVotes: MemeImplementation001PostVotes;
+  MemeImplementation001CommentVotes: MemeImplementation001CommentVotes;
+  MemeImplementation001Favorites: MemeImplementation001Favorites;
 }
