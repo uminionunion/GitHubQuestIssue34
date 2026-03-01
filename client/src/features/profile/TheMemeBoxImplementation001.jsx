@@ -1705,7 +1705,7 @@ export default function TheMemeBoxImplementation001() {
         </div>
     );
 }
-import TheMemeBoxImplementation001 from './TheMemeBoxImplementation001';
+
 
 export default function App() {
     return <TheMemeBoxImplementation001 />;
