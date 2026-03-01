@@ -300,7 +300,7 @@ const handlePanDown = () => setPanY(y => y - 50);
           </div>
 
           {/* PAN SECTION - Explicit pan controls when zoomed */}
-          {zoomLevel > 1 && (
+          {true && (
             <div className="flex flex-col gap-2 items-center">
               <p className="text-gray-400 text-xs font-semibold mb-1">Pan</p>
               <div className="flex flex-col gap-1 items-center">
