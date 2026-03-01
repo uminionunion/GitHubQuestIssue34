@@ -1,4 +1,3 @@
-
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
@@ -33,3 +32,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
+
+// Alias for compatibility with memes.ts
+export const requireAuth = authenticate;
