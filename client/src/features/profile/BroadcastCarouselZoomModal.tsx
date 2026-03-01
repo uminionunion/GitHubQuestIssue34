@@ -103,10 +103,10 @@ const BroadcastCarouselZoomModal: React.FC<BroadcastCarouselZoomModalProps> = ({
 const [panX, setPanX] = useState(0);
 const [panY, setPanY] = useState(0);
 
-const handlePanLeft = () => setPanX(x => x + 50);
-const handlePanRight = () => setPanX(x => x - 50);
-const handlePanUp = () => setPanY(y => y + 50);
-const handlePanDown = () => setPanY(y => y - 50);
+const handlePanLeft = () => setPanX(x => x + 125);
+const handlePanRight = () => setPanX(x => x - 125);
+const handlePanUp = () => setPanY(y => y + 125);
+const handlePanDown = () => setPanY(y => y - 125);
 
 
 
