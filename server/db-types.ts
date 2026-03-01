@@ -200,15 +200,6 @@ export interface ChatroomUnreadStatus {
 
 
 
-export interface BroadcastImageComments {
-  id: Generated<number>;
-  image_id: number;
-  user_id: number | null;
-  username: string;
-  comment_text: string;
-  created_at: Generated<string | null>;
-}
-
 
 
 export interface AnonymousCounter {
