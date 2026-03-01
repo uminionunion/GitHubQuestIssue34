@@ -253,11 +253,24 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
                         </Button>
                     )}
                 </div>
-             {/* #14ImageContainer - Meme Box for UnionNews#14 */}
-<div className="flex-1 overflow-hidden flex flex-col">
+             {/* #14ImageContainer - Now shows BOTH Carousel AND Meme Box */}
+<div className="flex-1 overflow-hidden flex flex-col gap-4">
   {broadcastView === 'UnionNews#14' ? (
-    // Meme Box Container
-    <div id="TheReactMemeImplementationConnection001" className="flex-1 w-full h-full" />
+    <>
+      {/* BROADCAST CAROUSEL - Always visible for UnionNews#14 */}
+      <div className="flex-1 overflow-hidden">
+        <BroadcastCarousel 
+          items={unionNews14Images || []} 
+          isAdmin={user?.is_high_high_high_admin === 1}
+          onReorderLeft={handleReorderLeft}
+          onReorderRight={handleReorderRight}
+          onImageZoom={handleCarouselImageZoom}
+        />
+      </div>
+
+      {/* MEME BOX - Below the carousel */}
+      <div id="TheReactMemeImplementationConnection001" className="flex-1 w-full h-full overflow-hidden rounded-lg border" />
+    </>
   ) : (
     // Regular Carousel for other broadcasts
     <BroadcastCarousel 
