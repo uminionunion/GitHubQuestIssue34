@@ -41,7 +41,7 @@ export default function TheMemeBoxImplementation001() {
             id: 1,
             title: "Boulder, Colorado",
             description: "-By StorytellingSalem & WhatsYorStory.com",
-            images: ["data:image/svg+xml,%3Csvg xmlns='https://whatsyorstory.com/wp-content/uploads/2025/03/WYSAlternative002-1.png' width='400' height='300'%3E%3Crect fill='%23ff9999' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3ECat Meme 1%3C/text%3E%3C/svg%3E"],
+            images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Cimage href='https://whatsyorstory.com/wp-content/uploads/2025/03/WYSAlternative002-1.png' width='400' height='300'/%3E%3C/svg%3E"]
             upvotes: 15,
             downvotes: 2,
             userVote: null,
@@ -65,7 +65,7 @@ export default function TheMemeBoxImplementation001() {
             id: 2,
             title: "Dog Jump",
             description: "-By StorytellingSalem & WhatsYorStory.com",
-            images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%2399ccff' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EDog Meme 2%3C/text%3E%3C/svg%3E"],
+            images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Cimage href='https://whatsyorstory.com/wp-content/uploads/2025/03/iArt06100.250.A.aka_.WYSAlternative221.png' width='400' height='300'/%3E%3C/svg%3E"]
             upvotes: 8,
             downvotes: 1,
             userVote: null,
