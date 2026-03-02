@@ -1891,27 +1891,15 @@ useEffect(() => {
 
 
   
-
-// When you want to render UnionNews#14:
 useEffect(() => {
-  if (isOpen && broadcastView === 'UnionNews#14' && broadcasts['UnionNews#14']) {
-    // Delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      const container = document.getElementById('TheReactMemeImplementationConnection001');
-      if (container) {
-        renderTheMemeBox();
-      }
-    }, 100);
-    
-    return () => clearTimeout(timer);
+  if (isOpen) {
+    renderTheMemeBox(); 
   }
   
   return () => {
     unmountTheMemeBox();
   };
-}, [isOpen, broadcastView]);
-
-
+}, [isOpen]);
 
 
 
