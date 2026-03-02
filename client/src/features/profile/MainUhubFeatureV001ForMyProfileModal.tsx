@@ -214,7 +214,6 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
     }
   };
 
-// NEW: Handle image zoom - pass all required params
   const handleCarouselImageZoom = (imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
     console.log('[BROADCAST VIEW] Carousel image zoom requested:', title, 'Index:', currentIndex);
     if (onImageZoom) {
@@ -225,10 +224,16 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
   return (
     <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
-            {/* MIDDLE-LEFT AREA - DO NOT CHANGE */}
+            {/* MIDDLE-LEFT AREA - Meme Box replaces logo image for UnionNews#14 */}
             <div className="w-1/3">
                 <h4 className="font-semibold">{broadcast.subtitle}</h4>
-                <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
+                {broadcastView === 'UnionNews#14' ? (
+                  // MEME BOX REPLACES LOGO IMAGE
+                  <div id="TheReactMemeImplementationConnection001" className="aspect-square bg-muted rounded-md my-2 overflow-hidden" />
+                ) : (
+                  // REGULAR LOGO IMAGE FOR OTHER BROADCASTS
+                  <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
+                )}
                 <div className="flex justify-between items-center">
                     <Button variant="ghost" size="icon"><ChevronLeft /></Button>
                     <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
@@ -236,7 +241,7 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
                 </div>
             </div>
 
-            {/* MIDDLE-RIGHT AREA - UPGRADED */}
+            {/* MIDDLE-RIGHT AREA */}
             <div className="w-2/3 flex flex-col">
                 <div className="flex items-center gap-2 mb-2">
                     <Button variant="outline" size="icon"><Play /></Button>
@@ -253,40 +258,22 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
                         </Button>
                     )}
                 </div>
-             {/* #14ImageContainer - Now shows BOTH Carousel AND Meme Box */}
-<div className="flex-1 overflow-hidden flex flex-col gap-4">
-  {broadcastView === 'UnionNews#14' ? (
-    <>
-      {/* BROADCAST CAROUSEL - Always visible for UnionNews#14 */}
-      <div className="flex-1 overflow-hidden">
-        <BroadcastCarousel 
-          items={unionNews14Images || []} 
-          isAdmin={user?.is_high_high_high_admin === 1}
-          onReorderLeft={handleReorderLeft}
-          onReorderRight={handleReorderRight}
-          onImageZoom={handleCarouselImageZoom}
-        />
-      </div>
-
-      {/* MEME BOX - Below the carousel */}
-      <div id="TheReactMemeImplementationConnection001" className="flex-1 w-full h-full overflow-hidden rounded-lg border" />
-    </>
-  ) : (
-    // Regular Carousel for other broadcasts
-    <BroadcastCarousel 
-      items={broadcast.extraImages || []} 
-      isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
-      onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
-      onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
-      onImageZoom={handleCarouselImageZoom}
-    />
-  )}
-</div>
+                {/* BROADCAST CAROUSEL - Only in right section */}
+                <div className="flex-1 overflow-hidden">
+                  <BroadcastCarousel 
+                    items={broadcastView === 'UnionNews#14' ? unionNews14Images || [] : broadcast.extraImages || []} 
+                    isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
+                    onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
+                    onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
+                    onImageZoom={handleCarouselImageZoom}
+                  />
+                </div>
             </div>
         </div>
     </div>
   );
 };
+
 
 // QUADRANTS MODAL - PAGE 1 REDESIGNED
 interface QuadrantsModalProps {
@@ -1423,7 +1410,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
   const broadcasts = {
-      'UnionNews#14': { id: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
+      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
