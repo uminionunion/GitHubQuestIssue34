@@ -38,10 +38,10 @@ export default function TheMemeBoxImplementation001() {
 
     const samplePosts = [
         {
-            id: 1,
-            title: "Boulder, Colorado",
-            description: "-By StorytellingSalem & WhatsYorStory.com",
-            images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Cimage href='https://whatsyorstory.com/wp-content/uploads/2025/03/WYSAlternative002-1.png' width='400' height='300'/%3E%3C/svg%3E"],
+             id: 1,
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
+            images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ff9999' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3ECat Meme 1%3C/text%3E%3C/svg%3E"],
             upvotes: 15,
             downvotes: 2,
             userVote: null,
@@ -63,9 +63,9 @@ export default function TheMemeBoxImplementation001() {
         },
         {
             id: 2,
-            title: "Dog Jump",
-            description: "-By StorytellingSalem & WhatsYorStory.com",
-            images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Cimage href='https://whatsyorstory.com/wp-content/uploads/2025/03/iArt06100.250.A.aka_.WYSAlternative221.png' width='400' height='300'/%3E%3C/svg%3E"],
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
+            images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%2399ccff' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EDog Meme 2%3C/text%3E%3C/svg%3E"],
             upvotes: 8,
             downvotes: 1,
             userVote: null,
@@ -75,8 +75,8 @@ export default function TheMemeBoxImplementation001() {
         },
         {
             id: 3,
-            title: "Bird Confused",
-            description: "-By StorytellingSalem & WhatsYorStory.com",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
             images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffff99' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EBird Meme 3%3C/text%3E%3C/svg%3E"],
             upvotes: 12,
             downvotes: 3,
@@ -85,8 +85,8 @@ export default function TheMemeBoxImplementation001() {
             comments: [
                 {
                     id: 301,
-                    title: "LOL",
-                    description: "This is hilarious",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
                     image: null,
                     upvotes: 3,
                     downvotes: 0,
@@ -99,8 +99,8 @@ export default function TheMemeBoxImplementation001() {
         },
         {
             id: 4,
-            title: "Fish Thinking",
-            description: "-By StorytellingSalem & WhatsYorStory.com",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
             images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%2399ff99' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EFish Meme 4%3C/text%3E%3C/svg%3E"],
             upvotes: 6,
             downvotes: 5,
@@ -111,8 +111,8 @@ export default function TheMemeBoxImplementation001() {
         },
         {
             id: 5,
-            title: "Monkey Party",
-            description: "-By StorytellingSalem & WhatsYorStory.com",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
             images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ff99ff' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EMonkey Meme 5%3C/text%3E%3C/svg%3E"],
             upvotes: 20,
             downvotes: 1,
@@ -121,8 +121,8 @@ export default function TheMemeBoxImplementation001() {
             comments: [
                 {
                     id: 501,
-                    title: "Amazing!",
-                    description: "Best meme ever",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
                     image: null,
                     upvotes: 8,
                     downvotes: 0,
@@ -135,8 +135,8 @@ export default function TheMemeBoxImplementation001() {
         },
         {
             id: 6,
-            title: "Penguin Waddle",
-            description: "-By StorytellingSalem & WhatsYorStory.com",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
             images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ccccff' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EPenguin Meme 6%3C/text%3E%3C/svg%3E"],
             upvotes: 3,
             downvotes: 2,
@@ -147,8 +147,8 @@ export default function TheMemeBoxImplementation001() {
         },
         {
             id: 7,
-            title: "Rabbit Hop",
-            description: "-By StorytellingSalem & WhatsYorStory.com",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
             images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffcccc' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3ERabbit Meme 7%3C/text%3E%3C/svg%3E"],
             upvotes: 11,
             downvotes: 4,
@@ -157,8 +157,8 @@ export default function TheMemeBoxImplementation001() {
             comments: [
                 {
                     id: 701,
-                    title: "Super fast!",
-                    description: "Incredible speed",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
                     image: null,
                     upvotes: 2,
                     downvotes: 0,
@@ -171,8 +171,8 @@ export default function TheMemeBoxImplementation001() {
         },
         {
             id: 8,
-            title: "Owl Wisdom",
-            description: "-By StorytellingSalem & WhatsYorStory.com",
+            title: "Website is presently being Upgraded",
+            description: "With Meme Capability. Presently under Construction",
             images: ["data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffffcc' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EOwl Meme 8%3C/text%3E%3C/svg%3E"],
             upvotes: 7,
             downvotes: 6,
