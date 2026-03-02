@@ -196,17 +196,24 @@ export default function TheMemeBoxImplementation001() {
     // =====================================================
 
     const startAutoRotate = useCallback(() => {
-  if (autoRotateTimer) {
-    clearInterval(autoRotateTimer);
-  }
+        if (autoRotateTimer) {
+            clearInterval(autoRotateTimer);
+        }
 
-  const timer = setInterval(() => {
-    // Only show next POST, not next image
-    showNextPost();
-  }, AUTO_ROTATE_INTERVAL);
+        const timer = setInterval(() => {
+            setCurrentImageIndex(prev => {
+                const post = allPosts[currentPostIndex];
+                if (post && prev < post.images.length - 1) {
+                    return prev + 1;
+                } else {
+                    showNextPost();
+                    return 0;
+                }
+            });
+        }, AUTO_ROTATE_INTERVAL);
 
-  setAutoRotateTimer(timer);
-}, [autoRotateTimer, showNextPost]);
+        setAutoRotateTimer(timer);
+    }, [allPosts, currentPostIndex]);
 
     const restartAutoRotate = useCallback(() => {
         if (autoRotateTimer) {
