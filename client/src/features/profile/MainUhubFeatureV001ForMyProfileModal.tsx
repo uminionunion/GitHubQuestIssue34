@@ -174,13 +174,10 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to move image');
       }
-
-      // Refresh images after successful reorder
       const refreshRes = await fetch('/api/broadcasts/union-news-14/images');
       const freshData = await refreshRes.json();
       setUnionNews14Images(Array.isArray(freshData) ? freshData : []);
@@ -197,13 +194,10 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to move image');
       }
-
-      // Refresh images after successful reorder
       const refreshRes = await fetch('/api/broadcasts/union-news-14/images');
       const freshData = await refreshRes.json();
       setUnionNews14Images(Array.isArray(freshData) ? freshData : []);
@@ -221,59 +215,223 @@ const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOp
     }
   };
 
+  // Calculate how many images carousel can show based on width
+  const calculateCarouselImageCount = (rightWidth: number): number => {
+    if (rightWidth >= 67) return 3;
+    if (rightWidth >= 60) return 3;
+    if (rightWidth >= 50) return 2;
+    if (rightWidth >= 40) return 1;
+    return 0;
+  };
+
+  // Handle divider drag
+  const handleDividerMouseDown = () => {
+    setBroadcastDividerDragging(true);
+  };
+
+  useEffect(() => {
+    if (!broadcastDividerDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const container = document.querySelector('[data-broadcast-container]');
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const newLeftPercent = ((e.clientX - rect.left) / rect.width) * 100;
+
+      // Constrain between 20% and 70%
+      if (newLeftPercent >= 20 && newLeftPercent <= 70) {
+        const newLeft = newLeftPercent;
+        const newRight = 100 - newLeftPercent;
+
+        setBroadcastLeftWidth(newLeft);
+        setBroadcastRightWidth(newRight);
+
+        // Update carousel image count
+        const newImageCount = calculateCarouselImageCount(newRight);
+        setBroadcastCarouselImageCount(newImageCount);
+
+        // Check if carousel should collapse
+        if (newImageCount === 0) {
+          setIsBroadcastCarouselCollapsed(true);
+        } else {
+          setIsBroadcastCarouselCollapsed(false);
+        }
+
+        // Check if left should collapse (when right is too wide for meme box)
+        if (newLeft <= 25) {
+          setIsBroadcastLeftCollapsed(true);
+        } else {
+          setIsBroadcastLeftCollapsed(false);
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      setBroadcastDividerDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [broadcastDividerDragging]);
+
+  const resetToDefaultPosition = () => {
+    setBroadcastLeftWidth(33);
+    setBroadcastRightWidth(67);
+    setBroadcastCarouselImageCount(3);
+    setIsBroadcastLeftCollapsed(false);
+    setIsBroadcastCarouselCollapsed(false);
+  };
+
+  const resetToPosition002 = () => {
+    setBroadcastLeftWidth(65);
+    setBroadcastRightWidth(35);
+    setBroadcastCarouselImageCount(1);
+    setIsBroadcastLeftCollapsed(false);
+    setIsBroadcastCarouselCollapsed(false);
+  };
+
+  if (broadcastView !== 'UnionNews#14') {
+    // For non-UnionNews#14 broadcasts, use original layout
+    return (
+      <div className="flex flex-col gap-4 h-full">
+        <div className="flex gap-6 flex-1">
+          <div className="w-1/3">
+            <h4 className="font-semibold">{broadcast.subtitle}</h4>
+            <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{ backgroundImage: `url(${broadcast.logo})` }}></div>
+            <div className="flex justify-between items-center">
+              <Button variant="ghost" size="icon"><ChevronLeft /></Button>
+              <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
+              <Button variant="ghost" size="icon"><ChevronRight /></Button>
+            </div>
+          </div>
+          <div className="w-2/3 flex flex-col">
+            <div className="flex items-center gap-2 mb-2">
+              <Button variant="outline" size="icon"><Play /></Button>
+              <p className="text-sm text-muted-foreground flex-grow">{broadcast.description}</p>
+            </div>
+            <div className="flex items-center gap-2 mb-4">
+              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
+              {user?.is_high_high_high_admin === 1 && (
+                <Button 
+                  className="bg-green-700 hover:bg-green-800 text-white text-sm"
+                  onClick={() => onOpenUnionNews14Modal()}
+                >
+                  Add Images?
+                </Button>
+              )}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <BroadcastCarousel 
+                items={broadcast.extraImages || []} 
+                isAdmin={user?.is_high_high_high_admin === 1}
+                onImageZoom={handleCarouselImageZoom}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // UnionNews#14 layout with draggable divider
   return (
     <div className="flex flex-col gap-4 h-full">
-        <div className="flex gap-6 flex-1">
-            {/* MIDDLE-LEFT AREA - Meme Box replaces logo image for UnionNews#14 */}
-            <div className="w-1/3">
-                <h4 className="font-semibold">{broadcast.subtitle}</h4>
-                {broadcastView === 'UnionNews#14' ? (
-                  // MEME BOX REPLACES LOGO IMAGE
-                  <div id="TheReactMemeImplementationConnection001" className="aspect-square bg-muted rounded-md my-2 overflow-hidden" />
-                ) : (
-                  // REGULAR LOGO IMAGE FOR OTHER BROADCASTS
-                  <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{backgroundImage: `url(${broadcast.logo})`}}></div>
-                )}
-                <div className="flex justify-between items-center">
-                    <Button variant="ghost" size="icon"><ChevronLeft /></Button>
-                    <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
-                    <Button variant="ghost" size="icon"><ChevronRight /></Button>
-                </div>
+      <div className="flex gap-2 flex-1" data-broadcast-container>
+        {/* LEFT HALF - Meme Box Area */}
+        {!isBroadcastLeftCollapsed && (
+          <>
+            <div style={{ width: `${broadcastLeftWidth}%` }} className="flex flex-col overflow-hidden">
+              <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
+              <div 
+                id="TheReactMemeImplementationConnection001" 
+                className="flex-1 bg-muted rounded-md my-2 overflow-hidden"
+                style={{ minHeight: '200px' }}
+              />
+              <div className="flex justify-between items-center">
+                <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronLeft className="h-4 w-4" /></Button>
+                <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronRight className="h-4 w-4" /></Button>
+              </div>
             </div>
 
-            {/* MIDDLE-RIGHT AREA */}
-            <div className="w-2/3 flex flex-col">
-                <div className="flex items-center gap-2 mb-2">
-                    <Button variant="outline" size="icon"><Play /></Button>
-                    <p className="text-sm text-muted-foreground flex-grow">{broadcast.description}</p>
-                </div>
-                <div className="flex items-center gap-2 mb-4">
-                    <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
-                    {user?.is_high_high_high_admin === 1 && (
-                        <Button 
-                            className="bg-green-700 hover:bg-green-800 text-white text-sm"
-                            onClick={() => onOpenUnionNews14Modal()}
-                        >
-                            Add Images to the UnionNews#14 Horizontal Feed 001?
-                        </Button>
-                    )}
-                </div>
-                {/* BROADCAST CAROUSEL - Only in right section */}
-                <div className="flex-1 overflow-hidden">
-                  <BroadcastCarousel 
-                    items={broadcastView === 'UnionNews#14' ? unionNews14Images || [] : broadcast.extraImages || []} 
-                    isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
-                    onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
-                    onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
-                    onImageZoom={handleCarouselImageZoom}
-                  />
-                </div>
-            </div>
+            {/* DRAGGABLE DIVIDER */}
+            <div 
+              className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
+              onMouseDown={handleDividerMouseDown}
+            />
+          </>
+        )}
+
+        {/* RIGHT HALF - Carousel Area */}
+        <div style={{ width: `${broadcastRightWidth}%` }} className="flex flex-col overflow-hidden">
+          {!isBroadcastCarouselCollapsed && (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
+                <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
+                {user?.is_high_high_high_admin === 1 && (
+                  <Button 
+                    className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
+                    onClick={() => onOpenUnionNews14Modal()}
+                  >
+                    Add
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* CAROUSEL - Shows limited images based on width */}
+          <div className="flex-1 overflow-hidden">
+            {isBroadcastCarouselCollapsed ? (
+              <div className="flex items-center justify-center h-full bg-gray-800 rounded text-gray-400">
+                Carousel collapsed
+              </div>
+            ) : (
+              <BroadcastCarousel 
+                items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
+                isAdmin={user?.is_high_high_high_admin === 1}
+                onReorderLeft={handleReorderLeft}
+                onReorderRight={handleReorderRight}
+                onImageZoom={handleCarouselImageZoom}
+                maxVisibleItems={broadcastCarouselImageCount}
+              />
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* COLLAPSED BANNERS - Below main content */}
+      <div className="flex gap-2">
+        {isBroadcastCarouselCollapsed && (
+          <button 
+            onClick={() => resetToDefaultPosition()}
+            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+          >
+            <span>📸 Carousel</span>
+          </button>
+        )}
+        {isBroadcastLeftCollapsed && (
+          <button 
+            onClick={() => resetToPosition002()}
+            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+          >
+            <span>🎁 Content</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 };
-
 
 // QUADRANTS MODAL - PAGE 1 REDESIGNED
 interface QuadrantsModalProps {
@@ -1426,6 +1584,16 @@ const [isUnionNews14ModalOpen, setIsUnionNews14ModalOpen] = useState(false);
 const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([]);
 
 
+const [broadcastLeftWidth, setBroadcastLeftWidth] = useState(33);
+const [broadcastRightWidth, setBroadcastRightWidth] = useState(67);
+const [broadcastCarouselImageCount, setBroadcastCarouselImageCount] = useState(3);
+const [isBroadcastLeftCollapsed, setIsBroadcastLeftCollapsed] = useState(false);
+const [isBroadcastCarouselCollapsed, setIsBroadcastCarouselCollapsed] = useState(false);
+const [broadcastDividerDragging, setBroadcastDividerDragging] = useState(false);
+
+
+
+  
   const [broadcastZoomState, setBroadcastZoomState] = useState<{
   isOpen: boolean;
   imageUrl: string;
@@ -2279,46 +2447,85 @@ useEffect(() => {
         case 'broadcasts':
 default:
     const currentBroadcast = broadcasts[broadcastView];
-    return (
-        <>
-            <div className="flex items-center justify-center mb-4">
-                <Button variant="ghost" size="icon" onClick={() => {
-                  const currentIndex = broadcastKeys.indexOf(broadcastView);
-                  const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
-                  setBroadcastView(broadcastKeys[nextIndex]);
-                }}>
-                    <ChevronLeft />
-                </Button>
-                <h3 className="text-center font-bold mx-4">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
-                <Button variant="ghost" size="icon" onClick={() => {
-                  const currentIndex = broadcastKeys.indexOf(broadcastView);
-                  const nextIndex = (currentIndex + 1) % broadcastKeys.length;
-                  setBroadcastView(broadcastKeys[nextIndex]);
-                }}>
-                    <ChevronRight />
-                </Button>
-            </div>
-            {broadcastView === 'MyBroadcasts' ? 
-    (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
-    : (currentBroadcast ? <BroadcastView 
-  broadcast={currentBroadcast} 
-  user={user}
-  broadcastView={broadcastView}
-  unionNews14Images={unionNews14Images}
-  onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
-  onImageZoom={(imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
-                    console.log('[PROFILE MODAL] Broadcast carousel image zoom:', title, 'Index:', currentIndex);
-                    setBroadcastZoomState({
-                      isOpen: true,
-                      imageUrl,
-                      title,
-                      items,
-                      currentIndex,
-                    });
-                  }}
-/> : <p>Broadcast not found.</p>)}
-        </>
-    );
+return (
+  <>
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={() => {
+          const currentIndex = broadcastKeys.indexOf(broadcastView);
+          const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
+          setBroadcastView(broadcastKeys[nextIndex]);
+        }}>
+          <ChevronLeft />
+        </Button>
+        <h3 className="text-center font-bold">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
+        <Button variant="ghost" size="icon" onClick={() => {
+          const currentIndex = broadcastKeys.indexOf(broadcastView);
+          const nextIndex = (currentIndex + 1) % broadcastKeys.length;
+          setBroadcastView(broadcastKeys[nextIndex]);
+        }}>
+          <ChevronRight />
+        </Button>
+      </div>
+
+      {/* Show collapsed banner buttons in title bar */}
+      {broadcastView === 'UnionNews#14' && (
+        <div className="flex gap-1">
+          {isBroadcastCarouselCollapsed && (
+            <button 
+              onClick={() => {
+                setBroadcastCarouselCollapsed(false);
+                setBroadcastRightWidth(67);
+                setBroadcastLeftWidth(33);
+                setBroadcastCarouselImageCount(3);
+              }}
+              className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+              title="Restore carousel"
+            >
+              📸
+            </button>
+          )}
+          {isBroadcastLeftCollapsed && (
+            <button 
+              onClick={() => {
+                setBroadcastLeftCollapsed(false);
+                setBroadcastLeftWidth(65);
+                setBroadcastRightWidth(35);
+                setBroadcastCarouselImageCount(1);
+              }}
+              className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+              title="Restore left content"
+            >
+              🎁
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+    {broadcastView === 'MyBroadcasts' ? 
+      (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
+      : (currentBroadcast ? <BroadcastView 
+        broadcast={currentBroadcast} 
+        user={user}
+        broadcastView={broadcastView}
+        unionNews14Images={unionNews14Images}
+        onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
+        onImageZoom={(imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
+          console.log('[PROFILE MODAL] Broadcast carousel image zoom:', title, 'Index:', currentIndex);
+          setBroadcastZoomState({
+            isOpen: true,
+            imageUrl,
+            title,
+            items,
+            currentIndex,
+          });
+        }}
+      /> : <p>Broadcast not found.</p>)
+    }
+  </>
+);
+
+        
     }
   };
 
