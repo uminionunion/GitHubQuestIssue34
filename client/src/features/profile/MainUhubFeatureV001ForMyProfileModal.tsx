@@ -2486,37 +2486,27 @@ return (
 
       {/* Show collapsed banner buttons in title bar */}
       {broadcastView === 'UnionNews#14' && (
-        <div className="flex gap-1">
-          {isBroadcastCarouselCollapsed && (
-            <button 
-              onClick={() => {
-                setBroadcastCarouselCollapsed(false);
-                setBroadcastRightWidth(67);
-                setBroadcastLeftWidth(33);
-                setBroadcastCarouselImageCount(3);
-              }}
-              className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-              title="Restore carousel"
-            >
-              📸
-            </button>
-          )}
-          {isBroadcastLeftCollapsed && (
-            <button 
-              onClick={() => {
-                setBroadcastLeftCollapsed(false);
-                setBroadcastLeftWidth(65);
-                setBroadcastRightWidth(35);
-                setBroadcastCarouselImageCount(1);
-              }}
-              className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-              title="Restore left content"
-            >
-              🎁
-            </button>
-          )}
-        </div>
-      )}
+  <div className="flex gap-1">
+    {isBroadcastCarouselCollapsed && (
+      <button 
+        onClick={() => resetToDefaultPosition()}
+        className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+        title="Restore carousel"
+      >
+        📸
+      </button>
+    )}
+    {isBroadcastLeftCollapsed && (
+      <button 
+        onClick={() => resetToPosition002()}
+        className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+        title="Restore left content"
+      >
+        🎁
+      </button>
+    )}
+  </div>
+)}
     </div>
     {broadcastView === 'MyBroadcasts' ? 
       (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
