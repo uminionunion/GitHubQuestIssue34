@@ -2554,7 +2554,16 @@ return (
   broadcastView={broadcastView}
   unionNews14Images={unionNews14Images}
   onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
-  onImageZoom={...}
+  onImageZoom={(imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
+  console.log('[BROADCAST VIEW] Carousel image zoom requested:', title, 'Index:', currentIndex);
+  setBroadcastZoomState({
+    isOpen: true,
+    imageUrl,
+    title,
+    items,
+    currentIndex,
+  });
+}}
   broadcastDividerDragging={broadcastDividerDragging}
   setBroadcastDividerDragging={setBroadcastDividerDragging}
   broadcastLeftWidth={broadcastLeftWidth}
