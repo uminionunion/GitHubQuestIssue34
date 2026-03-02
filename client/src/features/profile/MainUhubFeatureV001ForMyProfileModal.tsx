@@ -1899,7 +1899,7 @@ useEffect(() => {
     const timer = setTimeout(() => {
       const container = document.getElementById('TheReactMemeImplementationConnection001');
       if (container) {
-        renderTheMemeBox(broadcasts['UnionNews#14']);
+        renderTheMemeBox();
       }
     }, 100);
     
