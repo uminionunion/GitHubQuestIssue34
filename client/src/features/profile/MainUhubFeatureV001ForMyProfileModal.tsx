@@ -1586,9 +1586,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isLoadingFriendsStores, setIsLoadingFriendsStores] = useState(false);  
   const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
-  const [broadcastLeftWidth, setBroadcastLeftWidth] = useState(33);
-  const [broadcastRightWidth, setBroadcastRightWidth] = useState(67);
-  const [broadcastCarouselImageCount, setBroadcastCarouselImageCount] = useState(3);
+  const [broadcastLeftWidth, setBroadcastLeftWidth] = useState(65);
+  const [broadcastRightWidth, setBroadcastRightWidth] = useState(35);
+  const [broadcastCarouselImageCount, setBroadcastCarouselImageCount] = useState(1);
   const [isBroadcastLeftCollapsed, setIsBroadcastLeftCollapsed] = useState(false);
   const [isBroadcastCarouselCollapsed, setIsBroadcastCarouselCollapsed] = useState(false);
   const [broadcastDividerDragging, setBroadcastDividerDragging] = useState(false);
