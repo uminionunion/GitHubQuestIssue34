@@ -1567,6 +1567,12 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isLoadingFriendsStores, setIsLoadingFriendsStores] = useState(false);  
   const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
+  const [broadcastLeftWidth, setBroadcastLeftWidth] = useState(33);
+  const [broadcastRightWidth, setBroadcastRightWidth] = useState(67);
+  const [broadcastCarouselImageCount, setBroadcastCarouselImageCount] = useState(3);
+  const [isBroadcastLeftCollapsed, setIsBroadcastLeftCollapsed] = useState(false);
+  const [isBroadcastCarouselCollapsed, setIsBroadcastCarouselCollapsed] = useState(false);
+  const [broadcastDividerDragging, setBroadcastDividerDragging] = useState(false);
   const broadcasts = {
       'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
@@ -1582,15 +1588,6 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 
 const [isUnionNews14ModalOpen, setIsUnionNews14ModalOpen] = useState(false);
 const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([]);
-
-
-const [broadcastLeftWidth, setBroadcastLeftWidth] = useState(33);
-const [broadcastRightWidth, setBroadcastRightWidth] = useState(67);
-const [broadcastCarouselImageCount, setBroadcastCarouselImageCount] = useState(3);
-const [isBroadcastLeftCollapsed, setIsBroadcastLeftCollapsed] = useState(false);
-const [isBroadcastCarouselCollapsed, setIsBroadcastCarouselCollapsed] = useState(false);
-const [broadcastDividerDragging, setBroadcastDividerDragging] = useState(false);
-
 
 
   
