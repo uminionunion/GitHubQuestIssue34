@@ -167,7 +167,26 @@ const ProductBox = ({ product, onMagnify, onAddToCart }) => {
 };
 
 
-const BroadcastView = ({ broadcast, user, broadcastView, unionNews14Images, onOpenUnionNews14Modal, onImageZoom }) => {
+const BroadcastView = ({ 
+  broadcast, 
+  user, 
+  broadcastView, 
+  unionNews14Images, 
+  onOpenUnionNews14Modal, 
+  onImageZoom,
+  broadcastDividerDragging,
+  setBroadcastDividerDragging,
+  broadcastLeftWidth,
+  setBroadcastLeftWidth,
+  broadcastRightWidth,
+  setBroadcastRightWidth,
+  broadcastCarouselImageCount,
+  setBroadcastCarouselImageCount,
+  isBroadcastLeftCollapsed,
+  setIsBroadcastLeftCollapsed,
+  isBroadcastCarouselCollapsed,
+  setIsBroadcastCarouselCollapsed,
+}) => {
   const handleReorderLeft = async (imageId: number) => {
     try {
       const response = await fetch(`/api/broadcasts/union-news-14/images/${imageId}/move-left`, {
@@ -2502,22 +2521,34 @@ return (
     {broadcastView === 'MyBroadcasts' ? 
       (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
       : (currentBroadcast ? <BroadcastView 
-        broadcast={currentBroadcast} 
-        user={user}
-        broadcastView={broadcastView}
-        unionNews14Images={unionNews14Images}
-        onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
-        onImageZoom={(imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
-          console.log('[PROFILE MODAL] Broadcast carousel image zoom:', title, 'Index:', currentIndex);
-          setBroadcastZoomState({
-            isOpen: true,
-            imageUrl,
-            title,
-            items,
-            currentIndex,
-          });
-        }}
-      /> : <p>Broadcast not found.</p>)
+  broadcast={currentBroadcast} 
+  user={user}
+  broadcastView={broadcastView}
+  unionNews14Images={unionNews14Images}
+  onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
+  onImageZoom={(imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
+    console.log('[PROFILE MODAL] Broadcast carousel image zoom:', title, 'Index:', currentIndex);
+    setBroadcastZoomState({
+      isOpen: true,
+      imageUrl,
+      title,
+      items,
+      currentIndex,
+    });
+  }}
+  broadcastDividerDragging={broadcastDividerDragging}
+  setBroadcastDividerDragging={setBroadcastDividerDragging}
+  broadcastLeftWidth={broadcastLeftWidth}
+  setBroadcastLeftWidth={setBroadcastLeftWidth}
+  broadcastRightWidth={broadcastRightWidth}
+  setBroadcastRightWidth={setBroadcastRightWidth}
+  broadcastCarouselImageCount={broadcastCarouselImageCount}
+  setBroadcastCarouselImageCount={setBroadcastCarouselImageCount}
+  isBroadcastLeftCollapsed={isBroadcastLeftCollapsed}
+  setIsBroadcastLeftCollapsed={setIsBroadcastLeftCollapsed}
+  isBroadcastCarouselCollapsed={isBroadcastCarouselCollapsed}
+  setIsBroadcastCarouselCollapsed={setIsBroadcastCarouselCollapsed}
+/> : <p>Broadcast not found.</p>)
     }
   </>
 );
