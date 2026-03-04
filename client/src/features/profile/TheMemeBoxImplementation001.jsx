@@ -1619,6 +1619,7 @@ const renderViewCommentsDialog = () => {
                   }}
                   onClick={() => {
                     setSelectedFavoritePost(post);
+                    setDetailImageIndex(0);
                     setIsFavoriteDetailOpen(true);
                     setDetailImageIndex(0);
                   }}
