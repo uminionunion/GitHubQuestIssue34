@@ -25,6 +25,28 @@ export default function TheMemeBoxImplementation001() {
     const [uploadDescription, setUploadDescription] = useState('');
     const [currentUsername, setCurrentUsername] = useState('DemoUser');
 
+// Listen for user login/logout
+useEffect(() => {
+    const checkAuthStatus = async () => {
+        try {
+            const res = await fetch('/api/auth/me');
+            if (res.ok) {
+                const user = await res.json();
+                setCurrentUsername(user.username);
+                console.log('[MEMEBOX] ✅ Logged in as:', user.username);
+            }
+        } catch (error) {
+            console.log('[MEMEBOX] Not authenticated');
+            setCurrentUsername('DemoUser');
+        }
+    };
+
+    checkAuthStatus();
+    // Check every 5 seconds for auth status changes
+    const interval = setInterval(checkAuthStatus, 5000);
+    return () => clearInterval(interval);
+}, []);
+
     const touchStartX = useRef(0);
     const touchStartY = useRef(0);
     const SWIPE_THRESHOLD = 50;
@@ -188,8 +210,74 @@ export default function TheMemeBoxImplementation001() {
     // =====================================================
 
     useEffect(() => {
-        setAllPosts(samplePosts);
-    }, []);
+    const fetchPostsFromDatabase = async () => {
+        try {
+            console.log('[MEMEBOX] Fetching posts from database...');
+            
+            // Fetch user-submitted posts (all posts regardless of upvote count)
+            const userSubmittedRes = await fetch('/api/memes/posts/user-submitted');
+            const userSubmitted = await userSubmittedRes.json();
+            console.log('[MEMEBOX] ✅ Fetched', userSubmitted.length, 'user posts');
+
+            // Fetch viral posts
+            const viralRes = await fetch('/api/memes/posts/viral');
+            const viral = await viralRes.json();
+            console.log('[MEMEBOX] ✅ Fetched', viral.length, 'viral posts');
+
+            // Combine: user-submitted first, then viral, then hardcoded samples
+            // Deduplicate by ID
+            const allIds = new Set();
+            const combined = [];
+
+            // Add user-submitted (excluding viral to avoid duplicates)
+            userSubmitted.forEach(post => {
+                if (!allIds.has(post.id)) {
+                    combined.push({
+                        ...post,
+                        images: [post.image_url || samplePosts[0].images[0]],  // Use post's image if available
+                        comments: [],
+                        isFavorited: false,
+                        userVote: null,
+                        timestamp: new Date(post.created_at)
+                    });
+                    allIds.add(post.id);
+                }
+            });
+
+            // Add viral posts
+            viral.forEach(post => {
+                if (!allIds.has(post.id)) {
+                    combined.push({
+                        ...post,
+                        images: [post.image_url || samplePosts[0].images[0]],
+                        comments: [],
+                        isFavorited: false,
+                        userVote: null,
+                        timestamp: new Date(post.created_at)
+                    });
+                    allIds.add(post.id);
+                }
+            });
+
+            // Add hardcoded samples if no database posts
+            if (combined.length === 0) {
+                console.log('[MEMEBOX] No database posts, using sample posts');
+                setAllPosts(samplePosts);
+            } else {
+                console.log('[MEMEBOX] ✅ Total posts to display:', combined.length);
+                setAllPosts(combined);
+            }
+        } catch (error) {
+            console.error('[MEMEBOX] Error fetching posts:', error);
+            // Fallback to sample posts on error
+            setAllPosts(samplePosts);
+        }
+    };
+
+    if (isOpen) {
+        fetchPostsFromDatabase();
+    }
+}, []);  // Remove isOpen if passed as prop, otherwise add it
 
     // =====================================================
     // AUTO-ROTATE FUNCTIONALITY
@@ -462,13 +550,44 @@ export default function TheMemeBoxImplementation001() {
     // =====================================================
 
     const submitUpload = () => {
-        if (!uploadTitle.trim() || uploadedImages.length === 0) {
-            alert('Please enter a title and select at least one image');
-            return;
+        const submitUpload = async () => {
+    if (!uploadTitle.trim() || uploadedImages.length === 0) {
+        alert('Please enter a title and select at least one image');
+        return;
+    }
+
+    try {
+        console.log('[MEMEBOX] Uploading post with', uploadedImages.length, 'images...');
+        
+        // Prepare images array with URL and metadata
+        const imagesToUpload = uploadedImages.map((base64Image, index) => ({
+            url: base64Image,  // Frontend will send base64 for now
+            title: `${uploadTitle} - Image ${index + 1}`,
+            description: uploadDescription
+        }));
+
+        // Call API to save to database
+        const response = await fetch('/api/memes/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: uploadTitle,
+                description: uploadDescription,
+                images: imagesToUpload
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Upload failed');
         }
 
+        const result = await response.json();
+        console.log('[MEMEBOX] ✅ Post uploaded with ID:', result.id);
+
+        // Create local post object matching database format
         const newPost = {
-            id: Math.max(...allPosts.map(p => p.id), 0) + 1,
+            id: result.id,
             title: uploadTitle,
             description: uploadDescription,
             images: uploadedImages,
@@ -477,13 +596,18 @@ export default function TheMemeBoxImplementation001() {
             userVote: null,
             timestamp: new Date(),
             comments: [],
-            isFavorited: false
+            isFavorited: false,
+            user_id: currentUsername  // Track uploader
         };
 
         setAllPosts(prev => [newPost, ...prev]);
         closeUploadDialog();
         logAction('upload', newPost.id);
-    };
+    } catch (error) {
+        console.error('[MEMEBOX] ❌ Upload error:', error);
+        alert('Failed to upload: ' + error.message);
+    }
+};
 
     const submitComment = () => {
         if (!commentTitle.trim() || !commentDescription.trim()) {
