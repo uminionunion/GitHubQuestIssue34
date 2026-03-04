@@ -1,65 +1,71 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
 export default function TheMemeBoxImplementation001() {
+  // =====================================================
   // STATE VARIABLES
+  // =====================================================
+
   const [allPosts, setAllPosts] = useState([]);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [commentImageData, setCommentImageData] = useState(null);
+  const [detailImageIndex, setDetailImageIndex] = useState(0);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
-  const [isViewCommentsDialogOpen, setIsViewCommentsDialogOpen] = useState(false);
+  const [isViewCommentsDialogOpen, setIsViewCommentsDialogOpen] =
+    useState(false);
   const [isFavoritesGridOpen, setIsFavoritesGridOpen] = useState(false);
   const [isFavoriteDetailOpen, setIsFavoriteDetailOpen] = useState(false);
-  const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [selectedFavoritePost, setSelectedFavoritePost] = useState(null);
-  const [zoomImageIndex, setZoomImageIndex] = useState(0);
-  const [detailImageIndex, setDetailImageIndex] = useState(0);
   const [commentTitle, setCommentTitle] = useState("");
   const [commentDescription, setCommentDescription] = useState("");
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDescription, setUploadDescription] = useState("");
   const [currentUsername, setCurrentUsername] = useState("DemoUser");
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  const [isAuthLoading, setIsAuthLoading] = useState(true);  // NEW
 
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const SWIPE_THRESHOLD = 50;
   const MAX_UPLOAD_IMAGES = 50;
+  
 
+  // =====================================================
   // AUTH STATUS CHECK
+  // =====================================================
+
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
         const res = await fetch("/api/auth/me", {
-          credentials: "include",
+          credentials: "include", // ✅ Include cookies
         });
         if (res.ok) {
           const user = await res.json();
           setCurrentUsername(user.username);
-          setCurrentUserId(user.id); // ✅ THIS IS THE FIX
-          console.log("[MEMEBOX] ✅ Logged in as:", user.username, "ID:", user.id);
+          console.log("[MEMEBOX] ✅ Logged in as:", user.username);
         } else if (res.status === 401) {
+          // Not authenticated - this is normal, don't log
           setCurrentUsername("DemoUser");
-          setCurrentUserId(null);
         }
       } catch (error) {
-        console.error("[MEMEBOX] Auth check error:", error);
+        // Network error - use default
         setCurrentUsername("DemoUser");
-        setCurrentUserId(null);
       }
     };
+
+    // Check on mount only, not repeatedly
     checkAuthStatus();
   }, []);
 
+  // =====================================================
   // SAMPLE DATA
+  // =====================================================
+
   const samplePosts = [
     {
       id: 1,
-      user_id: 999,
       title: "Laughing Cat",
       description: "This cat is having the best time ever!",
       images: [
@@ -69,12 +75,23 @@ export default function TheMemeBoxImplementation001() {
       downvotes: 2,
       userVote: null,
       timestamp: new Date(Date.now() - 86400000),
-      comments: [],
+      comments: [
+        {
+          id: 101,
+          title: "So funny!",
+          description: "Made me laugh out loud",
+          image: null,
+          upvotes: 5,
+          downvotes: 0,
+          userVote: null,
+          timestamp: new Date(Date.now() - 3600000),
+          hidden: false,
+        },
+      ],
       isFavorited: false,
     },
     {
       id: 2,
-      user_id: 999,
       title: "Dog Jump",
       description: "Pupper jumping super high!",
       images: [
@@ -87,19 +104,116 @@ export default function TheMemeBoxImplementation001() {
       comments: [],
       isFavorited: false,
     },
+    {
+      id: 3,
+      title: "Bird Confused",
+      description: "Why is this bird so confused?",
+      images: [
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffff99' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EBird Meme 3%3C/text%3E%3C/svg%3E",
+      ],
+      upvotes: 12,
+      downvotes: 3,
+      userVote: null,
+      timestamp: new Date(Date.now() - 259200000),
+      comments: [
+        {
+          id: 301,
+          title: "LOL",
+          description: "This is hilarious",
+          image: null,
+          upvotes: 3,
+          downvotes: 0,
+          userVote: null,
+          timestamp: new Date(Date.now() - 7200000),
+          hidden: false,
+        },
+      ],
+      isFavorited: false,
+    },
+    {
+      id: 4,
+      title: "Fish Tank",
+      description: "Fish living their best life",
+      images: [
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%2399ff99' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EFish Meme 4%3C/text%3E%3C/svg%3E",
+      ],
+      upvotes: 6,
+      downvotes: 5,
+      userVote: null,
+      timestamp: new Date(Date.now() - 345600000),
+      comments: [],
+      isFavorited: false,
+    },
+    {
+      id: 5,
+      title: "Monkey Thinking",
+      description: "Deep thoughts from our primate friend",
+      images: [
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ff99ff' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EMonkey Meme 5%3C/text%3E%3C/svg%3E",
+      ],
+      upvotes: 20,
+      downvotes: 1,
+      userVote: null,
+      timestamp: new Date(Date.now() - 1800000),
+      comments: [
+        {
+          id: 501,
+          title: "Amazing",
+          description: "This is the best meme ever",
+          image: null,
+          upvotes: 8,
+          downvotes: 0,
+          userVote: null,
+          timestamp: new Date(Date.now() - 600000),
+          hidden: false,
+        },
+      ],
+      isFavorited: true,
+    },
   ];
 
-  // FETCH POSTS FROM DATABASE
+  // =====================================================
+  // INITIALIZATION - FETCH POSTS FROM DATABASE
+  // =====================================================
+
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchPostsFromDatabase = async () => {
       try {
         console.log("[MEMEBOX] Fetching posts from database...");
-        const res = await fetch("/api/memes/posts", { credentials: "include" });
-        const posts = res.ok ? await res.json() : [];
 
-        if (posts.length > 0) {
-          console.log("[MEMEBOX] ✅ Fetched", posts.length, "posts");
-          setAllPosts(posts);
+        // Fetch from both endpoints
+        const [viralRes, userSubmittedRes] = await Promise.all([
+          fetch("/api/memes/posts/viral"),
+          fetch("/api/memes/posts/user-submitted"),
+        ]);
+
+        const viralPosts = viralRes.ok ? await viralRes.json() : [];
+        const userSubmittedPosts = userSubmittedRes.ok ? await userSubmittedRes.json() : [];
+
+        console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
+        console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
+
+        // Combine all posts (viral first, then user-submitted)
+        const allDbPosts = [...viralPosts, ...userSubmittedPosts];
+
+        if (allDbPosts.length > 0) {
+          const formattedPosts = allDbPosts.map((post) => ({
+            id: post.id,
+            title: post.title,
+            description: post.description,
+            images: post.image_base64
+              ? [post.image_base64]
+              : [samplePosts[0].images[0]],
+            upvotes: post.upvotes || 0,
+            downvotes: post.downvotes || 0,
+            userVote: null,
+            timestamp: new Date(post.created_at),
+            comments: [],
+            isFavorited: false,
+            username: post.username,
+          }));
+
+          setAllPosts(formattedPosts);
         } else {
           console.log("[MEMEBOX] No posts in database, using sample posts");
           setAllPosts(samplePosts);
@@ -110,161 +224,153 @@ export default function TheMemeBoxImplementation001() {
       }
     };
 
-    fetchPosts();
+    fetchPostsFromDatabase();
   }, []);
 
+  
+
+  // =====================================================
   // POST NAVIGATION
+  // =====================================================
+
   const showNextPost = useCallback(() => {
-    setCurrentPostIndex((prev) => (prev + 1) % allPosts.length);
-  }, [allPosts.length]);
+  setCurrentPostIndex((prev) => {
+    const nextIndex = (prev + 1) % allPosts.length;
+    setCurrentImageIndex(0);
+    return nextIndex;
+  });
+}, [allPosts.length]);
 
-  const showPreviousPost = useCallback(() => {
-    setCurrentPostIndex((prev) => (prev === 0 ? allPosts.length - 1 : prev - 1));
-  }, [allPosts.length]);
+const showPreviousPost = useCallback(() => {
+  setCurrentPostIndex((prev) => {
+    const nextIndex = prev === 0 ? allPosts.length - 1 : prev - 1;
+    setCurrentImageIndex(0);
+    return nextIndex;
+  });
+}, [allPosts.length]);
 
-  // VOTING FUNCTIONS (NOW WITH DATABASE PERSISTENCE)
- const handleUpvote = useCallback(async () => {
-    if (!currentUserId) {
-      alert("Please log in to vote");
-      return;
+const showNextImage = useCallback(() => {
+  const post = allPosts[currentPostIndex];
+  if (post && currentImageIndex < post.images.length - 1) {
+    setCurrentImageIndex((prev) => prev + 1);
+  } else if (allPosts.length > 0) {
+    showNextPost();
+  }
+}, [allPosts, currentPostIndex, currentImageIndex, showNextPost]);
+
+const showPreviousImage = useCallback(() => {
+  if (currentImageIndex > 0) {
+    setCurrentImageIndex((prev) => prev - 1);
+  } else if (allPosts.length > 0) {
+    showPreviousPost();
+  }
+}, [currentImageIndex, showPreviousPost, allPosts.length]);
+
+  // =====================================================
+  // VOTING FUNCTIONS
+  // =====================================================
+
+  const handleUpvote = useCallback(() => {
+    const updatedPosts = [...allPosts];
+    const post = updatedPosts[currentPostIndex];
+
+    if (post.userVote === 1) {
+      post.upvotes--;
+      post.userVote = null;
+    } else if (post.userVote === -1) {
+      post.downvotes--;
+      post.upvotes++;
+      post.userVote = 1;
+    } else {
+      post.upvotes++;
+      post.userVote = 1;
     }
 
-    const post = allPosts[currentPostIndex];
-    if (!post) return;
+    setAllPosts(updatedPosts);
+    logAction("upvote", post.id);
+  }, [allPosts, currentPostIndex]);
 
-    try {
-      console.log("[MEMEBOX] Upvoting post", post.id, "as user", currentUserId);
-      const res = await fetch(`/api/memes/posts/${post.id}/upvote`, {
-        method: "POST",
-        credentials: "include", // ✅ INCLUDE COOKIES
-        headers: { "Content-Type": "application/json" },
-      });
+  const handleDownvote = useCallback(() => {
+    const updatedPosts = [...allPosts];
+    const post = updatedPosts[currentPostIndex];
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Upvote failed");
+    if (post.userVote === -1) {
+      post.downvotes--;
+      post.userVote = null;
+    } else if (post.userVote === 1) {
+      post.upvotes--;
+      post.downvotes++;
+      post.userVote = -1;
+    } else {
+      post.downvotes++;
+      post.userVote = -1;
+    }
+
+    if (post.downvotes >= 10) {
+      const newPosts = updatedPosts.filter((p) => p.id !== post.id);
+      setAllPosts(newPosts);
+      if (currentPostIndex >= newPosts.length) {
+        setCurrentPostIndex(Math.max(0, newPosts.length - 1));
       }
+    } else {
+      setAllPosts(updatedPosts);
+    }
 
-      const data = await res.json();
+    logAction("downvote", post.id);
+  }, [allPosts, currentPostIndex]);
+
+  const handleCommentVote = useCallback(
+    (commentId, isUpvote) => {
       const updatedPosts = [...allPosts];
-      updatedPosts[currentPostIndex].upvotes = data.upvotes || 0;
-      updatedPosts[currentPostIndex].downvotes = data.downvotes || 0;
-      updatedPosts[currentPostIndex].userVote = data.userVote || null;
-      setAllPosts(updatedPosts);
-      console.log("[MEMEBOX] ✅ Upvote successful");
-    } catch (error) {
-      console.error("[MEMEBOX] ❌ Upvote error:", error);
-      alert("Failed to upvote: " + error.message);
-    }
-  }, [allPosts, currentPostIndex, currentUserId]);
+      const post = updatedPosts[currentPostIndex];
 
-  const handleDownvote = useCallback(async () => {
-    if (!currentUserId) {
-      alert("Please log in to vote");
-      return;
-    }
-
-    const post = allPosts[currentPostIndex];
-    if (!post) return;
-
-    try {
-      console.log("[MEMEBOX] Downvoting post", post.id, "as user", currentUserId);
-      const res = await fetch(`/api/memes/posts/${post.id}/downvote`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Downvote failed");
+      if (post && post.comments) {
+        const comment = post.comments.find((c) => c.id === commentId);
+        if (comment) {
+          if (isUpvote) {
+            if (comment.userVote === 1) {
+              comment.upvotes--;
+              comment.userVote = null;
+            } else if (comment.userVote === -1) {
+              comment.downvotes--;
+              comment.upvotes++;
+              comment.userVote = 1;
+            } else {
+              comment.upvotes++;
+              comment.userVote = 1;
+            }
+          } else {
+            if (comment.userVote === -1) {
+              comment.downvotes--;
+              comment.userVote = null;
+            } else if (comment.userVote === 1) {
+              comment.upvotes--;
+              comment.downvotes++;
+              comment.userVote = -1;
+            } else {
+              comment.downvotes++;
+              comment.userVote = -1;
+            }
+          }
+        }
       }
 
-      const data = await res.json();
-      const updatedPosts = [...allPosts];
-      updatedPosts[currentPostIndex].upvotes = data.upvotes || 0;
-      updatedPosts[currentPostIndex].downvotes = data.downvotes || 0;
-      updatedPosts[currentPostIndex].userVote = data.userVote || null;
       setAllPosts(updatedPosts);
-      console.log("[MEMEBOX] ✅ Downvote successful");
-    } catch (error) {
-      console.error("[MEMEBOX] ❌ Downvote error:", error);
-      alert("Failed to downvote: " + error.message);
-    }
-  }, [allPosts, currentPostIndex, currentUserId]);
+    },
+    [allPosts, currentPostIndex]
+  );
 
-  // DELETE POST (ONLY IF USER OWNS IT)
-  const handleDeletePost = useCallback(async () => {
-    if (!currentUserId) {
-      alert("Please log in to delete posts");
-      return;
-    }
-
-    const post = allPosts[currentPostIndex];
-    if (!post) return;
-
-    if (post.user_id !== currentUserId) {
-      alert("You can only delete your own posts");
-      return;
-    }
-
-    if (!window.confirm("Are you sure you want to delete this post?")) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/memes/posts/${post.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!res.ok) throw new Error("Delete failed");
-
-      const updatedPosts = allPosts.filter((_, i) => i !== currentPostIndex);
-      setAllPosts(updatedPosts);
-      if (currentPostIndex >= updatedPosts.length) {
-        setCurrentPostIndex(Math.max(0, updatedPosts.length - 1));
-      }
-      console.log("[MEMEBOX] ✅ Post deleted");
-    } catch (error) {
-      console.error("[MEMEBOX] ❌ Delete error:", error);
-      alert("Failed to delete post");
-    }
-  }, [allPosts, currentPostIndex, currentUserId]);
-
+  // =====================================================
   // FAVORITE FUNCTIONS
-  const handleFavorite = useCallback(async () => {
-    if (!currentUserId) {
-      alert("Please log in to favorite posts");
-      return;
-    }
+  // =====================================================
 
-    const post = allPosts[currentPostIndex];
-    if (!post) return;
-
-    try {
-      console.log("[MEMEBOX] Toggling favorite for post", post.id, "user:", currentUserId);
-      const response = await fetch(`/api/memes/posts/${post.id}/favorite`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to toggle favorite");
-      }
-
-      const data = await response.json();
-      const updatedPosts = [...allPosts];
-      updatedPosts[currentPostIndex].isFavorited = data.isFavorited;
-      setAllPosts(updatedPosts);
-      console.log("[MEMEBOX] ✅ Favorite toggled:", data.isFavorited);
-    } catch (error) {
-      console.error("[MEMEBOX] ❌ Favorite error:", error);
-      alert("Failed to toggle favorite: " + error.message);
-    }
-  }, [allPosts, currentPostIndex, currentUserId]);
+  const handleFavorite = useCallback(() => {
+    const updatedPosts = [...allPosts];
+    updatedPosts[currentPostIndex].isFavorited =
+      !updatedPosts[currentPostIndex].isFavorited;
+    setAllPosts(updatedPosts);
+    logAction("favorite", updatedPosts[currentPostIndex].id);
+  }, [allPosts, currentPostIndex]);
 
   const removeFromFavorites = useCallback(
     (postId) => {
@@ -277,19 +383,10 @@ export default function TheMemeBoxImplementation001() {
     [allPosts]
   );
 
-  const showDetailNextImage = useCallback(() => {
-    if (!selectedFavoritePost) return;
-    setDetailImageIndex((prev) => (prev + 1) % selectedFavoritePost.images.length);
-  }, [selectedFavoritePost]);
-
-  const showDetailPreviousImage = useCallback(() => {
-    if (!selectedFavoritePost) return;
-    setDetailImageIndex((prev) =>
-      prev === 0 ? selectedFavoritePost.images.length - 1 : prev - 1
-    );
-  }, [selectedFavoritePost]);
-
+  // =====================================================
   // DIALOG FUNCTIONS
+  // =====================================================
+
   const openUploadDialog = () => setIsUploadDialogOpen(true);
   const closeUploadDialog = () => {
     setIsUploadDialogOpen(false);
@@ -314,47 +411,56 @@ export default function TheMemeBoxImplementation001() {
 
   const openFavoriteDetail = (post) => {
     setSelectedFavoritePost(post);
+    setDetailImageIndex(0);
     setIsFavoriteDetailOpen(true);
   };
 
   const closeFavoriteDetail = () => {
     setIsFavoriteDetailOpen(false);
     setSelectedFavoritePost(null);
+    setDetailImageIndex(0);
   };
 
-  // ZOOM MODAL FUNCTIONS
-  const openZoomModal = (imageIndex = 0) => {
-    setZoomImageIndex(imageIndex);
-    setIsZoomModalOpen(true);
+  const showDetailNextImage = () => {
+    if (
+      selectedFavoritePost &&
+      detailImageIndex < selectedFavoritePost.images.length - 1
+    ) {
+      setDetailImageIndex((prev) => prev + 1);
+    }
   };
 
-  const closeZoomModal = () => {
-    setIsZoomModalOpen(false);
+  const showDetailPreviousImage = () => {
+    if (detailImageIndex > 0) {
+      setDetailImageIndex((prev) => prev - 1);
+    }
   };
 
-  const zoomNextPost = () => {
-    showNextPost();
-    setZoomImageIndex(0);
-  };
+  // =====================================================
+  // FILE UPLOAD FUNCTIONS
+  // =====================================================
 
-  const zoomPreviousPost = () => {
-    showPreviousPost();
-    setZoomImageIndex(0);
-  };
-
-  // FILE UPLOAD (NOW USING FormData for streaming)
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    setUploadedImages((prev) => [
-      ...prev.slice(0, MAX_UPLOAD_IMAGES - files.length),
-      ...files,
-    ]);
+    files
+      .slice(0, MAX_UPLOAD_IMAGES - uploadedImages.length)
+      .forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setUploadedImages((prev) => [...prev, event.target.result]);
+        };
+        reader.readAsDataURL(file);
+      });
   };
 
   const handleCommentImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setCommentImageData(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCommentImageData(event.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -362,35 +468,44 @@ export default function TheMemeBoxImplementation001() {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // SUBMIT UPLOAD (FormData streaming instead of base64 JSON)
-  const submitUpload = async () => {
-    if (!currentUserId) {
-      alert("Please log in to upload");
-      return;
-    }
+  // =====================================================
+  // FORM SUBMISSION
+  // =====================================================
 
+  const submitUpload = async () => {
     if (!uploadTitle.trim() || uploadedImages.length === 0) {
       alert("Please enter a title and select at least one image");
       return;
     }
 
     try {
-      console.log("[MEMEBOX] Uploading post with", uploadedImages.length, "images, user:", currentUserId);
+      console.log(
+        "[MEMEBOX] Uploading post with",
+        uploadedImages.length,
+        "images..."
+      );
 
+      // ✅ FIXED: Send base64 strings directly, not wrapped in objects
       const response = await fetch("/api/memes/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ✅ INCLUDE COOKIES
+        credentials: "include", // ✅ Include cookies for auth
         body: JSON.stringify({
           title: uploadTitle,
           description: uploadDescription,
-          imageBase64Array: uploadedImages,
+          imageBase64Array: uploadedImages, // ✅ Raw base64 strings
         }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Upload failed");
+        let errorMsg = "Upload failed";
+        try {
+          const error = await response.json();
+          errorMsg = error.error || "Upload failed";
+        } catch {
+          errorMsg = `Upload failed (${response.status} ${response.statusText})`;
+        }
+        throw new Error(errorMsg);
       }
 
       const result = await response.json();
@@ -398,7 +513,6 @@ export default function TheMemeBoxImplementation001() {
 
       const newPost = {
         id: result.id,
-        user_id: currentUserId,
         title: uploadTitle,
         description: uploadDescription,
         images: uploadedImages,
@@ -412,59 +526,49 @@ export default function TheMemeBoxImplementation001() {
 
       setAllPosts((prev) => [newPost, ...prev]);
       closeUploadDialog();
+      logAction("upload", newPost.id);
     } catch (error) {
       console.error("[MEMEBOX] ❌ Upload error:", error);
       alert("Failed to upload: " + error.message);
     }
   };
 
-  // SUBMIT COMMENT (WITH IMAGE AND DATABASE PERSISTENCE)
-  const submitComment = async () => {
-  if (!currentUserId) {
-    alert("Please log in to comment");
-    return;
-  }
 
-  if (!commentTitle.trim() || !commentDescription.trim()) {
-    alert("Please enter a comment title and description");
-    return;
-  }
 
-  const post = allPosts[currentPostIndex];
-  if (!post) return;
 
-  try {
-    const formData = new FormData();
-    formData.append("title", commentTitle);
-    formData.append("description", commentDescription);
-    if (commentImageData) {
-      formData.append("commentImage", commentImageData);
+  
+
+  const submitComment = () => {
+    if (!commentTitle.trim() || !commentDescription.trim()) {
+      alert("Please enter a comment title and description");
+      return;
     }
-
-    const response = await fetch(`/api/memes/posts/${post.id}/comments`, {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Comment failed");
-    }
-
-    const newComment = await response.json();
-    console.log("[MEMEBOX] ✅ Comment created with ID:", newComment.id);
 
     const updatedPosts = [...allPosts];
-    updatedPosts[currentPostIndex].comments.push(newComment);
+    const post = updatedPosts[currentPostIndex];
+
+    const newComment = {
+      id: Math.max(...post.comments.map((c) => c.id), 0) + 1,
+      title: commentTitle,
+      description: commentDescription,
+      image: commentImageData,
+      upvotes: 0,
+      downvotes: 0,
+      userVote: null,
+      timestamp: new Date(),
+      hidden: false,
+    };
+
+    post.comments.push(newComment);
     setAllPosts(updatedPosts);
     closeCommentDialog();
-  } catch (error) {
-    console.error("[MEMEBOX] ❌ Comment error:", error);
-    alert("Failed to add comment: " + error.message);
-  }
-};
+    logAction("comment", post.id);
+  };
+
+  // =====================================================
   // UTILITY FUNCTIONS
+  // =====================================================
+
   const getTimeElapsed = (timestamp) => {
     const now = new Date();
     const seconds = Math.floor((now - timestamp) / 1000);
@@ -476,10 +580,6 @@ export default function TheMemeBoxImplementation001() {
     return `${Math.floor(seconds / 604800)}w ago`;
   };
 
-  const isVideoFile = (url) => {
-    return /\.(mp4|webm|ogg|mov|avi|mkv|gif)$/i.test(url);
-  };
-
   const getPageTitle = () => {
     if (currentPage === 1) return "User Posts";
     if (currentPage === 2) return "All Posts";
@@ -487,12 +587,24 @@ export default function TheMemeBoxImplementation001() {
     return "Posts";
   };
 
+  const logAction = (action, postId) => {
+    console.log(
+      `Action: ${action}, Post ID: ${postId}, Timestamp: ${new Date().toISOString()}`
+    );
+  };
+
+  const canSeePost = (post) => post.downvotes < 5;
+
   const handlePageNavigation = () => {
     setCurrentPage((prev) => (prev === 3 ? 1 : prev + 1));
     setCurrentPostIndex(0);
+    setCurrentImageIndex(0);
   };
 
-  // TOUCH HANDLING
+  // =====================================================
+  // TOUCH & KEYBOARD HANDLING
+  // =====================================================
+
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -504,21 +616,43 @@ export default function TheMemeBoxImplementation001() {
     const diffX = touchStartX.current - touchEndX;
     const diffY = touchStartY.current - touchEndY;
 
-    if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(diffY) < SWIPE_THRESHOLD / 2) {
+    if (
+      Math.abs(diffX) > SWIPE_THRESHOLD &&
+      Math.abs(diffY) < SWIPE_THRESHOLD / 2
+    ) {
       if (diffX > 0) {
-        showNextPost();
+        showNextImage();
       } else {
-        showPreviousPost();
+        showPreviousImage();
       }
     }
   };
 
-  // FILTERED POSTS & DISPLAY
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // if (e.key === "ArrowRight") showNextImage();
+      // if (e.key === "ArrowLeft") showPreviousImage();
+      // if (e.key === "ArrowDown") showNextPost();
+      // if (e.key === "ArrowUp") showPreviousPost();
+      // if (e.key === "u" || e.key === "U") handleUpvote();
+      // if (e.key === "d" || e.key === "D") handleDownvote();
+      // if (e.key === "f" || e.key === "F") handleFavorite();
+      // if (e.key === "c" || e.key === "C") openCommentDialog();
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [handleUpvote, handleDownvote, handleFavorite]);
+
+  // =====================================================
+  // FILTERED POSTS
+  // =====================================================
+
   const getFilteredPosts = useCallback(() => {
     if (currentPage === 1) {
       return allPosts;
     } else if (currentPage === 2) {
-      return allPosts.filter((p) => p.downvotes < 5);
+      return allPosts.filter((p) => canSeePost(p));
     } else if (currentPage === 3) {
       return allPosts.filter((p) => p.isFavorited);
     }
@@ -527,9 +661,13 @@ export default function TheMemeBoxImplementation001() {
 
   const filteredPosts = getFilteredPosts();
   const displayPost = filteredPosts[currentPostIndex];
+  const displayImage = displayPost?.images[currentImageIndex];
   const favoritesPosts = allPosts.filter((p) => p.isFavorited);
 
+  // =====================================================
   // STYLES
+  // =====================================================
+
   const styles = {
     container: {
       display: "flex",
@@ -582,21 +720,14 @@ export default function TheMemeBoxImplementation001() {
       overflow: "auto",
       padding: "20px",
     },
-    imagesStack: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "16px",
-      margin: "0 auto 20px",
-      maxWidth: "600px",
-      width: "100%",
-    },
-    mediaItem: {
+    imageCarousel: {
       position: "relative",
+      width: "100%",
+      maxWidth: "600px",
+      margin: "0 auto 20px",
       borderRadius: "12px",
       overflow: "hidden",
       boxShadow: "0 8px 16px rgba(0, 0, 0, 0.5)",
-      cursor: "pointer",
-      backgroundColor: "#333333",
     },
     postImage: {
       width: "100%",
@@ -604,25 +735,16 @@ export default function TheMemeBoxImplementation001() {
       display: "block",
       borderRadius: "12px",
     },
-    postVideo: {
-      width: "100%",
-      height: "auto",
-      borderRadius: "12px",
-    },
-    playIcon: {
+    imageCounter: {
       position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: "60px",
-      height: "60px",
-      backgroundColor: "rgba(0, 0, 0, 0.6)",
-      borderRadius: "50%",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "30px",
-      color: "#00ff00",
+      bottom: "12px",
+      right: "12px",
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      color: "#ffffff",
+      padding: "6px 12px",
+      borderRadius: "4px",
+      fontSize: "12px",
+      fontWeight: "500",
     },
     postInfo: {
       textAlign: "center",
@@ -691,11 +813,6 @@ export default function TheMemeBoxImplementation001() {
       color: "#000000",
       borderColor: "#00ff00",
     },
-    actionButtonDelete: {
-      backgroundColor: "#ff6666",
-      color: "#ffffff",
-      border: "2px solid #ff6666",
-    },
     navigationButtons: {
       display: "flex",
       gap: "12px",
@@ -713,58 +830,32 @@ export default function TheMemeBoxImplementation001() {
       fontWeight: "500",
       minWidth: "120px",
     },
+    imageNavigation: {
+      display: "flex",
+      gap: "12px",
+      justifyContent: "center",
+    },
+    imageNavButton: {
+      backgroundColor: "#663300",
+      color: "#ffffff",
+      border: "none",
+      padding: "8px 16px",
+      borderRadius: "6px",
+      cursor: "pointer",
+      fontSize: "12px",
+    },
     overlay: {
       position: "fixed",
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: "rgba(0, 0, 0, 0.9)",
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
       zIndex: 1000,
       padding: "20px",
-    },
-    zoomModalContent: {
-      position: "relative",
-      maxWidth: "90vw",
-      maxHeight: "90vh",
-      display: "flex",
-      flexDirection: "column",
-      backgroundColor: "#222222",
-      borderRadius: "12px",
-      padding: "20px",
-    },
-    zoomImage: {
-      maxWidth: "100%",
-      maxHeight: "70vh",
-      objectFit: "contain",
-      borderRadius: "8px",
-      marginBottom: "16px",
-    },
-    zoomVideo: {
-      maxWidth: "100%",
-      maxHeight: "70vh",
-      objectFit: "contain",
-      borderRadius: "8px",
-      marginBottom: "16px",
-    },
-    zoomControls: {
-      display: "flex",
-      gap: "8px",
-      justifyContent: "center",
-      flexWrap: "wrap",
-    },
-    zoomButton_control: {
-      backgroundColor: "#0066ff",
-      color: "#ffffff",
-      border: "none",
-      padding: "10px 20px",
-      borderRadius: "6px",
-      cursor: "pointer",
-      fontSize: "13px",
-      fontWeight: "500",
     },
     dialog: {
       backgroundColor: "#222222",
@@ -892,6 +983,13 @@ export default function TheMemeBoxImplementation001() {
       objectFit: "cover",
       borderRadius: "6px",
     },
+    commentImagePreview: {
+      width: "100%",
+      maxHeight: "200px",
+      objectFit: "contain",
+      borderRadius: "6px",
+      marginTop: "8px",
+    },
     removeImageButton: {
       position: "absolute",
       top: "2px",
@@ -928,6 +1026,176 @@ export default function TheMemeBoxImplementation001() {
       fontWeight: "bold",
       transition: "all 0.3s ease",
     },
+    commentsListContainer: {
+      flex: 1,
+      overflow: "auto",
+      marginBottom: "16px",
+      maxHeight: "400px",
+    },
+    commentItem: {
+      backgroundColor: "#333333",
+      padding: "12px",
+      borderRadius: "8px",
+      marginBottom: "12px",
+      borderLeft: "4px solid #0066ff",
+    },
+    commentHeader: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: "8px",
+    },
+    commentTitle: {
+      margin: 0,
+      fontSize: "14px",
+      fontWeight: "bold",
+      color: "#00ff00",
+      flex: 1,
+    },
+    commentTime: {
+      fontSize: "12px",
+      color: "#999999",
+      marginLeft: "8px",
+    },
+    commentText: {
+      margin: "0 0 8px 0",
+      fontSize: "13px",
+      color: "#cccccc",
+      lineHeight: "1.4",
+    },
+    commentImage: {
+      width: "100%",
+      maxHeight: "150px",
+      objectFit: "cover",
+      borderRadius: "6px",
+      marginBottom: "8px",
+    },
+    commentVotes: {
+      display: "flex",
+      gap: "8px",
+    },
+    commentVoteButton: {
+      backgroundColor: "#444444",
+      color: "#ffffff",
+      border: "1px solid #666666",
+      padding: "6px 12px",
+      borderRadius: "4px",
+      cursor: "pointer",
+      fontSize: "12px",
+      transition: "all 0.3s ease",
+    },
+    commentVoteButtonActive: {
+      backgroundColor: "#00ff00",
+      color: "#000000",
+      borderColor: "#00ff00",
+    },
+    emptyCommentsText: {
+      textAlign: "center",
+      color: "#999999",
+      padding: "20px",
+    },
+    favoritesGridContainer: {
+      flex: 1,
+      overflow: "auto",
+    },
+    favoritesGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+      gap: "16px",
+      padding: "16px",
+    },
+    favoriteCard: {
+      backgroundColor: "#333333",
+      borderRadius: "8px",
+      overflow: "hidden",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
+      border: "2px solid transparent",
+    },
+    favoriteCardImage: {
+      width: "100%",
+      height: "150px",
+      objectFit: "cover",
+    },
+    favoriteCardInfo: {
+      padding: "12px",
+    },
+    favoriteCardTitle: {
+      margin: "0 0 6px 0",
+      fontSize: "13px",
+      fontWeight: "bold",
+      color: "#00ff00",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    },
+    favoriteCardMeta: {
+      margin: 0,
+      fontSize: "12px",
+      color: "#999999",
+    },
+    emptyFavoritesText: {
+      textAlign: "center",
+      color: "#999999",
+      padding: "40px 20px",
+      fontSize: "14px",
+    },
+    detailImageContainer: {
+      position: "relative",
+      borderRadius: "8px",
+      overflow: "hidden",
+      marginBottom: "16px",
+    },
+    detailImage: {
+      width: "100%",
+      height: "auto",
+      display: "block",
+      borderRadius: "8px",
+    },
+    detailDescription: {
+      fontSize: "14px",
+      color: "#cccccc",
+      lineHeight: "1.6",
+      marginBottom: "16px",
+    },
+    detailStats: {
+      display: "flex",
+      justifyContent: "space-around",
+      backgroundColor: "#333333",
+      padding: "12px",
+      borderRadius: "8px",
+      marginBottom: "16px",
+    },
+    statItem: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+    },
+    statLabel: {
+      fontSize: "12px",
+      color: "#999999",
+    },
+    statValue: {
+      fontSize: "18px",
+      fontWeight: "bold",
+      color: "#00ff00",
+      marginTop: "4px",
+    },
+    detailImageNavigation: {
+      display: "flex",
+      gap: "8px",
+    },
+    detailNavButton: {
+      flex: 1,
+      backgroundColor: "#0066ff",
+      color: "#ffffff",
+      border: "none",
+      padding: "10px 16px",
+      borderRadius: "6px",
+      cursor: "pointer",
+      fontSize: "13px",
+      fontWeight: "500",
+    },
     emptyState: {
       display: "flex",
       justifyContent: "center",
@@ -947,9 +1215,17 @@ export default function TheMemeBoxImplementation001() {
       margin: "0 0 4px 0",
       color: "#cccccc",
     },
+    footerHint: {
+      margin: 0,
+      color: "#999999",
+      fontSize: "11px",
+    },
   };
 
+  // =====================================================
   // RENDER FUNCTIONS
+  // =====================================================
+
   const renderNavbar = () => (
     <div style={styles.navbar}>
       <div style={styles.navbarContent}>
@@ -984,30 +1260,11 @@ export default function TheMemeBoxImplementation001() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div style={styles.imagesStack}>
-          {displayPost.images.map((image, idx) => (
-            <div key={idx} style={styles.mediaItem} onClick={() => openZoomModal(idx)}>
-              {isVideoFile(image) ? (
-                <>
-                  <video
-                    style={styles.postVideo}
-                    controls={false}
-                    muted
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const vid = e.currentTarget;
-                      vid.muted = !vid.muted;
-                    }}
-                  >
-                    <source src={image} />
-                  </video>
-                  <div style={styles.playIcon}>🔊</div>
-                </>
-              ) : (
-                <img src={image} alt={`post-${idx}`} style={styles.postImage} />
-              )}
-            </div>
-          ))}
+        <div style={styles.imageCarousel}>
+          {displayImage && <img src={displayImage} alt="post" style={styles.postImage} />}
+          <div style={styles.imageCounter}>
+            {currentImageIndex + 1} / {displayPost.images.length}
+          </div>
         </div>
 
         <div style={styles.postInfo}>
@@ -1065,15 +1322,26 @@ export default function TheMemeBoxImplementation001() {
           <button style={styles.actionButton} onClick={openViewCommentsDialog}>
             👁 View Comments
           </button>
-          {currentUserId === displayPost.user_id && (
-            <button
-              style={{ ...styles.actionButton, ...styles.actionButtonDelete }}
-              onClick={handleDeletePost}
-            >
-              🗑 Delete
-            </button>
-          )}
         </div>
+
+        {displayPost.images.length > 1 && (
+          <div style={styles.imageNavigation}>
+            <button
+              style={styles.imageNavButton}
+              onClick={showPreviousImage}
+              disabled={currentImageIndex === 0}
+            >
+              ← Previous Image
+            </button>
+            <button
+              style={styles.imageNavButton}
+              onClick={showNextImage}
+              disabled={currentImageIndex === displayPost.images.length - 1}
+            >
+              Next Image →
+            </button>
+          </div>
+        )}
 
         <div style={styles.navigationButtons}>
           <button style={styles.navArrowButton} onClick={showPreviousPost}>
@@ -1082,65 +1350,6 @@ export default function TheMemeBoxImplementation001() {
           <button style={styles.navArrowButton} onClick={showNextPost}>
             ⬇ Next Post
           </button>
-        </div>
-      </div>
-    );
-  };
-
-  const renderZoomModal = () => {
-    if (!isZoomModalOpen || !displayPost) return null;
-
-    return (
-      <div style={styles.overlay} onClick={closeZoomModal}>
-        <div
-          style={styles.zoomModalContent}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-              marginBottom: "16px",
-              padding: "0 8px",
-              alignItems: "center",
-              justifyContent: "flex-start",
-            }}
-          >
-            {displayPost.images.map((media, idx) => (
-              <div key={idx}>
-                {isVideoFile(media) ? (
-                  <video
-                    style={styles.zoomVideo}
-                    controls
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <source src={media} />
-                  </video>
-                ) : (
-                  <img
-                    src={media}
-                    alt={`zoom-${idx}`}
-                    style={styles.zoomImage}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div style={styles.zoomControls}>
-            <button style={styles.zoomButton_control} onClick={zoomPreviousPost}>
-              ⬆ Prev Post
-            </button>
-            <button style={styles.zoomButton_control} onClick={zoomNextPost}>
-              ⬇ Next Post
-            </button>
-            <button style={styles.zoomButton_control} onClick={closeZoomModal}>
-              ✕ Close
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -1185,29 +1394,27 @@ export default function TheMemeBoxImplementation001() {
             </div>
 
             <div style={styles.formGroup}>
-              <label style={styles.label}>Upload Images/Videos *</label>
+              <label style={styles.label}>Upload Images *</label>
               <input
                 style={styles.fileInput}
                 type="file"
                 multiple
-                accept="image/*,video/*,.gif"
+                accept="image/*"
                 onChange={handleFileSelect}
               />
               <span style={styles.helpText}>
-                {uploadedImages.length} / {MAX_UPLOAD_IMAGES} files selected
+                {uploadedImages.length} / {MAX_UPLOAD_IMAGES} images selected
               </span>
             </div>
 
             {uploadedImages.length > 0 && (
               <div style={styles.imagePreviewContainer}>
-                <span style={{ fontSize: "13px", fontWeight: "500" }}>
-                  Preview:
-                </span>
+                <span style={{ fontSize: "13px", fontWeight: "500" }}>Preview:</span>
                 <div style={styles.imagePreviewGrid}>
-                  {uploadedImages.map((file, idx) => (
+                  {uploadedImages.map((img, idx) => (
                     <div key={idx} style={styles.imagePreviewItem}>
                       <img
-                        src={URL.createObjectURL(file)}
+                        src={img}
                         alt={`preview-${idx}`}
                         style={styles.imagePreview}
                       />
@@ -1229,7 +1436,7 @@ export default function TheMemeBoxImplementation001() {
               Cancel
             </button>
             <button style={styles.submitButton} onClick={submitUpload}>
-              Upload
+              Upload Meme
             </button>
           </div>
         </div>
@@ -1283,12 +1490,15 @@ export default function TheMemeBoxImplementation001() {
                 accept="image/*"
                 onChange={handleCommentImageSelect}
               />
-              {commentImageData && (
-                <p style={{ fontSize: "12px", color: "#00ff00", marginTop: "8px" }}>
-                  ✅ Image selected: {commentImageData.name}
-                </p>
-              )}
             </div>
+
+            {commentImageData && (
+              <img
+                src={commentImageData}
+                alt="comment-preview"
+                style={styles.commentImagePreview}
+              />
+            )}
           </div>
 
           <div style={styles.dialogFooter}>
@@ -1307,91 +1517,74 @@ export default function TheMemeBoxImplementation001() {
   const renderViewCommentsDialog = () => {
     if (!isViewCommentsDialogOpen) return null;
 
+    const post = displayPost;
+
     return (
       <div style={styles.overlay} onClick={closeViewCommentsDialog}>
         <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
           <div style={styles.dialogHeader}>
             <h2 style={{ margin: 0, fontSize: "20px" }}>
-              💬 Comments ({displayPost?.comments.length || 0})
+              💬 Comments ({post?.comments.length || 0})
             </h2>
-            <button style={styles.closeButton} onClick={closeViewCommentsDialog}>
+            <button
+              style={styles.closeButton}
+              onClick={closeViewCommentsDialog}
+            >
               ✕
             </button>
           </div>
 
           <div style={styles.dialogContent}>
-            {displayPost && displayPost.comments.length > 0 ? (
-              displayPost.comments.map((comment) => (
-                <div
-                  key={comment.id}
-                  style={{
-                    backgroundColor: "#333333",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    marginBottom: "12px",
-                    borderLeft: "3px solid #0066ff",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    <h3
-                      style={{
-                        margin: "0",
-                        color: "#00ff00",
-                        fontSize: "14px",
-                      }}
-                    >
-                      {comment.title}
-                    </h3>
-                    <span
-                      style={{ fontSize: "11px", color: "#999999" }}
-                    >
-                      {getTimeElapsed(comment.timestamp)}
-                    </span>
+            <div style={styles.commentsListContainer}>
+              {post && post.comments.length > 0 ? (
+                post.comments.map((comment) => (
+                  <div key={comment.id} style={styles.commentItem}>
+                    <div style={styles.commentHeader}>
+                      <h3 style={styles.commentTitle}>{comment.title}</h3>
+                      <span style={styles.commentTime}>
+                        {getTimeElapsed(comment.timestamp)}
+                      </span>
+                    </div>
+                    <p style={styles.commentText}>{comment.description}</p>
+                    {comment.image && (
+                      <img
+                        src={comment.image}
+                        alt="comment"
+                        style={styles.commentImage}
+                      />
+                    )}
+                    <div style={styles.commentVotes}>
+                      <button
+                        style={{
+                          ...styles.commentVoteButton,
+                          ...(comment.userVote === 1
+                            ? styles.commentVoteButtonActive
+                            : {}),
+                        }}
+                        onClick={() => handleCommentVote(comment.id, true)}
+                      >
+                        👍 {comment.upvotes}
+                      </button>
+                      <button
+                        style={{
+                          ...styles.commentVoteButton,
+                          ...(comment.userVote === -1
+                            ? styles.commentVoteButtonActive
+                            : {}),
+                        }}
+                        onClick={() => handleCommentVote(comment.id, false)}
+                      >
+                        👎 {comment.downvotes}
+                      </button>
+                    </div>
                   </div>
-
-                  {comment.image && (
-                    <img
-                      src={comment.image}
-                      alt="comment"
-                      style={{
-                        width: "100%",
-                        maxHeight: "150px",
-                        objectFit: "cover",
-                        borderRadius: "4px",
-                        marginBottom: "8px",
-                      }}
-                    />
-                  )}
-
-                  <p
-                    style={{
-                      margin: "0 0 8px 0",
-                      fontSize: "13px",
-                      color: "#cccccc",
-                    }}
-                  >
-                    {comment.description}
-                  </p>
+                ))
+              ) : (
+                <div style={styles.emptyCommentsText}>
+                  No comments yet. Be the first to comment!
                 </div>
-              ))
-            ) : (
-              <div
-                style={{
-                  textAlign: "center",
-                  color: "#999999",
-                  padding: "20px",
-                }}
-              >
-                No comments yet. Be the first to comment!
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div style={styles.dialogFooter}>
@@ -1404,10 +1597,7 @@ export default function TheMemeBoxImplementation001() {
             >
               Add Comment
             </button>
-            <button
-              style={styles.cancelButton}
-              onClick={closeViewCommentsDialog}
-            >
+            <button style={styles.cancelButton} onClick={closeViewCommentsDialog}>
               Close
             </button>
           </div>
@@ -1419,136 +1609,9 @@ export default function TheMemeBoxImplementation001() {
   const renderFavoritesDialog = () => {
     if (!isFavoritesGridOpen) return null;
 
-    if (isFavoriteDetailOpen && selectedFavoritePost) {
-      return (
-        <div style={styles.overlay} onClick={closeFavoritesGrid}>
-          <div
-            style={{
-              backgroundColor: "#222222",
-              borderRadius: "12px",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)",
-              maxWidth: "600px",
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              maxHeight: "85vh",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={styles.dialogHeader}>
-              <h2 style={{ margin: 0, fontSize: "20px" }}>
-                {selectedFavoritePost.title}
-              </h2>
-              <button style={styles.closeButton} onClick={closeFavoriteDetail}>
-                ✕
-              </button>
-            </div>
-
-            <div
-              style={{
-                flex: 1,
-                overflow: "auto",
-                padding: "20px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {selectedFavoritePost.images.length > 0 && (
-                <>
-                  <img
-                    src={selectedFavoritePost.images[detailImageIndex]}
-                    alt={`favorite-${detailImageIndex}`}
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "400px",
-                      objectFit: "contain",
-                      borderRadius: "8px",
-                      marginBottom: "16px",
-                    }}
-                  />
-                  <p style={{ fontSize: "12px", color: "#999999", marginBottom: "16px" }}>
-                    {detailImageIndex + 1} / {selectedFavoritePost.images.length}
-                  </p>
-                </>
-              )}
-
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "#cccccc",
-                  textAlign: "center",
-                  margin: "16px 0",
-                }}
-              >
-                {selectedFavoritePost.description}
-              </p>
-
-              {selectedFavoritePost.images.length > 1 && (
-                <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
-                  <button
-                    style={{
-                      backgroundColor: "#0066ff",
-                      color: "#ffffff",
-                      border: "none",
-                      padding: "8px 16px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                    }}
-                    onClick={showDetailPreviousImage}
-                  >
-                    ⬅ Prev
-                  </button>
-                  <button
-                    style={{
-                      backgroundColor: "#0066ff",
-                      color: "#ffffff",
-                      border: "none",
-                      padding: "8px 16px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                    }}
-                    onClick={showDetailNextImage}
-                  >
-                    Next ➡
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div style={styles.dialogFooter}>
-              <button
-                style={{
-                  ...styles.cancelButton,
-                  backgroundColor: "#ff6666",
-                }}
-                onClick={() =>
-                  removeFromFavorites(selectedFavoritePost.id)
-                }
-              >
-                Remove from Favorites
-              </button>
-              <button
-                style={styles.submitButton}
-                onClick={closeFavoriteDetail}
-              >
-                Back
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div style={styles.overlay} onClick={closeFavoritesGrid}>
-        <div
-          style={styles.favoritesDialog}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div style={styles.favoritesDialog} onClick={(e) => e.stopPropagation()}>
           <div style={styles.dialogHeader}>
             <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
             <button style={styles.closeButton} onClick={closeFavoritesGrid}>
@@ -1556,63 +1619,39 @@ export default function TheMemeBoxImplementation001() {
             </button>
           </div>
 
-          <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
+          <div style={styles.favoritesGridContainer}>
             {favoritesPosts.length > 0 ? (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                  gap: "16px",
-                }}
-              >
+              <div style={styles.favoritesGrid}>
                 {favoritesPosts.map((post) => (
                   <div
                     key={post.id}
-                    style={{
-                      backgroundColor: "#333333",
-                      borderRadius: "8px",
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
+                    style={styles.favoriteCard}
+                    onClick={() => openFavoriteDetail(post)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.05)";
+                      e.currentTarget.style.borderColor = "#00ff00";
                     }}
-                    onClick={() => {
-                      setSelectedFavoritePost(post);
-                      setIsFavoriteDetailOpen(true);
-                      setDetailImageIndex(0);
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.borderColor = "transparent";
                     }}
                   >
                     <img
                       src={post.images[0]}
                       alt={post.title}
-                      style={{
-                        width: "100%",
-                        height: "150px",
-                        objectFit: "cover",
-                      }}
+                      style={styles.favoriteCardImage}
                     />
-                    <div style={{ padding: "12px" }}>
-                      <h3
-                        style={{
-                          margin: "0 0 6px 0",
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          color: "#00ff00",
-                        }}
-                      >
-                        {post.title}
-                      </h3>
+                    <div style={styles.favoriteCardInfo}>
+                      <h3 style={styles.favoriteCardTitle}>{post.title}</h3>
+                      <p style={styles.favoriteCardMeta}>
+                        👍 {post.upvotes} | 💬 {post.comments.length}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div
-                style={{
-                  textAlign: "center",
-                  color: "#999999",
-                  padding: "40px 20px",
-                }}
-              >
+              <div style={styles.emptyFavoritesText}>
                 No favorites yet. Start favoriting memes! ⭐
               </div>
             )}
@@ -1628,26 +1667,129 @@ export default function TheMemeBoxImplementation001() {
     );
   };
 
+  const renderFavoriteDetailDialog = () => {
+    if (!isFavoriteDetailOpen || !selectedFavoritePost) return null;
+
+    const post = selectedFavoritePost;
+
+    return (
+      <div style={styles.overlay} onClick={closeFavoriteDetail}>
+        <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
+          <div style={styles.dialogHeader}>
+            <h2 style={{ margin: 0, fontSize: "20px" }}>{post.title}</h2>
+            <button style={styles.closeButton} onClick={closeFavoriteDetail}>
+              ✕
+            </button>
+          </div>
+
+          <div style={styles.dialogContent}>
+            <div style={styles.detailImageContainer}>
+              <img
+                src={post.images[detailImageIndex]}
+                alt={post.title}
+                style={styles.detailImage}
+              />
+              {post.images.length > 1 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "12px",
+                    right: "12px",
+                    backgroundColor: "rgba(0, 0, 0, 0.7)",
+                    color: "#ffffff",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                  }}
+                >
+                  {detailImageIndex + 1} / {post.images.length}
+                </div>
+              )}
+            </div>
+
+            <p style={styles.detailDescription}>{post.description}</p>
+
+            <div style={styles.detailStats}>
+              <div style={styles.statItem}>
+                <div style={styles.statLabel}>Upvotes</div>
+                <div style={styles.statValue}>{post.upvotes}</div>
+              </div>
+              <div style={styles.statItem}>
+                <div style={styles.statLabel}>Downvotes</div>
+                <div style={styles.statValue}>{post.downvotes}</div>
+              </div>
+              <div style={styles.statItem}>
+                <div style={styles.statLabel}>Comments</div>
+                <div style={styles.statValue}>{post.comments.length}</div>
+              </div>
+            </div>
+
+            {post.images.length > 1 && (
+              <div style={styles.detailImageNavigation}>
+                <button
+                  style={styles.detailNavButton}
+                  onClick={showDetailPreviousImage}
+                  disabled={detailImageIndex === 0}
+                >
+                  ← Previous
+                </button>
+                <button
+                  style={styles.detailNavButton}
+                  onClick={showDetailNextImage}
+                  disabled={detailImageIndex === post.images.length - 1}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={styles.dialogFooter}>
+            <button
+              style={styles.actionButton}
+              onClick={() => {
+                removeFromFavorites(post.id);
+                closeFavoriteDetail();
+              }}
+            >
+              Remove from Favorites
+            </button>
+            <button style={styles.cancelButton} onClick={closeFavoriteDetail}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderFooter = () => (
     <div style={styles.footer}>
       <p style={styles.footerText}>
-        TheMemeBox v1.0 • {allPosts.length} posts • {favoritesPosts.length}{" "}
-        favorites
+        TheMemeBox v1.0 • {allPosts.length} posts • {favoritesPosts.length} favorites
+      </p>
+      <p style={styles.footerHint}>
+        Keyboard: Arrow Keys to navigate • U/D for votes • F for favorite • C to
+        comment
       </p>
     </div>
   );
 
+  // =====================================================
   // MAIN RENDER
+  // =====================================================
+
   return (
     <div style={styles.container}>
       {renderNavbar()}
       {renderPostViewer()}
-      {renderZoomModal()}
       {renderFooter()}
       {renderUploadDialog()}
       {renderCommentDialog()}
       {renderViewCommentsDialog()}
       {renderFavoritesDialog()}
+      {renderFavoriteDetailDialog()}
     </div>
   );
 }
