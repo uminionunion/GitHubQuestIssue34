@@ -92,8 +92,9 @@ if (RouterProto) {
   ['use', 'get', 'post', 'put', 'delete', 'all'].forEach((m) => patchMethodOn(RouterProto, m));
 }
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Increase JSON payload limit for large image uploads (base64)
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 app.use(fileUpload({
   createParentPath: true,
