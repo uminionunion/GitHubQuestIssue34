@@ -12,7 +12,6 @@ export default function TheMemeBoxImplementation001() {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [commentImageData, setCommentImageData] = useState(null);
   const [detailImageIndex, setDetailImageIndex] = useState(0);
-  const [autoRotateTimer, setAutoRotateTimer] = useState(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [isViewCommentsDialogOpen, setIsViewCommentsDialogOpen] =
@@ -30,8 +29,7 @@ export default function TheMemeBoxImplementation001() {
   const touchStartY = useRef(0);
   const SWIPE_THRESHOLD = 50;
   const MAX_UPLOAD_IMAGES = 50;
-  const AUTO_ROTATE_INTERVAL = 7000;
-  const AUTO_ROTATE_DELAY = 7000;
+  
 
   // =====================================================
   // AUTH STATUS CHECK
@@ -229,41 +227,7 @@ export default function TheMemeBoxImplementation001() {
     fetchPostsFromDatabase();
   }, []);
 
-  // =====================================================
-  // AUTO-ROTATE FUNCTIONALITY
-  // =====================================================
-
-  const startAutoRotate = useCallback(() => {
-    if (autoRotateTimer) {
-      clearInterval(autoRotateTimer);
-    }
-
-    const timer = setInterval(() => {
-      setCurrentImageIndex((prev) => {
-        const post = allPosts[currentPostIndex];
-        if (post && prev < post.images.length - 1) {
-          return prev + 1;
-        } else {
-          showNextPost();
-          return 0;
-        }
-      });
-    }, AUTO_ROTATE_INTERVAL);
-
-    setAutoRotateTimer(timer);
-  }, [allPosts, currentPostIndex]);
-
-  const restartAutoRotate = useCallback(() => {
-    if (autoRotateTimer) {
-      clearInterval(autoRotateTimer);
-    }
-
-    const timer = setTimeout(() => {
-      startAutoRotate();
-    }, AUTO_ROTATE_DELAY);
-
-    setAutoRotateTimer(timer);
-  }, [autoRotateTimer, startAutoRotate]);
+  
 
   // =====================================================
   // POST NAVIGATION
@@ -275,7 +239,6 @@ export default function TheMemeBoxImplementation001() {
       setCurrentImageIndex(0);
       return nextIndex;
     });
-    restartAutoRotate();
   }, [allPosts.length, restartAutoRotate]);
 
   const showPreviousPost = useCallback(() => {
@@ -284,7 +247,6 @@ export default function TheMemeBoxImplementation001() {
       setCurrentImageIndex(0);
       return nextIndex;
     });
-    restartAutoRotate();
   }, [allPosts.length, restartAutoRotate]);
 
   const showNextImage = useCallback(() => {
@@ -294,7 +256,6 @@ export default function TheMemeBoxImplementation001() {
     } else {
       showNextPost();
     }
-    restartAutoRotate();
   }, [allPosts, currentPostIndex, currentImageIndex, showNextPost, restartAutoRotate]);
 
   const showPreviousImage = useCallback(() => {
@@ -303,7 +264,6 @@ export default function TheMemeBoxImplementation001() {
     } else {
       showPreviousPost();
     }
-    restartAutoRotate();
   }, [currentImageIndex, showPreviousPost, restartAutoRotate]);
 
   // =====================================================
@@ -670,14 +630,14 @@ export default function TheMemeBoxImplementation001() {
 
   useEffect(() => {
     const handleKeyPress = (e) => {
-      if (e.key === "ArrowRight") showNextImage();
-      if (e.key === "ArrowLeft") showPreviousImage();
-      if (e.key === "ArrowDown") showNextPost();
-      if (e.key === "ArrowUp") showPreviousPost();
-      if (e.key === "u" || e.key === "U") handleUpvote();
-      if (e.key === "d" || e.key === "D") handleDownvote();
-      if (e.key === "f" || e.key === "F") handleFavorite();
-      if (e.key === "c" || e.key === "C") openCommentDialog();
+      // if (e.key === "ArrowRight") showNextImage();
+      // if (e.key === "ArrowLeft") showPreviousImage();
+      // if (e.key === "ArrowDown") showNextPost();
+      // if (e.key === "ArrowUp") showPreviousPost();
+      // if (e.key === "u" || e.key === "U") handleUpvote();
+      // if (e.key === "d" || e.key === "D") handleDownvote();
+      // if (e.key === "f" || e.key === "F") handleFavorite();
+      // if (e.key === "c" || e.key === "C") openCommentDialog();
     };
 
     window.addEventListener("keydown", handleKeyPress);
