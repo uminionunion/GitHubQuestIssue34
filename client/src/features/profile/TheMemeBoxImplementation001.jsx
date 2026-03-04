@@ -38,28 +38,27 @@ export default function TheMemeBoxImplementation001() {
   // =====================================================
 
   useEffect(() => {
-  const checkAuthStatus = async () => {
-    try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const user = await res.json();
-        setCurrentUsername(user.username);
-        console.log("[MEMEBOX] ✅ Logged in as:", user.username);
-      } else if (res.status === 401) {
-        // Not authenticated - this is normal, don't log as error
+    const checkAuthStatus = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include", // ✅ Include cookies
+        });
+        if (res.ok) {
+          const user = await res.json();
+          setCurrentUsername(user.username);
+          console.log("[MEMEBOX] ✅ Logged in as:", user.username);
+        }
+      } catch (error) {
+        // Silently fail - network error or not authenticated
         setCurrentUsername("DemoUser");
       }
-    } catch (error) {
-      // Network error - set default
-      setCurrentUsername("DemoUser");
-    }
-  };
+    };
 
-  checkAuthStatus();
-  // Only check every 3000 seconds instead of 5 to reduce spam
-  const interval = setInterval(checkAuthStatus, 3000000);
-  return () => clearInterval(interval);
-}, []);
+    checkAuthStatus();
+    // Check once on mount, then every 3000 seconds 
+    const interval = setInterval(checkAuthStatus, 3000000);
+    return () => clearInterval(interval);
+  }, []);
 
   // =====================================================
   // SAMPLE DATA
@@ -183,62 +182,23 @@ export default function TheMemeBoxImplementation001() {
       try {
         console.log("[MEMEBOX] Fetching posts from database...");
 
-        useEffect(() => {
-  const fetchPostsFromDatabase = async () => {
-    try {
-      console.log("[MEMEBOX] Fetching posts from database...");
+        // Fetch from both endpoints
+        const [viralRes, userSubmittedRes] = await Promise.all([
+          fetch("/api/memes/posts/viral"),
+          fetch("/api/memes/posts/user-submitted"),
+        ]);
 
-      // Fetch from both endpoints
-      const [viralRes, userSubmittedRes] = await Promise.all([
-        fetch("/api/memes/posts/viral"),
-        fetch("/api/memes/posts/user-submitted"),
-      ]);
+        const viralPosts = viralRes.ok ? await viralRes.json() : [];
+        const userSubmittedPosts = userSubmittedRes.ok ? await userSubmittedRes.json() : [];
 
-      const viralPosts = viralRes.ok ? await viralRes.json() : [];
-      const userSubmittedPosts = userSubmittedRes.ok ? await userSubmittedRes.json() : [];
+        console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
+        console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
 
-      console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
-      console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
+        // Combine all posts (viral first, then user-submitted)
+        const allDbPosts = [...viralPosts, ...userSubmittedPosts];
 
-      // Combine all posts (viral first, then user-submitted)
-      const allDbPosts = [...viralPosts, ...userSubmittedPosts];
-
-      if (allDbPosts.length > 0) {
-        const formattedPosts = allDbPosts.map((post) => ({
-          id: post.id,
-          title: post.title,
-          description: post.description,
-          images: post.image_base64
-            ? [post.image_base64]
-            : [samplePosts[0].images[0]],
-          upvotes: post.upvotes || 0,
-          downvotes: post.downvotes || 0,
-          userVote: null,
-          timestamp: new Date(post.created_at),
-          comments: [],
-          isFavorited: false,
-          username: post.username,
-        }));
-
-        setAllPosts(formattedPosts);
-      } else {
-        console.log("[MEMEBOX] No posts in database, using sample posts");
-        setAllPosts(samplePosts);
-      }
-    } catch (error) {
-      console.error("[MEMEBOX] Error fetching posts:", error);
-      setAllPosts(samplePosts);
-    }
-  };
-
-  fetchPostsFromDatabase();
-}, []);
-
-        const dbPosts = await response.json();
-        console.log("[MEMEBOX] ✅ Fetched", dbPosts.length, "posts from database");
-
-        if (dbPosts.length > 0) {
-          const formattedPosts = dbPosts.map((post) => ({
+        if (allDbPosts.length > 0) {
+          const formattedPosts = allDbPosts.map((post) => ({
             id: post.id,
             title: post.title,
             description: post.description,
@@ -567,6 +527,7 @@ export default function TheMemeBoxImplementation001() {
       const response = await fetch("/api/memes/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // ✅ IMPORTANT: Include cookies for auth
         body: JSON.stringify({
           title: uploadTitle,
           description: uploadDescription,
@@ -576,8 +537,14 @@ export default function TheMemeBoxImplementation001() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Upload failed");
+        let errorMsg = "Upload failed";
+        try {
+          const error = await response.json();
+          errorMsg = error.error || "Upload failed";
+        } catch {
+          errorMsg = `Upload failed (${response.status} ${response.statusText})`;
+        }
+        throw new Error(errorMsg);
       }
 
       const result = await response.json();
