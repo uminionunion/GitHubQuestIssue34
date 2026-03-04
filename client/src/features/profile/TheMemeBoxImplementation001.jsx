@@ -32,35 +32,28 @@ export default function TheMemeBoxImplementation001() {
 
   // AUTH STATUS CHECK
   useEffect(() => {
-  const checkAuthStatus = async () => {
-    try {
-      console.log("[MEMEBOX] 📡 Checking auth status...");
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-      });
-      if (res.ok) {
-        const user = await res.json();
-        console.log("[MEMEBOX] ✅ Auth response:", user);
-        
-        // ✅ CRITICAL: Set BOTH username AND id
-        setCurrentUsername(user.username);
-        setCurrentUserId(user.id);  // ← THIS WAS MISSING
-        
-        console.log("[MEMEBOX] ✅ Logged in as:", user.username, "ID:", user.id);
-      } else if (res.status === 401) {
-        console.log("[MEMEBOX] Not authenticated (401)");
+    const checkAuthStatus = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const user = await res.json();
+          setCurrentUsername(user.username);
+          setCurrentUserId(user.id);  // ✅ ADD THIS LINE
+          console.log("[MEMEBOX] ✅ Logged in as:", user.username, "ID:", user.id);
+        } else if (res.status === 401) {
+          setCurrentUsername("DemoUser");
+          setCurrentUserId(null);  // ✅ ADD THIS LINE
+        }
+      } catch (error) {
         setCurrentUsername("DemoUser");
-        setCurrentUserId(null);
+        setCurrentUserId(null);  // ✅ ADD THIS LINE
       }
-    } catch (error) {
-      console.error("[MEMEBOX] Auth check error:", error);
-      setCurrentUsername("DemoUser");
-      setCurrentUserId(null);
-    }
-  };
+    };
 
-  checkAuthStatus();
-}, []);
+    checkAuthStatus();
+  }, []);
 
   // SAMPLE DATA
   const samplePosts = [
