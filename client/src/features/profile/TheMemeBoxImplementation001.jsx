@@ -47,17 +47,18 @@ export default function TheMemeBoxImplementation001() {
           const user = await res.json();
           setCurrentUsername(user.username);
           console.log("[MEMEBOX] ✅ Logged in as:", user.username);
+        } else if (res.status === 401) {
+          // Not authenticated - this is normal, don't log
+          setCurrentUsername("DemoUser");
         }
       } catch (error) {
-        // Silently fail - network error or not authenticated
+        // Network error - use default
         setCurrentUsername("DemoUser");
       }
     };
 
+    // Check on mount only, not repeatedly
     checkAuthStatus();
-    // Check once on mount, then every 3000 seconds 
-    const interval = setInterval(checkAuthStatus, 3000000);
-    return () => clearInterval(interval);
   }, []);
 
   // =====================================================
@@ -524,15 +525,15 @@ export default function TheMemeBoxImplementation001() {
         "images..."
       );
 
+      // ✅ FIXED: Send base64 strings directly, not wrapped in objects
       const response = await fetch("/api/memes/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ✅ IMPORTANT: Include cookies for auth
+        credentials: "include", // ✅ Include cookies for auth
         body: JSON.stringify({
           title: uploadTitle,
           description: uploadDescription,
-          images: uploadedImages,
-          username: currentUsername,
+          imageBase64Array: uploadedImages, // ✅ Raw base64 strings
         }),
       });
 
@@ -561,7 +562,6 @@ export default function TheMemeBoxImplementation001() {
         timestamp: new Date(),
         comments: [],
         isFavorited: false,
-        username: currentUsername,
       };
 
       setAllPosts((prev) => [newPost, ...prev]);
@@ -572,6 +572,11 @@ export default function TheMemeBoxImplementation001() {
       alert("Failed to upload: " + error.message);
     }
   };
+
+
+
+
+  
 
   const submitComment = () => {
     if (!commentTitle.trim() || !commentDescription.trim()) {
