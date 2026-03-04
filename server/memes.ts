@@ -496,7 +496,8 @@ router.post('/api/memes/posts/:id/comments', requireAuth, async (req: Request, r
     const { title, description, image } = req.body;
     const userId = (req as any).user?.userId;
 
-    if (!title && !description) {
+    // ✅ FIXED: Check if at least one field exists
+    if ((!title || !title.trim()) && (!description || !description.trim())) {
       return res.status(400).json({ error: 'Title or description required' });
     }
 
@@ -507,8 +508,8 @@ router.post('/api/memes/posts/:id/comments', requireAuth, async (req: Request, r
       .values({
         post_id: parseInt(id),
         user_id: userId,
-        title: title || null,
-        description: description || null,
+        title: title?.trim() || null,
+        description: description?.trim() || null,
         image_url: image || null,
         upvotes: 0,
         downvotes: 0,
@@ -516,7 +517,13 @@ router.post('/api/memes/posts/:id/comments', requireAuth, async (req: Request, r
       .executeTakeFirstOrThrow();
 
     console.log('[MEME API] ✅ Comment created with ID', result.insertId);
-    res.status(201).json({ id: result.insertId, message: 'Comment added' });
+    res.status(201).json({ 
+      id: result.insertId, 
+      title: title?.trim() || null,
+      description: description?.trim() || null,
+      image_url: image || null,
+      message: 'Comment added' 
+    });
   } catch (error) {
     console.error('[MEME API] Error adding comment:', error);
     res.status(500).json({ error: 'Failed to add comment' });
