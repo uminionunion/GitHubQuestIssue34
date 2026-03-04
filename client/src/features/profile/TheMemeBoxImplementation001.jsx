@@ -300,12 +300,11 @@ export default function TheMemeBoxImplementation001() {
 
   const handleFileSelect = (e) => {
   const files = Array.from(e.target.files);
-  const MAX_FILE_SIZE = 200 * 1024 * 1024; 
+  const MAX_FILE_SIZE = 50 * 1024 * 1024 * 1024; // 50GB
   
   files.slice(0, MAX_UPLOAD_IMAGES - uploadedImages.length).forEach((file) => {
-    // ✅ NEW: Validate file size before encoding to base64
     if (file.size > MAX_FILE_SIZE) {
-      alert(`File "${file.name}" is too large. Max size: 200MB`);
+      alert(`File "${file.name}" is too large. Max size: 50GB`);
       return;
     }
 
@@ -961,37 +960,29 @@ export default function TheMemeBoxImplementation001() {
         {/* ✅ NEW: Stacked images */}
         <div style={styles.imagesStack}>
           {displayPost.images.map((image, idx) => (
-            <div key={idx} style={styles.mediaItem} onClick={() => openZoomModal(idx)}>
-              {isVideoFile(image) ? (
-                <>
-                  <video
-                    style={styles.postVideo}
-                    controls={false}
-                    muted
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const vid = e.currentTarget;
-                      vid.muted = !vid.muted;
-                    }}
-                  >
-                    <source src={image} />
-                  </video>
-                  <div style={styles.playIcon}>🔊</div>
-                </>
-              ) : (
-                <img src={image} alt={`post-${idx}`} style={styles.postImage} />
-              )}
-              <button
-                style={styles.zoomButton}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openZoomModal(idx);
-                }}
-              >
-                👁️
-              </button>
-            </div>
-          ))}
+  <div key={idx} style={styles.mediaItem} onClick={() => openZoomModal(idx)}>
+    {isVideoFile(image) ? (
+      <>
+        <video
+          style={styles.postVideo}
+          controls={false}
+          muted
+          onClick={(e) => {
+            e.stopPropagation();
+            const vid = e.currentTarget;
+            vid.muted = !vid.muted;
+          }}
+        >
+          <source src={image} />
+        </video>
+        <div style={styles.playIcon}>🔊</div>
+      </>
+    ) : (
+      <img src={image} alt={`post-${idx}`} style={styles.postImage} />
+    )}
+    {/* ✅ REMOVED: Eye icon button - clicking image still opens zoom modal */}
+  </div>
+))}
         </div>
 
         <div style={styles.postInfo}>
@@ -1070,7 +1061,7 @@ export default function TheMemeBoxImplementation001() {
   return (
     <div style={styles.overlay} onClick={closeZoomModal}>
       <div style={styles.zoomModalContent} onClick={(e) => e.stopPropagation()}>
-        {/* ✅ FIXED: Stack all images vertically instead of showing prev/next buttons */}
+        {/* ✅ FIXED: Stack all images vertically, CENTER-ALIGNED */}
         <div style={{
           flex: 1,
           overflowY: "auto",
@@ -1079,6 +1070,8 @@ export default function TheMemeBoxImplementation001() {
           gap: "16px",
           marginBottom: "16px",
           padding: "0 8px",
+          alignItems: "center",  // ✅ NEW: Center all images horizontally
+          justifyContent: "flex-start",
         }}>
           {displayPost.images.map((media, idx) => (
             <div key={idx}>
@@ -1158,8 +1151,8 @@ export default function TheMemeBoxImplementation001() {
                 onChange={handleFileSelect}
               />
               <span style={styles.helpText}>
-                {uploadedImages.length} / {MAX_UPLOAD_IMAGES} files selected
-              </span>
+  {uploadedImages.length} / {MAX_UPLOAD_IMAGES} files selected (Max 50GB per file)
+</span>
             </div>
 
             {uploadedImages.length > 0 && (
