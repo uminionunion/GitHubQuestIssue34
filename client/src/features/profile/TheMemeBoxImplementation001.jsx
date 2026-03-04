@@ -95,86 +95,54 @@ export default function TheMemeBoxImplementation001() {
   // INITIALIZATION - FETCH POSTS FROM DATABASE
   // =====================================================
 
- useEffect(() => {
-   const fetchPostsFromDatabase = async () => {
-     try {
-       console.log("[MEMEBOX] Fetching posts from database...");
+  useEffect(() => {
+  const fetchPostsFromDatabase = async () => {
+    try {
+      console.log("[MEMEBOX] Fetching posts from database...");
 
-       const [viralRes, userSubmittedRes] = await Promise.all([
-         fetch("/api/memes/posts/viral", { credentials: "include" }),  // ✅ ADD credentials
-         fetch("/api/memes/posts/user-submitted", { credentials: "include" }),  // ✅ ADD credentials
-       ]);
+      const [viralRes, userSubmittedRes] = await Promise.all([
+        fetch("/api/memes/posts/viral", { credentials: "include" }),  // ✅ ADD credentials
+        fetch("/api/memes/posts/user-submitted", { credentials: "include" }),  // ✅ ADD credentials
+      ]);
 
-       const viralPosts = viralRes.ok ? await viralRes.json() : [];
-       const userSubmittedPosts = userSubmittedRes.ok
-         ? await userSubmittedRes.json()
-         : [];
+      const viralPosts = viralRes.ok ? await viralRes.json() : [];
+      const userSubmittedPosts = userSubmittedRes.ok
+        ? await userSubmittedRes.json()
+        : [];
 
-       console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
-       console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
+      console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
+      console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
 
-       const allDbPosts = [...viralPosts, ...userSubmittedPosts];
+      const allDbPosts = [...viralPosts, ...userSubmittedPosts];
 
-       if (allDbPosts.length > 0) {
-         // ✅ FIXED: Fetch comments for each post during initial load
-         const formattedPosts = await Promise.all(
-           allDbPosts.map(async (post) => {
-             let comments = [];
-             try {
-               const commentRes = await fetch(`/api/memes/posts/${post.id}/comments`, {
-                 credentials: "include",
-               });
-               if (commentRes.ok) {
-                 const rawComments = await commentRes.json();
-                 comments = rawComments.map((comment) => ({
-                   id: comment.id,
-                   title: comment.title,
-                   description: comment.description,
-                   image: comment.image_url,
-                   upvotes: comment.upvotes || 0,
-                   downvotes: comment.downvotes || 0,
-                   userVote: null,
-                   timestamp: new Date(comment.created_at),
-                   hidden: false,
-                 }));
-               }
-             } catch (err) {
-               console.log("[MEMEBOX] Error fetching comments for post", post.id);
-             }
+      if (allDbPosts.length > 0) {
+        const formattedPosts = allDbPosts.map((post) => ({
+          id: post.id,
+          title: post.title,
+          description: post.description,
+          images: post.images || [samplePosts[0].images[0]],
+          upvotes: post.upvotes || 0,
+          downvotes: post.downvotes || 0,
+          userVote: null,
+          timestamp: new Date(post.created_at),
+          comments: [],
+          isFavorited: post.isFavorited || false,  // ✅ USE DATABASE VALUE
+        }));
 
-             return {
-               id: post.id,
-               title: post.title,
-               description: post.description,
-               images: post.images || [samplePosts[0].images[0]],
-               upvotes: post.upvotes || 0,
-               downvotes: post.downvotes || 0,
-               userVote: null,
-               timestamp: new Date(post.created_at),
-               comments: comments, // ✅ FIXED: Load comments from database
-               isFavorited: post.isFavorited || false,
-             };
-           })
-         );
+        setAllPosts(formattedPosts);
+      } else {
+        console.log("[MEMEBOX] No posts in database, using sample posts");
+        setAllPosts(samplePosts);
+      }
+    } catch (error) {
+      console.error("[MEMEBOX] Error fetching posts:", error);
+      setAllPosts(samplePosts);
+    }
+  };
 
-         setAllPosts(formattedPosts);
-       } else {
-         console.log("[MEMEBOX] No posts in database, using sample posts");
-         setAllPosts(samplePosts);
-       }
-     } catch (error) {
-       console.error("[MEMEBOX] Error fetching posts:", error);
-       setAllPosts(samplePosts);
-     }
-   };
+  fetchPostsFromDatabase();
+}, []);
 
-   fetchPostsFromDatabase();
- }, []);
-
-
-
-
-  
   // =====================================================
   // POST NAVIGATION
   // =====================================================
@@ -1535,81 +1503,167 @@ const renderViewCommentsDialog = () => {
 
 
 
- const renderFavoritesDialog = () => {
-   if (!isFavoritesGridOpen) return null;
+  const renderFavoritesDialog = () => {
+  if (!isFavoritesGridOpen) return null;
 
-   // If a favorite is selected for detail view
-   if (isFavoriteDetailOpen && selectedFavoritePost) {
-     return (
-       <div style={styles.overlay} onClick={closeFavoritesGrid}>
-         <div style={{
-           backgroundColor: "#222222",
-           borderRadius: "12px",
-           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)",
-           maxWidth: "600px",
-           width: "100%",
-           display: "flex",
-           flexDirection: "column",
-           maxHeight: "85vh",
-         }} onClick={(e) => e.stopPropagation()}>
-           {/* Header */}
-           <div style={styles.dialogHeader}>
-             <h2 style={{ margin: 0, fontSize: "20px" }}>
-               {selectedFavoritePost.title}
-             </h2>
-             <button 
-               style={styles.closeButton} 
-               onClick={() => closeFavoriteDetail()}
-             >
-               ✕
-             </button>
-           </div>
+  // If a favorite is selected for detail view
+  if (isFavoriteDetailOpen && selectedFavoritePost) {
+    return (
+      <div style={styles.overlay} onClick={closeFavoritesGrid}>
+        <div style={{
+          backgroundColor: "#222222",
+          borderRadius: "12px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)",
+          maxWidth: "600px",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "85vh",
+        }} onClick={(e) => e.stopPropagation()}>
+          {/* Header */}
+          <div style={styles.dialogHeader}>
+            <h2 style={{ margin: 0, fontSize: "20px" }}>
+              {selectedFavoritePost.title}
+            </h2>
+            <button 
+              style={styles.closeButton} 
+              onClick={() => closeFavoriteDetail()}
+            >
+              ✕
+            </button>
+          </div>
 
-           {/* Content - STACKED IMAGES WITH OVERFLOW */}
-           <div style={{ flex: 1, overflow: "auto", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start" }}>
-             {/* ✅ FIXED: Stack all images vertically with gap */}
-             {selectedFavoritePost.images.length > 0 && (
-               <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%", alignItems: "center" }}>
-                 {selectedFavoritePost.images.map((image, idx) => (
-                   <img 
-                     key={idx}
-                     src={image} 
-                     alt={`favorite-${idx}`}
-                     style={{
-                       maxWidth: "100%",
-                       maxHeight: "400px",
-                       objectFit: "contain",
-                       borderRadius: "8px",
-                     }}
-                   />
-                 ))}
-               </div>
-             )}
+          {/* Content - Image carousel */}
+          <div style={{ flex: 1, overflow: "auto", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            {selectedFavoritePost.images.length > 0 && (
+              <>
+                <img 
+                  src={selectedFavoritePost.images[zoomImageIndex]} 
+alt={`favorite-${zoomImageIndex}`}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "400px",
+                    objectFit: "contain",
+                    borderRadius: "8px",
+                    marginBottom: "16px",
+                  }}
+                />
+                <p style={{ fontSize: "12px", color: "#999999", marginBottom: "16px" }}>
+                  {zoomImageIndex + 1} / {selectedFavoritePost.images.length}
+                </p>
+              </>
+            )}
 
-             <p style={{ fontSize: "13px", color: "#cccccc", textAlign: "center", margin: "16px 0" }}>
-               {selectedFavoritePost.description}
-             </p>
-           </div>
+            <p style={{ fontSize: "13px", color: "#cccccc", textAlign: "center", margin: "16px 0" }}>
+              {selectedFavoritePost.description}
+            </p>
 
-           {/* Footer */}
-           <div style={styles.dialogFooter}>
-             <button 
-               style={{ ...styles.cancelButton, backgroundColor: "#ff6666" }} 
-               onClick={() => removeFromFavorites(selectedFavoritePost.id)}
-             >
-               Remove from Favorites
-             </button>
-             <button 
-               style={styles.submitButton} 
-               onClick={() => closeFavoriteDetail()}
-             >
-               Back
-             </button>
-           </div>
-         </div>
-       </div>
-     );
-   }
+            {selectedFavoritePost.images.length > 1 && (
+              <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                <button
+                  style={{
+                    backgroundColor: "#0066ff",
+                    color: "#ffffff",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                  onClick={() => setZoomImageIndex((prev) => prev === 0 ? selectedFavoritePost.images.length - 1 : prev - 1)}
+                >
+                  ⬅ Prev
+                </button>
+                <button
+                  style={{
+                    backgroundColor: "#0066ff",
+                    color: "#ffffff",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                  onClick={() => setZoomImageIndex((prev) => (prev + 1) % selectedFavoritePost.images.length)}
+                >
+                  Next ➡
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div style={styles.dialogFooter}>
+            <button 
+              style={{ ...styles.cancelButton, backgroundColor: "#ff6666" }} 
+              onClick={() => removeFromFavorites(selectedFavoritePost.id)}
+            >
+              Remove from Favorites
+            </button>
+            <button 
+              style={styles.submitButton} 
+              onClick={() => closeFavoriteDetail()}
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Grid view
+  return (
+    <div style={styles.overlay} onClick={closeFavoritesGrid}>
+      <div style={styles.favoritesDialog} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.dialogHeader}>
+          <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
+          <button style={styles.closeButton} onClick={closeFavoritesGrid}>✕</button>
+        </div>
+
+        <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
+          {favoritesPosts.length > 0 ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "16px" }}>
+              {favoritesPosts.map((post) => (
+                <div
+                  key={post.id}
+                  style={{
+                    backgroundColor: "#333333",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                  onClick={() => {
+  setSelectedFavoritePost(post);
+  setZoomImageIndex(0);
+  setIsFavoriteDetailOpen(true);
+}}
+                >
+                  <img src={post.images[0]} alt={post.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+                  <div style={{ padding: "12px" }}>
+                    <h3 style={{ margin: "0 0 6px 0", fontSize: "13px", fontWeight: "bold", color: "#00ff00" }}>
+                      {post.title}
+                    </h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", color: "#999999", padding: "40px 20px" }}>
+              No favorites yet. Start favoriting memes! ⭐
+            </div>
+          )}
+        </div>
+
+        <div style={styles.dialogFooter}>
+          <button style={styles.cancelButton} onClick={closeFavoritesGrid}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
   
   
   
