@@ -179,10 +179,56 @@ export default function TheMemeBoxImplementation001() {
       try {
         console.log("[MEMEBOX] Fetching posts from database...");
 
-        const response = await fetch("/api/memes/posts");
-        if (!response.ok) {
-          throw new Error("Failed to fetch posts");
-        }
+        useEffect(() => {
+  const fetchPostsFromDatabase = async () => {
+    try {
+      console.log("[MEMEBOX] Fetching posts from database...");
+
+      // Fetch from both endpoints
+      const [viralRes, userSubmittedRes] = await Promise.all([
+        fetch("/api/memes/posts/viral"),
+        fetch("/api/memes/posts/user-submitted"),
+      ]);
+
+      const viralPosts = viralRes.ok ? await viralRes.json() : [];
+      const userSubmittedPosts = userSubmittedRes.ok ? await userSubmittedRes.json() : [];
+
+      console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
+      console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
+
+      // Combine all posts (viral first, then user-submitted)
+      const allDbPosts = [...viralPosts, ...userSubmittedPosts];
+
+      if (allDbPosts.length > 0) {
+        const formattedPosts = allDbPosts.map((post) => ({
+          id: post.id,
+          title: post.title,
+          description: post.description,
+          images: post.image_base64
+            ? [post.image_base64]
+            : [samplePosts[0].images[0]],
+          upvotes: post.upvotes || 0,
+          downvotes: post.downvotes || 0,
+          userVote: null,
+          timestamp: new Date(post.created_at),
+          comments: [],
+          isFavorited: false,
+          username: post.username,
+        }));
+
+        setAllPosts(formattedPosts);
+      } else {
+        console.log("[MEMEBOX] No posts in database, using sample posts");
+        setAllPosts(samplePosts);
+      }
+    } catch (error) {
+      console.error("[MEMEBOX] Error fetching posts:", error);
+      setAllPosts(samplePosts);
+    }
+  };
+
+  fetchPostsFromDatabase();
+}, []);
 
         const dbPosts = await response.json();
         console.log("[MEMEBOX] ✅ Fetched", dbPosts.length, "posts from database");
