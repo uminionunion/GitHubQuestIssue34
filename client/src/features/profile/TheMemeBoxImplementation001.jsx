@@ -154,6 +154,30 @@ export default function TheMemeBoxImplementation001() {
     setCurrentPostIndex((prev) => (prev === 0 ? allPosts.length - 1 : prev - 1));
   }, [allPosts.length]);
 
+
+
+useEffect(() => {
+  const loadCommentsForCurrentPost = async () => {
+    if (filteredPosts.length === 0) return;
+    
+    const currentPost = filteredPosts[currentPostIndex];
+    if (!currentPost) return;
+    
+    const comments = await fetchCommentsForPost(currentPost.id);
+    
+    const updatedPosts = [...allPosts];
+    const postIndexInAll = allPosts.findIndex(p => p.id === currentPost.id);
+    if (postIndexInAll !== -1) {
+      updatedPosts[postIndexInAll].comments = comments;
+      setAllPosts(updatedPosts);
+    }
+  };
+  
+  loadCommentsForCurrentPost();
+}, [currentPostIndex, filteredPosts, allPosts, fetchCommentsForPost]);
+
+  
+
   // =====================================================
   // VOTING FUNCTIONS
   // =====================================================
@@ -319,25 +343,6 @@ const handleFavorite = useCallback(async () => {
     [allPosts]
   );
 
-
-
-// =====================================================
-// FAVORITE DETAIL CAROUSEL FUNCTIONS
-// =====================================================
-
-const showDetailNextImage = useCallback(() => {
-  if (!selectedFavoritePost) return;
-  setDetailImageIndex((prev) => 
-    (prev + 1) % selectedFavoritePost.images.length
-  );
-}, [selectedFavoritePost]);
-
-const showDetailPreviousImage = useCallback(() => {
-  if (!selectedFavoritePost) return;
-  setDetailImageIndex((prev) => 
-    prev === 0 ? selectedFavoritePost.images.length - 1 : prev - 1
-  );
-}, [selectedFavoritePost]);
 
 
 
@@ -511,6 +516,32 @@ const showDetailPreviousImage = useCallback(() => {
     }
   };
 
+const fetchCommentsForPost = useCallback(async (postId) => {
+  try {
+    const response = await fetch(`/api/memes/posts/${postId}/comments`, {
+      credentials: "include",
+    });
+    
+    if (!response.ok) return [];
+    
+    const comments = await response.json();
+    return comments.map((comment) => ({
+      id: comment.id,
+      title: comment.title,
+      description: comment.description,
+      image: comment.image_url,
+      upvotes: comment.upvotes || 0,
+      downvotes: comment.downvotes || 0,
+      userVote: null,
+      timestamp: new Date(comment.created_at),
+      hidden: false,
+    }));
+  } catch (error) {
+    console.error("[MEMEBOX] Error fetching comments for post", postId, ":", error);
+    return [];
+  }
+}, []);
+
 const submitComment = async () => {
   if (!commentTitle.trim() && !commentDescription.trim()) {
     alert("Please enter a comment title and description");
@@ -543,18 +574,11 @@ const submitComment = async () => {
     const newComment = await response.json();
     console.log("[MEMEBOX] ✅ Comment created with ID:", newComment.id);
 
+    // ✅ FIXED: Fetch fresh comments from database instead of just adding to state
+    const freshComments = await fetchCommentsForPost(post.id);
+    
     const updatedPosts = [...allPosts];
-    updatedPosts[currentPostIndex].comments.push({
-      id: newComment.id,
-      title: newComment.title,
-      description: newComment.description,
-      image: newComment.image_url,
-      upvotes: 0,
-      downvotes: 0,
-      userVote: null,
-      timestamp: new Date(),
-      hidden: false,
-    });
+    updatedPosts[currentPostIndex].comments = freshComments;
     setAllPosts(updatedPosts);
     closeCommentDialog();
   } catch (error) {
@@ -562,6 +586,10 @@ const submitComment = async () => {
     alert("Failed to add comment: " + error.message);
   }
 };
+
+
+
+  
   // =====================================================
   // UTILITY FUNCTIONS
   // =====================================================
@@ -1521,7 +1549,7 @@ const renderViewCommentsDialog = () => {
             {selectedFavoritePost.images.length > 0 && (
               <>
                 <img 
-                  src={selectedFavoritePost.images[detailImageIndex]} 
+                  src={selectedFavoritePost.images[zoomImageIndex]}
                   alt={`favorite-${detailImageIndex}`}
                   style={{
                     maxWidth: "100%",
@@ -1532,7 +1560,7 @@ const renderViewCommentsDialog = () => {
                   }}
                 />
                 <p style={{ fontSize: "12px", color: "#999999", marginBottom: "16px" }}>
-                  {detailImageIndex + 1} / {selectedFavoritePost.images.length}
+                  {zoomImageIndex + 1} / {selectedFavoritePost.images.length}
                 </p>
               </>
             )}
@@ -1553,7 +1581,7 @@ const renderViewCommentsDialog = () => {
                     cursor: "pointer",
                     fontSize: "12px",
                   }}
-                  onClick={showDetailPreviousImage}
+                  onClick={() => setZoomImageIndex((prev) => prev === 0 ? selectedFavoritePost.images.length - 1 : prev - 1)}
                 >
                   ⬅ Prev
                 </button>
@@ -1567,7 +1595,7 @@ const renderViewCommentsDialog = () => {
                     cursor: "pointer",
                     fontSize: "12px",
                   }}
-                  onClick={showDetailNextImage}
+                  onClick={() => setZoomImageIndex((prev) => (prev + 1) % selectedFavoritePost.images.length)}
                 >
                   Next ➡
                 </button>
@@ -1618,11 +1646,10 @@ const renderViewCommentsDialog = () => {
                     transition: "all 0.3s ease",
                   }}
                   onClick={() => {
-                    setSelectedFavoritePost(post);
-                    setDetailImageIndex(0);
-                    setIsFavoriteDetailOpen(true);
-                    setDetailImageIndex(0);
-                  }}
+  setSelectedFavoritePost(post);
+  setZoomImageIndex(0);
+  setIsFavoriteDetailOpen(true);
+}}
                 >
                   <img src={post.images[0]} alt={post.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
                   <div style={{ padding: "12px" }}>
