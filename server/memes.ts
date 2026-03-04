@@ -9,10 +9,22 @@ const router = Router();
 // POSTS ROUTES
 // ==========================================
 
-// Get all posts for "Most Viral" page (5+ upvotes)
 router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
   try {
     console.log('[MEME API] Fetching viral posts (5+ upvotes)');
+    
+    // Get userId if logged in
+    let userId: number | null = null;
+    const token = req.cookies?.token;
+    if (token) {
+      try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-key') as any;
+        userId = payload.userId;
+      } catch {
+        // Invalid token, continue as anonymous
+      }
+    }
+
     const posts = await db
       .selectFrom('MemeImplementation001Posts')
       .selectAll()
@@ -20,8 +32,7 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
       .orderBy('created_at', 'desc')
       .limit(100)
       .execute();
-    
-    // ✅ FIXED: Fetch images array for each post
+
     const postsWithImages = await Promise.all(
       posts.map(async (post) => {
         const images = await db
@@ -30,15 +41,27 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
           .where('post_id', '=', post.id)
           .orderBy('display_order', 'asc')
           .execute();
-        
+
+        // ✅ NEW: Check if favorited
+        let isFavorited = false;
+        if (userId) {
+          const favorite = await db
+            .selectFrom('MemeImplementation001Favorites')
+            .select('id')
+            .where('post_id', '=', post.id)
+            .where('user_id', '=', userId)
+            .executeTakeFirst();
+          isFavorited = !!favorite;
+        }
+
         return {
           ...post,
-          images: images.map((img) => img.image_url), // ✅ Array of URLs
+          images: images.map((img) => img.image_url),
+          isFavorited,  // ✅ ADD THIS
         };
       })
     );
 
-    // Return with randomized order
     const randomized = postsWithImages.sort(() => Math.random() - 0.5);
     res.json(randomized);
   } catch (error) {
@@ -69,10 +92,23 @@ router.get('/api/memes/posts/user-submitted', async (req: Request, res: Response
           .where('post_id', '=', post.id)
           .orderBy('display_order', 'asc')
           .execute();
+
+        // ✅ NEW: Check if favorited
+        let isFavorited = false;
+        if (userId) {
+          const favorite = await db
+            .selectFrom('MemeImplementation001Favorites')
+            .select('id')
+            .where('post_id', '=', post.id)
+            .where('user_id', '=', userId)
+            .executeTakeFirst();
+          isFavorited = !!favorite;
+        }
         
         return {
           ...post,
           images: images.map((img) => img.image_url), // ✅ Array of URLs
+          isFavorited,  // ✅ ADD THIS
         };
       })
     );
