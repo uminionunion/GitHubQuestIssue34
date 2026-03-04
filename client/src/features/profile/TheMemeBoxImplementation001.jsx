@@ -31,6 +31,25 @@ export default function TheMemeBoxImplementation001() {
   const SWIPE_THRESHOLD = 50;
   const MAX_UPLOAD_IMAGES = 50;
 
+
+  // =====================================================
+// EMOJI CONSTANTS WITH FALLBACKS
+// =====================================================
+
+// Initial emojis (try to use these first)
+const EMOJIS = {
+  UPVOTE_INITIAL: "6f6a978e-1c83-423e-a8f5-d72de2f60d89.png",      // Fallback: 👍
+  DOWNVOTE_INITIAL: "09e39abc-8026-42be-83ab-ef2c2268bf82.png",    // Fallback: 👎
+  COMMENT_INITIAL: "de25d880-e586-4365-bd67-7de4ca5dd070.png",     // Fallback: 💬
+
+  // Fallback emojis (will appear if initial doesn't render)
+  UPVOTE_FALLBACK: "👍",
+  DOWNVOTE_FALLBACK: "👎",
+  COMMENT_FALLBACK: "💬",
+};
+
+  
+
   // =====================================================
   // AUTH STATUS CHECK
   // =====================================================
@@ -194,27 +213,32 @@ const fetchCommentsForPost = useCallback(async (postId) => {
     const response = await fetch(`/api/memes/posts/${postId}/comments`, {
       credentials: "include",
     });
-    
+
     if (!response.ok) return [];
-    
+
     const comments = await response.json();
     return comments.map((comment) => ({
       id: comment.id,
+      username: comment.username || "Anonymous", // ✅ NEW: Add username
       title: comment.title,
       description: comment.description,
       image: comment.image_url,
       upvotes: comment.upvotes || 0,
       downvotes: comment.downvotes || 0,
-      userVote: null,
+      userVote: comment.userVote || null, // ✅ NEW: Get from server instead of null
       timestamp: new Date(comment.created_at),
       hidden: false,
     }));
   } catch (error) {
-    console.error("[MEMEBOX] Error fetching comments for post", postId, ":", error);
+    console.error(
+      "[MEMEBOX] Error fetching comments for post",
+      postId,
+      ":",
+      error,
+    );
     return [];
   }
 }, []);
-
   
 
 
@@ -1186,51 +1210,38 @@ const submitComment = async () => {
         </div>
 
         <div style={styles.voteSection}>
-          <div style={styles.voteCount}>
-            <div style={styles.voteNumber}>👍 {displayPost.upvotes}</div>
-            <div style={styles.voteLabel}>Upvotes</div>
-          </div>
-          <div style={styles.voteCount}>
-            <div style={styles.voteNumber}>👎 {displayPost.downvotes}</div>
-            <div style={styles.voteLabel}>Downvotes</div>
-          </div>
-          <div style={styles.voteCount}>
-            <div style={styles.voteNumber}>💬 {displayPost.comments.length}</div>
-            <div style={styles.voteLabel}>Comments</div>
-          </div>
-        </div>
+  <div style={styles.voteCount}>
+    <div style={styles.voteNumber}>{EMOJIS.UPVOTE_INITIAL}{EMOJIS.UPVOTE_FALLBACK} {displayPost.upvotes}</div>
+    <div style={styles.voteLabel}>Upvotes</div>
+  </div>
+  <div style={styles.voteCount}>
+    <div style={styles.voteNumber}>{EMOJIS.DOWNVOTE_INITIAL}{EMOJIS.DOWNVOTE_FALLBACK} {displayPost.downvotes}</div>
+    <div style={styles.voteLabel}>Downvotes</div>
+  </div>
+  <div style={styles.voteCount}>
+    <div style={styles.voteNumber}>
+      {EMOJIS.COMMENT_INITIAL}{EMOJIS.COMMENT_FALLBACK} {displayPost.comments.length}
+    </div>
+    <div style={styles.voteLabel}>Comments</div>
+  </div>
+</div>
 
         <div style={styles.actionButtonsContainer}>
           <button
-            style={{
-              ...styles.actionButton,
-              ...(displayPost.userVote === 1 ? styles.actionButtonActive : {}),
-            }}
-            onClick={handleUpvote}
-          >
-            👍 Upvote
-          </button>
-          <button
-            style={{
-              ...styles.actionButton,
-              ...(displayPost.userVote === -1 ? styles.actionButtonActive : {}),
-            }}
-            onClick={handleDownvote}
-          >
-            👎 Downvote
-          </button>
-          <button
-            style={{
-              ...styles.actionButton,
-              ...(displayPost.isFavorited ? styles.actionButtonActive : {}),
-            }}
-            onClick={handleFavorite}
-          >
-            ⭐ Favorite
-          </button>
-          <button style={styles.actionButton} onClick={openCommentDialog}>
-            💬 Comment
-          </button>
+  style={{...styles.actionButton, ...(displayPost.userVote === 1 ? styles.actionButtonActive : {})}}
+  onClick={handleUpvote}
+>
+  {EMOJIS.UPVOTE_INITIAL}{EMOJIS.UPVOTE_FALLBACK} Upvote
+</button>
+<button
+  style={{...styles.actionButton, ...(displayPost.userVote === -1 ? styles.actionButtonActive : {})}}
+  onClick={handleDownvote}
+>
+  {EMOJIS.DOWNVOTE_INITIAL}{EMOJIS.DOWNVOTE_FALLBACK} Downvote
+</button>
+<button style={styles.actionButton} onClick={openCommentDialog}>
+  {EMOJIS.COMMENT_INITIAL}{EMOJIS.COMMENT_FALLBACK} Comment
+</button>
           <button style={styles.actionButton} onClick={openViewCommentsDialog}>
             👁 View Comments
           </button>
@@ -1376,49 +1387,97 @@ const submitComment = async () => {
   };
 
   const renderCommentDialog = () => {
-    if (!isCommentDialogOpen) return null;
+  if (!isCommentDialogOpen) return null;
 
-    return (
-      <div style={styles.overlay} onClick={closeCommentDialog}>
-        <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
-          <div style={styles.dialogHeader}>
-            <h2 style={{ margin: 0, fontSize: "20px" }}>💬 Add Comment</h2>
-            <button style={styles.closeButton} onClick={closeCommentDialog}>✕</button>
+  return (
+    <div style={styles.overlay} onClick={closeCommentDialog}>
+      <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.dialogHeader}>
+          <h2 style={{ margin: 0, fontSize: "20px" }}>💬 Add Comment</h2>
+          <button style={styles.closeButton} onClick={closeCommentDialog}>
+            ✕
+          </button>
+        </div>
+
+        <div style={styles.dialogContent}>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Comment Title *</label>
+            <input
+              style={styles.input}
+              type="text"
+              value={commentTitle}
+              onChange={(e) => setCommentTitle(e.target.value)}
+              placeholder="Brief comment title..."
+            />
           </div>
 
-          <div style={styles.dialogContent}>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Comment Title *</label>
-              <input
-                style={styles.input}
-                type="text"
-                value={commentTitle}
-                onChange={(e) => setCommentTitle(e.target.value)}
-                placeholder="Brief comment title..."
-              />
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Comment *</label>
+            <textarea
+              style={styles.textarea}
+              value={commentDescription}
+              onChange={(e) => setCommentDescription(e.target.value)}
+              placeholder="Share your thoughts..."
+            />
+            <span style={styles.characterCount}>
+              {commentDescription.length} characters
+            </span>
+          </div>
+
+          {/* ✅ NEW: Comment Image Upload */}
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Add Image (Optional)</label>
+            <input
+              style={styles.fileInput}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png"
+              onChange={handleCommentImageSelect}
+            />
+            <span style={styles.helpText}>
+              Max 1 image. Allowed: JPG, JPEG, PNG
+            </span>
+          </div>
+
+          {/* ✅ NEW: Image Preview */}
+          {commentImageData && (
+            <div style={styles.imagePreviewContainer}>
+              <span style={{ fontSize: "13px", fontWeight: "500" }}>
+                Preview:
+              </span>
+              <div style={{ position: "relative", marginTop: "8px" }}>
+                <img
+                  src={commentImageData}
+                  alt="comment-preview"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "150px",
+                    objectFit: "cover",
+                    borderRadius: "6px",
+                  }}
+                />
+                <button
+                  style={styles.removeImageButton}
+                  onClick={() => setCommentImageData(null)}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
+          )}
+        </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Comment *</label>
-              <textarea
-                style={styles.textarea}
-                value={commentDescription}
-                onChange={(e) => setCommentDescription(e.target.value)}
-                placeholder="Share your thoughts..."
-              />
-              <span style={styles.characterCount}>{commentDescription.length} characters</span>
-            </div>
-          </div>
-
-          <div style={styles.dialogFooter}>
-            <button style={styles.cancelButton} onClick={closeCommentDialog}>Cancel</button>
-            <button style={styles.submitButton} onClick={submitComment}>Post Comment</button>
-          </div>
+        <div style={styles.dialogFooter}>
+          <button style={styles.cancelButton} onClick={closeCommentDialog}>
+            Cancel
+          </button>
+          <button style={styles.submitButton} onClick={submitComment}>
+            Post Comment
+          </button>
         </div>
       </div>
-    );
-  };
-
+    </div>
+  );
+};
 const renderViewCommentsDialog = () => {
   if (!isViewCommentsDialogOpen) return null;
 
@@ -1440,16 +1499,36 @@ const renderViewCommentsDialog = () => {
                 marginBottom: "12px",
                 borderLeft: "3px solid #0066ff",
               }}>
-                {/* Comment header with title and timestamp */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <h3 style={{ margin: "0", color: "#00ff00", fontSize: "14px" }}>
-                    {comment.title}
-                  </h3>
-                  <span style={{ fontSize: "11px", color: "#999999" }}>
-                    {getTimeElapsed(comment.timestamp)}
-                  </span>
-                </div>
+                {/* Comment header with username, title and timestamp */}
+<div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: "8px",
+  }}
+>
+  <div>
+    <span style={{ fontSize: "12px", color: "#0099ff", fontWeight: "bold" }}>
+      @{comment.username}
+    </span>
+    <h3
+      style={{
+        margin: "4px 0 0 0",
+        color: "#00ff00",
+        fontSize: "14px",
+      }}
+    >
+      {comment.title}
+    </h3>
+  </div>
+  <span style={{ fontSize: "11px", color: "#999999" }}>
+    {getTimeElapsed(comment.timestamp)}
+  </span>
+</div>
 
+
+                
                 {/* Comment image if exists */}
                 {comment.image && (
                   <img 
@@ -1479,37 +1558,17 @@ const renderViewCommentsDialog = () => {
                   borderTop: "1px solid #555555",
                 }}>
                   <button
-                    style={{
-                      backgroundColor: comment.userVote === 1 ? "#00ff00" : "#555555",
-                      color: comment.userVote === 1 ? "#000000" : "#ffffff",
-                      border: "none",
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      transition: "all 0.2s",
-                    }}
-                    onClick={() => handleCommentVote(idx, 1)}
-                  >
-                    👍 {comment.upvotes}
-                  </button>
-                  <button
-                    style={{
-                      backgroundColor: comment.userVote === -1 ? "#ff6666" : "#555555",
-                      color: "#ffffff",
-                      border: "none",
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      transition: "all 0.2s",
-                    }}
-                    onClick={() => handleCommentVote(idx, -1)}
-                  >
-                    👎 {comment.downvotes}
-                  </button>
+  style={{...}}
+  onClick={() => handleCommentVote(idx, 1)}
+>
+  {EMOJIS.UPVOTE_INITIAL}{EMOJIS.UPVOTE_FALLBACK} {comment.upvotes}
+</button>
+<button
+  style={{...}}
+  onClick={() => handleCommentVote(idx, -1)}
+>
+  {EMOJIS.DOWNVOTE_INITIAL}{EMOJIS.DOWNVOTE_FALLBACK} {comment.downvotes}
+</button>
                 </div>
               </div>
             ))
