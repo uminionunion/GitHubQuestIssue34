@@ -299,15 +299,23 @@ export default function TheMemeBoxImplementation001() {
   // =====================================================
 
   const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
-    files.slice(0, MAX_UPLOAD_IMAGES - uploadedImages.length).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setUploadedImages((prev) => [...prev, event.target.result]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+  const files = Array.from(e.target.files);
+  const MAX_FILE_SIZE = 200 * 1024 * 1024; 
+  
+  files.slice(0, MAX_UPLOAD_IMAGES - uploadedImages.length).forEach((file) => {
+    // ✅ NEW: Validate file size before encoding to base64
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`File "${file.name}" is too large. Max size: 200MB`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setUploadedImages((prev) => [...prev, event.target.result]);
+    };
+    reader.readAsDataURL(file);
+  });
+};
 
   const handleCommentImageSelect = (e) => {
     const file = e.target.files[0];
