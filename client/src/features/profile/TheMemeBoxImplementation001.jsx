@@ -40,18 +40,18 @@ export default function TheMemeBoxImplementation001() {
         if (res.ok) {
           const user = await res.json();
           setCurrentUsername(user.username);
-          setCurrentUserId(user.id);  // ✅ ADD THIS LINE
+          setCurrentUserId(user.id); // ✅ THIS IS THE FIX
           console.log("[MEMEBOX] ✅ Logged in as:", user.username, "ID:", user.id);
         } else if (res.status === 401) {
           setCurrentUsername("DemoUser");
-          setCurrentUserId(null);  // ✅ ADD THIS LINE
+          setCurrentUserId(null);
         }
       } catch (error) {
+        console.error("[MEMEBOX] Auth check error:", error);
         setCurrentUsername("DemoUser");
-        setCurrentUserId(null);  // ✅ ADD THIS LINE
+        setCurrentUserId(null);
       }
     };
-
     checkAuthStatus();
   }, []);
 
@@ -124,78 +124,74 @@ export default function TheMemeBoxImplementation001() {
 
   // VOTING FUNCTIONS (NOW WITH DATABASE PERSISTENCE)
  const handleUpvote = useCallback(async () => {
-  if (!currentUserId) {
-    alert("Please log in to vote");
-    return;
-  }
-
-  const post = allPosts[currentPostIndex];
-  if (!post) return;
-
-  try {
-    console.log("[MEMEBOX] Upvoting post", post.id, "as user", currentUserId);
-    const res = await fetch(`/api/memes/posts/${post.id}/upvote`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Upvote failed");
+    if (!currentUserId) {
+      alert("Please log in to vote");
+      return;
     }
 
-    const data = await res.json();
-    const updatedPosts = [...allPosts];
-    updatedPosts[currentPostIndex].upvotes = data.upvotes;
-    updatedPosts[currentPostIndex].downvotes = data.downvotes;
-    updatedPosts[currentPostIndex].userVote = data.userVote;
-    setAllPosts(updatedPosts);
-    console.log("[MEMEBOX] ✅ Upvote successful");
-  } catch (error) {
-    console.error("[MEMEBOX] ❌ Upvote error:", error);
-    alert("Failed to upvote: " + error.message);
-  }
-}, [allPosts, currentPostIndex, currentUserId]);
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
+
+    try {
+      console.log("[MEMEBOX] Upvoting post", post.id, "as user", currentUserId);
+      const res = await fetch(`/api/memes/posts/${post.id}/upvote`, {
+        method: "POST",
+        credentials: "include", // ✅ INCLUDE COOKIES
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Upvote failed");
+      }
+
+      const data = await res.json();
+      const updatedPosts = [...allPosts];
+      updatedPosts[currentPostIndex].upvotes = data.upvotes || 0;
+      updatedPosts[currentPostIndex].downvotes = data.downvotes || 0;
+      updatedPosts[currentPostIndex].userVote = data.userVote || null;
+      setAllPosts(updatedPosts);
+      console.log("[MEMEBOX] ✅ Upvote successful");
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Upvote error:", error);
+      alert("Failed to upvote: " + error.message);
+    }
+  }, [allPosts, currentPostIndex, currentUserId]);
 
   const handleDownvote = useCallback(async () => {
-  if (!currentUserId) {
-    alert("Please log in to vote");
-    return;
-  }
-
-  const post = allPosts[currentPostIndex];
-  if (!post) return;
-
-  try {
-    console.log("[MEMEBOX] Downvoting post", post.id, "as user", currentUserId);
-    const res = await fetch(`/api/memes/posts/${post.id}/downvote`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Downvote failed");
+    if (!currentUserId) {
+      alert("Please log in to vote");
+      return;
     }
 
-    const data = await res.json();
-    const updatedPosts = [...allPosts];
-    updatedPosts[currentPostIndex].upvotes = data.upvotes;
-    updatedPosts[currentPostIndex].downvotes = data.downvotes;
-    updatedPosts[currentPostIndex].userVote = data.userVote;
-    setAllPosts(updatedPosts);
-    console.log("[MEMEBOX] ✅ Downvote successful");
-  } catch (error) {
-    console.error("[MEMEBOX] ❌ Downvote error:", error);
-    alert("Failed to downvote: " + error.message);
-  }
-}, [allPosts, currentPostIndex, currentUserId]);
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
+
+    try {
+      console.log("[MEMEBOX] Downvoting post", post.id, "as user", currentUserId);
+      const res = await fetch(`/api/memes/posts/${post.id}/downvote`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Downvote failed");
+      }
+
+      const data = await res.json();
+      const updatedPosts = [...allPosts];
+      updatedPosts[currentPostIndex].upvotes = data.upvotes || 0;
+      updatedPosts[currentPostIndex].downvotes = data.downvotes || 0;
+      updatedPosts[currentPostIndex].userVote = data.userVote || null;
+      setAllPosts(updatedPosts);
+      console.log("[MEMEBOX] ✅ Downvote successful");
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Downvote error:", error);
+      alert("Failed to downvote: " + error.message);
+    }
+  }, [allPosts, currentPostIndex, currentUserId]);
 
   // DELETE POST (ONLY IF USER OWNS IT)
   const handleDeletePost = useCallback(async () => {
@@ -237,42 +233,38 @@ export default function TheMemeBoxImplementation001() {
   }, [allPosts, currentPostIndex, currentUserId]);
 
   // FAVORITE FUNCTIONS
-const handleFavorite = useCallback(async () => {
-  if (!currentUserId) {
-    alert("Please log in to favorite posts");
-    return;
-  }
-
-  const post = allPosts[currentPostIndex];
-  if (!post) return;
-
-  try {
-    console.log("[MEMEBOX] Toggling favorite for post", post.id);
-    
-    const response = await fetch(`/api/memes/posts/${post.id}/favorite`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to toggle favorite");
+  const handleFavorite = useCallback(async () => {
+    if (!currentUserId) {
+      alert("Please log in to favorite posts");
+      return;
     }
 
-    const data = await response.json();
-    
-    // Update local state with server response
-    const updatedPosts = [...allPosts];
-    updatedPosts[currentPostIndex].isFavorited = data.isFavorited;
-    setAllPosts(updatedPosts);
-    
-    console.log("[MEMEBOX] ✅ Favorite toggled:", data.isFavorited);
-  } catch (error) {
-    console.error("[MEMEBOX] ❌ Favorite error:", error);
-    alert("Failed to toggle favorite: " + error.message);
-  }
-}, [allPosts, currentPostIndex, currentUserId]);
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
+
+    try {
+      console.log("[MEMEBOX] Toggling favorite for post", post.id, "user:", currentUserId);
+      const response = await fetch(`/api/memes/posts/${post.id}/favorite`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to toggle favorite");
+      }
+
+      const data = await response.json();
+      const updatedPosts = [...allPosts];
+      updatedPosts[currentPostIndex].isFavorited = data.isFavorited;
+      setAllPosts(updatedPosts);
+      console.log("[MEMEBOX] ✅ Favorite toggled:", data.isFavorited);
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Favorite error:", error);
+      alert("Failed to toggle favorite: " + error.message);
+    }
+  }, [allPosts, currentPostIndex, currentUserId]);
 
   const removeFromFavorites = useCallback(
     (postId) => {
@@ -371,63 +363,60 @@ const handleFavorite = useCallback(async () => {
   };
 
   // SUBMIT UPLOAD (FormData streaming instead of base64 JSON)
-const submitUpload = async () => {
-  if (!currentUserId) {
-    alert("Please log in to upload");
-    return;
-  }
-
-  if (!uploadTitle.trim() || uploadedImages.length === 0) {
-    alert("Please enter a title and select at least one image");
-    return;
-  }
-
-  try {
-    console.log("[MEMEBOX] Uploading post with", uploadedImages.length, "files...");
-
-    const formData = new FormData();
-    formData.append("title", uploadTitle);
-    formData.append("description", uploadDescription);
-    
-    uploadedImages.forEach((file) => {
-      formData.append("images", file);
-    });
-
-    const response = await fetch("/api/memes/posts", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Upload failed");
+  const submitUpload = async () => {
+    if (!currentUserId) {
+      alert("Please log in to upload");
+      return;
     }
 
-    const result = await response.json();
-    console.log("[MEMEBOX] ✅ Post uploaded with ID:", result.id);
+    if (!uploadTitle.trim() || uploadedImages.length === 0) {
+      alert("Please enter a title and select at least one image");
+      return;
+    }
 
-    const newPost = {
-      id: result.id,
-      user_id: currentUserId,
-      title: uploadTitle,
-      description: uploadDescription,
-      images: result.images,
-      upvotes: 0,
-      downvotes: 0,
-      userVote: null,
-      timestamp: new Date(),
-      comments: [],
-      isFavorited: false,
-    };
+    try {
+      console.log("[MEMEBOX] Uploading post with", uploadedImages.length, "images, user:", currentUserId);
 
-    setAllPosts((prev) => [newPost, ...prev]);
-    closeUploadDialog();
-  } catch (error) {
-    console.error("[MEMEBOX] ❌ Upload error:", error);
-    alert("Failed to upload: " + error.message);
-  }
-};
+      const response = await fetch("/api/memes/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // ✅ INCLUDE COOKIES
+        body: JSON.stringify({
+          title: uploadTitle,
+          description: uploadDescription,
+          imageBase64Array: uploadedImages,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
+      }
+
+      const result = await response.json();
+      console.log("[MEMEBOX] ✅ Post uploaded with ID:", result.id);
+
+      const newPost = {
+        id: result.id,
+        user_id: currentUserId,
+        title: uploadTitle,
+        description: uploadDescription,
+        images: uploadedImages,
+        upvotes: 0,
+        downvotes: 0,
+        userVote: null,
+        timestamp: new Date(),
+        comments: [],
+        isFavorited: false,
+      };
+
+      setAllPosts((prev) => [newPost, ...prev]);
+      closeUploadDialog();
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Upload error:", error);
+      alert("Failed to upload: " + error.message);
+    }
+  };
 
   // SUBMIT COMMENT (WITH IMAGE AND DATABASE PERSISTENCE)
   const submitComment = async () => {
