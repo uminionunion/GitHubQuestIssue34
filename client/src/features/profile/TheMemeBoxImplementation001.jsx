@@ -156,52 +156,71 @@ export default function TheMemeBoxImplementation001() {
   // VOTING FUNCTIONS
   // =====================================================
 
-  const handleUpvote = useCallback(() => {
-    const updatedPosts = [...allPosts];
-    const post = updatedPosts[currentPostIndex];
+  const handleUpvote = useCallback(async () => {
+  const post = allPosts[currentPostIndex];
+  if (!post) return;
 
-    if (post.userVote === 1) {
-      post.upvotes--;
-      post.userVote = null;
-    } else if (post.userVote === -1) {
-      post.downvotes--;
-      post.upvotes++;
-      post.userVote = 1;
-    } else {
-      post.upvotes++;
-      post.userVote = 1;
+  try {
+    console.log("[MEMEBOX] Upvoting post", post.id);
+
+    const response = await fetch(`/api/memes/posts/${post.id}/upvote`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Upvote failed");
     }
 
+    const data = await response.json();
+
+    const updatedPosts = [...allPosts];
+    updatedPosts[currentPostIndex].upvotes = data.upvotes;
+    updatedPosts[currentPostIndex].downvotes = data.downvotes;
+    updatedPosts[currentPostIndex].userVote = data.userVote;
     setAllPosts(updatedPosts);
-  }, [allPosts, currentPostIndex]);
 
-  const handleDownvote = useCallback(() => {
+    console.log("[MEMEBOX] ✅ Upvote successful");
+  } catch (error) {
+    console.error("[MEMEBOX] ❌ Upvote error:", error);
+    alert("Failed to upvote: " + error.message);
+  }
+}, [allPosts, currentPostIndex]);
+
+const handleDownvote = useCallback(async () => {
+  const post = allPosts[currentPostIndex];
+  if (!post) return;
+
+  try {
+    console.log("[MEMEBOX] Downvoting post", post.id);
+
+    const response = await fetch(`/api/memes/posts/${post.id}/downvote`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Downvote failed");
+    }
+
+    const data = await response.json();
+
     const updatedPosts = [...allPosts];
-    const post = updatedPosts[currentPostIndex];
+    updatedPosts[currentPostIndex].upvotes = data.upvotes;
+    updatedPosts[currentPostIndex].downvotes = data.downvotes;
+    updatedPosts[currentPostIndex].userVote = data.userVote;
+    setAllPosts(updatedPosts);
 
-    if (post.userVote === -1) {
-      post.downvotes--;
-      post.userVote = null;
-    } else if (post.userVote === 1) {
-      post.upvotes--;
-      post.downvotes++;
-      post.userVote = -1;
-    } else {
-      post.downvotes++;
-      post.userVote = -1;
-    }
-
-    if (post.downvotes >= 10) {
-      const newPosts = updatedPosts.filter((p) => p.id !== post.id);
-      setAllPosts(newPosts);
-      if (currentPostIndex >= newPosts.length) {
-        setCurrentPostIndex(Math.max(0, newPosts.length - 1));
-      }
-    } else {
-      setAllPosts(updatedPosts);
-    }
-  }, [allPosts, currentPostIndex]);
-
+    console.log("[MEMEBOX] ✅ Downvote successful");
+  } catch (error) {
+    console.error("[MEMEBOX] ❌ Downvote error:", error);
+    alert("Failed to downvote: " + error.message);
+  }
+}, [allPosts, currentPostIndex]);
 
 
 
@@ -256,11 +275,36 @@ const handleCommentVote = useCallback((commentIndex, voteType) => {
   // FAVORITE FUNCTIONS
   // =====================================================
 
-  const handleFavorite = useCallback(() => {
+const handleFavorite = useCallback(async () => {
+  const post = allPosts[currentPostIndex];
+  if (!post) return;
+
+  try {
+    console.log("[MEMEBOX] Toggling favorite for post", post.id);
+
+    const response = await fetch(`/api/memes/posts/${post.id}/favorite`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to toggle favorite");
+    }
+
+    const data = await response.json();
+
     const updatedPosts = [...allPosts];
-    updatedPosts[currentPostIndex].isFavorited = !updatedPosts[currentPostIndex].isFavorited;
+    updatedPosts[currentPostIndex].isFavorited = data.isFavorited;
     setAllPosts(updatedPosts);
-  }, [allPosts, currentPostIndex]);
+
+    console.log("[MEMEBOX] ✅ Favorite toggled:", data.isFavorited);
+  } catch (error) {
+    console.error("[MEMEBOX] ❌ Favorite error:", error);
+    alert("Failed to toggle favorite: " + error.message);
+  }
+}, [allPosts, currentPostIndex]);
 
   const removeFromFavorites = useCallback(
     (postId) => {
@@ -465,17 +509,40 @@ const showDetailPreviousImage = useCallback(() => {
     }
   };
 
-  const submitComment = () => {
-    if (!commentTitle.trim() || !commentDescription.trim()) {
-      alert("Please enter a comment title and description");
-      return;
+const submitComment = async () => {
+  if (!commentTitle.trim() || !commentDescription.trim()) {
+    alert("Please enter a comment title and description");
+    return;
+  }
+
+  const post = allPosts[currentPostIndex];
+  if (!post) return;
+
+  try {
+    console.log("[MEMEBOX] Submitting comment for post", post.id);
+
+    const response = await fetch(`/api/memes/posts/${post.id}/comments`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: commentTitle,
+        description: commentDescription,
+        image: commentImageData,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to add comment");
     }
 
-    const updatedPosts = [...allPosts];
-    const post = updatedPosts[currentPostIndex];
+    const newComment = await response.json();
+    console.log("[MEMEBOX] ✅ Comment created with ID:", newComment.id);
 
-    const newComment = {
-      id: Math.max(...post.comments.map((c) => c.id), 0) + 1,
+    const updatedPosts = [...allPosts];
+    updatedPosts[currentPostIndex].comments.push({
+      id: newComment.id,
       title: commentTitle,
       description: commentDescription,
       image: commentImageData,
@@ -484,12 +551,14 @@ const showDetailPreviousImage = useCallback(() => {
       userVote: null,
       timestamp: new Date(),
       hidden: false,
-    };
-
-    post.comments.push(newComment);
+    });
     setAllPosts(updatedPosts);
     closeCommentDialog();
-  };
+  } catch (error) {
+    console.error("[MEMEBOX] ❌ Comment error:", error);
+    alert("Failed to add comment: " + error.message);
+  }
+};
 
   // =====================================================
   // UTILITY FUNCTIONS
