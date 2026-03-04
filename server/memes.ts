@@ -501,24 +501,24 @@ router.get('/api/memes/posts/:id/comments', async (req: Request, res: Response) 
     }
 
     const comments = await db
-      .selectFrom('MemeImplementation001Comments as comments')
-      .innerJoin('Users', 'comments.user_id', 'Users.id')
-      .select([
-        'comments.id',
-        'comments.post_id',
-        'comments.user_id',
-        'comments.title',
-        'comments.description',
-        'comments.image_url',
-        'comments.upvotes',
-        'comments.downvotes',
-        'comments.created_at',
-        'Users.username',
-      ])
-      .where('comments.post_id', '=', parseInt(id))
-      .orderBy('comments.upvotes', 'desc')
-      .orderBy('comments.created_at', 'desc')
-      .execute();
+  .selectFrom('MemeImplementation001Comments')
+  .innerJoin('users', 'MemeImplementation001Comments.user_id', 'users.id')
+  .select([
+    'MemeImplementation001Comments.id',
+    'MemeImplementation001Comments.post_id',
+    'MemeImplementation001Comments.user_id',
+    'MemeImplementation001Comments.title',
+    'MemeImplementation001Comments.description',
+    'MemeImplementation001Comments.image_url',
+    'MemeImplementation001Comments.upvotes',
+    'MemeImplementation001Comments.downvotes',
+    'MemeImplementation001Comments.created_at',
+    'users.username',
+  ])
+  .where('MemeImplementation001Comments.post_id', '=', parseInt(id))
+  .orderBy('MemeImplementation001Comments.upvotes', 'desc')
+  .orderBy('MemeImplementation001Comments.created_at', 'desc')
+  .execute();
 
     // ✅ NEW: Add userVote field for each comment if user is logged in
     const commentsWithUserVote = await Promise.all(
