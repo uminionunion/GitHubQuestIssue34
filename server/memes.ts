@@ -641,53 +641,7 @@ router.post('/api/memes/posts/:postId/favorite', async (req: Request, res: Respo
 // FAVORITES ROUTES
 // ==========================================
 
-// Toggle favorite status for a post
-router.post('/api/memes/posts/:id/favorite', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const userId = (req as any).user?.userId;
-    const postId = parseInt(id);
 
-    if (isNaN(postId)) {
-      return res.status(400).json({ error: 'Invalid post ID' });
-    }
-
-    console.log('[MEME API] User', userId, 'toggling favorite for post', postId);
-
-    // Check if already favorited
-    const existingFavorite = await db
-      .selectFrom('MemeImplementation001Favorites')
-      .selectAll()
-      .where('post_id', '=', postId)
-      .where('user_id', '=', userId)
-      .executeTakeFirst();
-
-    let isFavorited = false;
-
-    if (existingFavorite) {
-      // Remove favorite
-      await db
-        .deleteFrom('MemeImplementation001Favorites')
-        .where('post_id', '=', postId)
-        .where('user_id', '=', userId)
-        .execute();
-      console.log('[MEME API] ✅ Favorite removed for post', postId);
-    } else {
-      // Add favorite
-      await db
-        .insertInto('MemeImplementation001Favorites')
-        .values({ post_id: postId, user_id: userId })
-        .execute();
-      isFavorited = true;
-      console.log('[MEME API] ✅ Favorite added for post', postId);
-    }
-
-    res.json({ isFavorited });
-  } catch (error) {
-    console.error('[MEME API] Error toggling favorite:', error);
-    res.status(500).json({ error: 'Failed to toggle favorite' });
-  }
-});
 
 
 
