@@ -9,7 +9,7 @@ const router = Router();
 // POSTS ROUTES
 // ==========================================
 
-// Get all posts for "Most Viral" page (5+ upvotes, random order)
+// Get all posts for "Most Viral" page (5+ upvotes)
 router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
   try {
     console.log('[MEME API] Fetching viral posts (5+ upvotes)');
@@ -21,7 +21,7 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
       .limit(100)
       .execute();
     
-    // ✅ FIXED: Fetch images for each post
+    // ✅ FIXED: Fetch images array for each post
     const postsWithImages = await Promise.all(
       posts.map(async (post) => {
         const images = await db
@@ -33,7 +33,7 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
         
         return {
           ...post,
-          image_base64: images.length > 0 ? images[0].image_url : null,
+          images: images.map((img) => img.image_url), // ✅ Array of URLs
         };
       })
     );
@@ -47,7 +47,7 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
   }
 });
 
-// Get all posts for "User Submitted" page (any posts not yet viral)
+// Get all posts for "User Submitted" page
 router.get('/api/memes/posts/user-submitted', async (req: Request, res: Response) => {
   try {
     console.log('[MEME API] Fetching user-submitted posts (<5 upvotes)');
@@ -55,12 +55,12 @@ router.get('/api/memes/posts/user-submitted', async (req: Request, res: Response
       .selectFrom('MemeImplementation001Posts')
       .selectAll()
       .where('upvotes', '<', 5)
-      .where('downvotes', '<', 10)  // Not auto-deleted
+      .where('downvotes', '<', 10)
       .orderBy('created_at', 'desc')
       .limit(100)
       .execute();
     
-    // ✅ FIXED: Fetch images for each post
+    // ✅ FIXED: Fetch images array for each post
     const postsWithImages = await Promise.all(
       posts.map(async (post) => {
         const images = await db
@@ -72,7 +72,7 @@ router.get('/api/memes/posts/user-submitted', async (req: Request, res: Response
         
         return {
           ...post,
-          image_base64: images.length > 0 ? images[0].image_url : null,
+          images: images.map((img) => img.image_url), // ✅ Array of URLs
         };
       })
     );
