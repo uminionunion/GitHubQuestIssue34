@@ -34,29 +34,28 @@ export default function TheMemeBoxImplementation001() {
   useEffect(() => {
   const checkAuthStatus = async () => {
     try {
-      console.log("[MEMEBOX] Fetching auth status...");
+      console.log("[MEMEBOX] 📡 Checking auth status...");
       const res = await fetch("/api/auth/me", {
-        credentials: "include", // ✅ CRITICAL: Include httpOnly cookies
+        credentials: "include",
       });
       if (res.ok) {
         const user = await res.json();
-        console.log("[MEMEBOX] Auth response:", user);
+        console.log("[MEMEBOX] ✅ Auth response:", user);
         
-        // ✅ FIXED: Set BOTH username AND userId
+        // ✅ CRITICAL: Set BOTH username AND id
         setCurrentUsername(user.username);
         setCurrentUserId(user.id);  // ← THIS WAS MISSING
         
         console.log("[MEMEBOX] ✅ Logged in as:", user.username, "ID:", user.id);
       } else if (res.status === 401) {
-        // Not authenticated - clear both
         console.log("[MEMEBOX] Not authenticated (401)");
         setCurrentUsername("DemoUser");
-        setCurrentUserId(null);  // ← Also clear userId
+        setCurrentUserId(null);
       }
     } catch (error) {
       console.error("[MEMEBOX] Auth check error:", error);
       setCurrentUsername("DemoUser");
-      setCurrentUserId(null);  // ← Also clear on error
+      setCurrentUserId(null);
     }
   };
 
@@ -132,12 +131,6 @@ export default function TheMemeBoxImplementation001() {
 
   // VOTING FUNCTIONS (NOW WITH DATABASE PERSISTENCE)
  const handleUpvote = useCallback(async () => {
-  // Wait for auth to load before checking
-  if (!currentUserId) {
-  alert("Please log in to [action]");
-  return;
-}
-
   if (!currentUserId) {
     alert("Please log in to vote");
     return;
@@ -175,12 +168,6 @@ export default function TheMemeBoxImplementation001() {
 }, [allPosts, currentPostIndex, currentUserId]);
 
   const handleDownvote = useCallback(async () => {
-  // Wait for auth to load before checking
-  if (!currentUserId) {
-  alert("Please log in to [action]");
-  return;
-}
-
   if (!currentUserId) {
     alert("Please log in to vote");
     return;
@@ -257,7 +244,7 @@ export default function TheMemeBoxImplementation001() {
   }, [allPosts, currentPostIndex, currentUserId]);
 
   // FAVORITE FUNCTIONS
-  const handleFavorite = useCallback(async () => {
+const handleFavorite = useCallback(async () => {
   if (!currentUserId) {
     alert("Please log in to favorite posts");
     return;
@@ -271,7 +258,7 @@ export default function TheMemeBoxImplementation001() {
     
     const response = await fetch(`/api/memes/posts/${post.id}/favorite`, {
       method: "POST",
-      credentials: "include",  // ✅ CRITICAL: Send cookies
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
     });
 
@@ -391,13 +378,7 @@ export default function TheMemeBoxImplementation001() {
   };
 
   // SUBMIT UPLOAD (FormData streaming instead of base64 JSON)
- const submitUpload = async () => {
-  // Wait for auth to load
-  if (!currentUserId) {
-  alert("Please log in to [action]");
-  return;
-}
-
+const submitUpload = async () => {
   if (!currentUserId) {
     alert("Please log in to upload");
     return;
@@ -415,7 +396,7 @@ export default function TheMemeBoxImplementation001() {
     formData.append("title", uploadTitle);
     formData.append("description", uploadDescription);
     
-    uploadedImages.forEach((file, idx) => {
+    uploadedImages.forEach((file) => {
       formData.append("images", file);
     });
 
@@ -457,12 +438,6 @@ export default function TheMemeBoxImplementation001() {
 
   // SUBMIT COMMENT (WITH IMAGE AND DATABASE PERSISTENCE)
   const submitComment = async () => {
-  // Wait for auth to load
- if (!currentUserId) {
-  alert("Please log in to [action]");
-  return;
-}
-
   if (!currentUserId) {
     alert("Please log in to comment");
     return;
@@ -507,7 +482,6 @@ export default function TheMemeBoxImplementation001() {
     alert("Failed to add comment: " + error.message);
   }
 };
-
   // UTILITY FUNCTIONS
   const getTimeElapsed = (timestamp) => {
     const now = new Date();
