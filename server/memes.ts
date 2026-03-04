@@ -518,26 +518,37 @@ router.post('/api/memes/posts/:id/comments', requireAuth, async (req: Request, r
     console.log('[MEME API] Creating comment for post', id, 'by user', userId);
 
     const result = await db
-      .insertInto('MemeImplementation001Comments')
-      .values({
-        post_id: parseInt(id),
-        user_id: userId,
-        title: title?.trim() || null,
-        description: description?.trim() || null,
-        image_url: image || null,
-        upvotes: 0,
-        downvotes: 0,
-      })
-      .executeTakeFirstOrThrow();
+  .insertInto('MemeImplementation001Comments')
+  .values({
+    post_id: parseInt(id),
+    user_id: userId,
+    title: title?.trim() || null,
+    description: description?.trim() || null,
+    image_url: image || null,
+    upvotes: 0,
+    downvotes: 0,
+  })
+  .executeTakeFirst();
 
-    console.log('[MEME API] ✅ Comment created with ID', result.insertId);
-    res.status(201).json({ 
-      id: result.insertId, 
-      title: title?.trim() || null,
-      description: description?.trim() || null,
-      image_url: image || null,
-      message: 'Comment added' 
-    });
+if (!result) {
+  console.error('[MEME API] Failed to insert comment - no result returned');
+  return res.status(500).json({ error: 'Failed to create comment' });
+}
+
+const commentId = result.insertId || result.id || result[0]?.id;
+if (!commentId) {
+  console.error('[MEME API] Cannot determine comment ID from insert result:', result);
+  return res.status(500).json({ error: 'Failed to get comment ID' });
+}
+
+console.log('[MEME API] ✅ Comment created with ID', commentId);
+  res.status(201).json({ 
+  id: commentId,  // ✅ Use the actual ID
+  title: title?.trim() || null,
+  description: description?.trim() || null,
+  image_url: image || null,
+  message: 'Comment added' 
+});
   } catch (error) {
     console.error('[MEME API] Error adding comment:', error);
     res.status(500).json({ error: 'Failed to add comment' });
