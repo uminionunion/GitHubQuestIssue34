@@ -253,11 +253,46 @@ export default function TheMemeBoxImplementation001() {
   }, [allPosts, currentPostIndex, currentUserId]);
 
   // FAVORITE FUNCTIONS
-  const handleFavorite = useCallback(() => {
+  const handleFavorite = useCallback(async () => {
+  // Wait for auth to load
+  if (isAuthLoading) {
+    alert("Loading authentication...");
+    return;
+  }
+
+  if (!currentUserId) {
+    alert("Please log in to favorite posts");
+    return;
+  }
+
+  const post = allPosts[currentPostIndex];
+  if (!post) return;
+
+  try {
+    console.log("[MEMEBOX] Toggling favorite for post", post.id);
+    const res = await fetch(`/api/memes/posts/${post.id}/favorite`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || "Failed to toggle favorite");
+    }
+
+    const data = await res.json();
     const updatedPosts = [...allPosts];
-    updatedPosts[currentPostIndex].isFavorited = !updatedPosts[currentPostIndex].isFavorited;
+    updatedPosts[currentPostIndex].isFavorited = data.isFavorited;
     setAllPosts(updatedPosts);
-  }, [allPosts, currentPostIndex]);
+    console.log("[MEMEBOX] ✅ Favorite toggled:", data.isFavorited);
+  } catch (error) {
+    console.error("[MEMEBOX] ❌ Favorite error:", error);
+    alert("Failed to toggle favorite: " + error.message);
+  }
+}, [allPosts, currentPostIndex, currentUserId, isAuthLoading]);
 
   const removeFromFavorites = useCallback(
     (postId) => {
