@@ -1558,17 +1558,37 @@ const renderViewCommentsDialog = () => {
                   borderTop: "1px solid #555555",
                 }}>
                   <button
-  style={{...}}
-  onClick={() => handleCommentVote(idx, 1)}
->
-  {EMOJIS.UPVOTE_INITIAL}{EMOJIS.UPVOTE_FALLBACK} {comment.upvotes}
-</button>
-<button
-  style={{...}}
-  onClick={() => handleCommentVote(idx, -1)}
->
-  {EMOJIS.DOWNVOTE_INITIAL}{EMOJIS.DOWNVOTE_FALLBACK} {comment.downvotes}
-</button>
+                    style={{
+                      backgroundColor: comment.userVote === 1 ? "#00ff00" : "#555555",
+                      color: comment.userVote === 1 ? "#000000" : "#ffffff",
+                      border: "none",
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      transition: "all 0.2s",
+                    }}
+                    onClick={() => handleCommentVote(idx, 1)}
+                  >
+                    {EMOJIS.UPVOTE_INITIAL}{EMOJIS.UPVOTE_FALLBACK} {comment.upvotes}
+                  </button>
+                  <button
+                    style={{
+                      backgroundColor: comment.userVote === -1 ? "#ff6666" : "#555555",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      transition: "all 0.2s",
+                    }}
+                    onClick={() => handleCommentVote(idx, -1)}
+                  >
+                    {EMOJIS.DOWNVOTE_INITIAL}{EMOJIS.DOWNVOTE_FALLBACK} {comment.downvotes}
+                  </button>
                 </div>
               </div>
             ))
