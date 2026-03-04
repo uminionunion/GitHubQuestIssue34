@@ -24,8 +24,6 @@ export default function TheMemeBoxImplementation001() {
   const [uploadDescription, setUploadDescription] = useState("");
   const [currentUsername, setCurrentUsername] = useState("DemoUser");
 
-  const [showDetailPreviousImage, setShowDetailPreviousImage] = useState(false);
-  const [showDetailNextImage, setShowDetailNextImage] = useState(false);
 
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
