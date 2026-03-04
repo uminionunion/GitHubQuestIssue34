@@ -34,30 +34,34 @@ export default function TheMemeBoxImplementation001() {
   useEffect(() => {
   const checkAuthStatus = async () => {
     try {
-      console.log("[MEMEBOX] Checking auth status...");
-      const res = await fetch("/api/auth/me", { credentials: "include" });
-      
+      console.log("[MEMEBOX] Fetching auth status...");
+      const res = await fetch("/api/auth/me", {
+        credentials: "include", // ✅ CRITICAL: Include httpOnly cookies
+      });
       if (res.ok) {
         const user = await res.json();
+        console.log("[MEMEBOX] Auth response:", user);
+        
+        // ✅ FIXED: Set BOTH username AND userId
         setCurrentUsername(user.username);
-        setCurrentUserId(user.id);
+        setCurrentUserId(user.id);  // ← THIS WAS MISSING
+        
         console.log("[MEMEBOX] ✅ Logged in as:", user.username, "ID:", user.id);
-      } else {
-        console.log("[MEMEBOX] User not authenticated");
+      } else if (res.status === 401) {
+        // Not authenticated - clear both
+        console.log("[MEMEBOX] Not authenticated (401)");
         setCurrentUsername("DemoUser");
-        setCurrentUserId(null);
+        setCurrentUserId(null);  // ← Also clear userId
       }
     } catch (error) {
       console.error("[MEMEBOX] Auth check error:", error);
       setCurrentUsername("DemoUser");
-      setCurrentUserId(null);
-    } finally {
-      setIsAuthLoading(false);  // Always mark loading as complete
+      setCurrentUserId(null);  // ← Also clear on error
     }
   };
 
   checkAuthStatus();
-}, []); // ✅ Empty dependency array - runs only once on mount
+}, []);
 
   // SAMPLE DATA
   const samplePosts = [
@@ -129,10 +133,10 @@ export default function TheMemeBoxImplementation001() {
   // VOTING FUNCTIONS (NOW WITH DATABASE PERSISTENCE)
  const handleUpvote = useCallback(async () => {
   // Wait for auth to load before checking
-  if (isAuthLoading) {
-    alert("Loading authentication...");
-    return;
-  }
+  if (!currentUserId) {
+  alert("Please log in to [action]");
+  return;
+}
 
   if (!currentUserId) {
     alert("Please log in to vote");
@@ -168,14 +172,14 @@ export default function TheMemeBoxImplementation001() {
     console.error("[MEMEBOX] ❌ Upvote error:", error);
     alert("Failed to upvote: " + error.message);
   }
-}, [allPosts, currentPostIndex, currentUserId, isAuthLoading]);
+}, [allPosts, currentPostIndex, currentUserId]);
 
   const handleDownvote = useCallback(async () => {
   // Wait for auth to load before checking
-  if (isAuthLoading) {
-    alert("Loading authentication...");
-    return;
-  }
+  if (!currentUserId) {
+  alert("Please log in to [action]");
+  return;
+}
 
   if (!currentUserId) {
     alert("Please log in to vote");
@@ -211,7 +215,7 @@ export default function TheMemeBoxImplementation001() {
     console.error("[MEMEBOX] ❌ Downvote error:", error);
     alert("Failed to downvote: " + error.message);
   }
-}, [allPosts, currentPostIndex, currentUserId, isAuthLoading]);
+}, [allPosts, currentPostIndex, currentUserId]);
 
   // DELETE POST (ONLY IF USER OWNS IT)
   const handleDeletePost = useCallback(async () => {
@@ -255,10 +259,10 @@ export default function TheMemeBoxImplementation001() {
   // FAVORITE FUNCTIONS
   const handleFavorite = useCallback(async () => {
   // Wait for auth to load
-  if (isAuthLoading) {
-    alert("Loading authentication...");
-    return;
-  }
+  if (!currentUserId) {
+  alert("Please log in to [action]");
+  return;
+}
 
   if (!currentUserId) {
     alert("Please log in to favorite posts");
@@ -292,7 +296,7 @@ export default function TheMemeBoxImplementation001() {
     console.error("[MEMEBOX] ❌ Favorite error:", error);
     alert("Failed to toggle favorite: " + error.message);
   }
-}, [allPosts, currentPostIndex, currentUserId, isAuthLoading]);
+}, [allPosts, currentPostIndex, currentUserId]);
 
   const removeFromFavorites = useCallback(
     (postId) => {
@@ -393,10 +397,10 @@ export default function TheMemeBoxImplementation001() {
   // SUBMIT UPLOAD (FormData streaming instead of base64 JSON)
  const submitUpload = async () => {
   // Wait for auth to load
-  if (isAuthLoading) {
-    alert("Loading authentication...");
-    return;
-  }
+  if (!currentUserId) {
+  alert("Please log in to [action]");
+  return;
+}
 
   if (!currentUserId) {
     alert("Please log in to upload");
@@ -458,10 +462,10 @@ export default function TheMemeBoxImplementation001() {
   // SUBMIT COMMENT (WITH IMAGE AND DATABASE PERSISTENCE)
   const submitComment = async () => {
   // Wait for auth to load
-  if (isAuthLoading) {
-    alert("Loading authentication...");
-    return;
-  }
+ if (!currentUserId) {
+  alert("Please log in to [action]");
+  return;
+}
 
   if (!currentUserId) {
     alert("Please log in to comment");
