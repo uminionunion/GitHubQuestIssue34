@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from './db.js';
 import { sql } from 'kysely';
+import jwt from 'jsonwebtoken';
 import { requireAuth } from './auth-middleware.js';
 
 const router = Router();
@@ -13,7 +14,7 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
   try {
     console.log('[MEME API] Fetching viral posts (5+ upvotes)');
     
-    // Get userId if logged in
+    // ✅ NEW: Extract userId from token if logged in
     let userId: number | null = null;
     const token = req.cookies?.token;
     if (token) {
@@ -33,6 +34,7 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
       .limit(100)
       .execute();
 
+    // ✅ FIXED: Fetch images array for each post
     const postsWithImages = await Promise.all(
       posts.map(async (post) => {
         const images = await db
@@ -42,7 +44,7 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
           .orderBy('display_order', 'asc')
           .execute();
 
-        // ✅ NEW: Check if favorited
+        // ✅ Check if favorited by current user
         let isFavorited = false;
         if (userId) {
           const favorite = await db
@@ -56,12 +58,13 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
 
         return {
           ...post,
-          images: images.map((img) => img.image_url),
-          isFavorited,  // ✅ ADD THIS
+          images: images.map((img) => img.image_url), // ✅ Array of URLs
+          isFavorited, // ✅ Add favorite status
         };
       })
     );
 
+    // Return with randomized order
     const randomized = postsWithImages.sort(() => Math.random() - 0.5);
     res.json(randomized);
   } catch (error) {
@@ -74,6 +77,19 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
 router.get('/api/memes/posts/user-submitted', async (req: Request, res: Response) => {
   try {
     console.log('[MEME API] Fetching user-submitted posts (<5 upvotes)');
+    
+    // ✅ NEW: Extract userId from token if logged in
+    let userId: number | null = null;
+    const token = req.cookies?.token;
+    if (token) {
+      try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-key') as any;
+        userId = payload.userId;
+      } catch {
+        // Invalid token, continue as anonymous
+      }
+    }
+
     const posts = await db
       .selectFrom('MemeImplementation001Posts')
       .selectAll()
@@ -262,12 +278,11 @@ router.post('/api/memes/posts/:id/upvote', requireAuth, async (req: Request, res
 
     // Check if user already voted
     const existingVote = await db
-      .selectFrom('MemeImplementation001PostVotes')
-      .select(['id', 'vote_type'])
-      .selectAll()
-      .where('post_id', '=', postId)
-      .where('user_id', '=', userId)
-      .executeTakeFirst();
+  .selectFrom('MemeImplementation001PostVotes')
+  .select(['id', 'vote_type'])
+  .where('post_id', '=', postId)
+  .where('user_id', '=', userId)
+  .executeTakeFirst();
 
     if (existingVote) {
       if (existingVote.vote_type === 1) {
@@ -334,12 +349,11 @@ router.post('/api/memes/posts/:id/downvote', requireAuth, async (req: Request, r
 
     // Check if user already voted
     const existingVote = await db
-      .selectFrom('MemeImplementation001PostVotes')
-      .selectAll()
-      .select(['id', 'vote_type'])
-      .where('post_id', '=', postId)
-      .where('user_id', '=', userId)
-      .executeTakeFirst();
+  .selectFrom('MemeImplementation001PostVotes')
+  .select(['id', 'vote_type'])
+  .where('post_id', '=', postId)
+  .where('user_id', '=', userId)
+  .executeTakeFirst();
 
     if (existingVote) {
       if (existingVote.vote_type === -1) {
@@ -561,12 +575,11 @@ router.post('/api/memes/comments/:id/upvote', requireAuth, async (req: Request, 
     console.log('[MEME API] User', userId, 'upvoting comment', commentId);
 
     const existingVote = await db
-      .selectFrom('MemeImplementation001CommentVotes')
-      .selectAll()
-      .select(['id', 'vote_type'])
-      .where('comment_id', '=', commentId)
-      .where('user_id', '=', userId)
-      .executeTakeFirst();
+  .selectFrom('MemeImplementation001CommentVotes')
+  .select(['id', 'vote_type'])
+  .where('comment_id', '=', commentId)
+  .where('user_id', '=', userId)
+  .executeTakeFirst();
 
     if (existingVote) {
       if (existingVote.vote_type === 1) {
