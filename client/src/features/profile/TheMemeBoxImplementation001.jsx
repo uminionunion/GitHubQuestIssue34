@@ -24,6 +24,9 @@ export default function TheMemeBoxImplementation001() {
   const [uploadDescription, setUploadDescription] = useState("");
   const [currentUsername, setCurrentUsername] = useState("DemoUser");
 
+  const [showDetailPreviousImage, setShowDetailPreviousImage] = useState(false);
+  const [showDetailNextImage, setShowDetailNextImage] = useState(false);
+
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const SWIPE_THRESHOLD = 50;
@@ -201,6 +204,56 @@ export default function TheMemeBoxImplementation001() {
     }
   }, [allPosts, currentPostIndex]);
 
+
+
+
+// =====================================================
+// COMMENT VOTING FUNCTIONS
+// =====================================================
+
+const handleCommentVote = useCallback((commentIndex, voteType) => {
+  const updatedPosts = [...allPosts];
+  const post = updatedPosts[currentPostIndex];
+  const comment = post.comments[commentIndex];
+
+  if (!comment) return;
+
+  if (voteType === 1) {
+    // Upvote
+    if (comment.userVote === 1) {
+      comment.upvotes--;
+      comment.userVote = null;
+    } else if (comment.userVote === -1) {
+      comment.downvotes--;
+      comment.upvotes++;
+      comment.userVote = 1;
+    } else {
+      comment.upvotes++;
+      comment.userVote = 1;
+    }
+  } else if (voteType === -1) {
+    // Downvote
+    if (comment.userVote === -1) {
+      comment.downvotes--;
+      comment.userVote = null;
+    } else if (comment.userVote === 1) {
+      comment.upvotes--;
+      comment.downvotes++;
+      comment.userVote = -1;
+    } else {
+      comment.downvotes++;
+      comment.userVote = -1;
+    }
+  }
+
+  setAllPosts(updatedPosts);
+}, [allPosts, currentPostIndex]);
+
+
+
+
+  
+
   // =====================================================
   // FAVORITE FUNCTIONS
   // =====================================================
@@ -222,6 +275,30 @@ export default function TheMemeBoxImplementation001() {
     [allPosts]
   );
 
+
+
+// =====================================================
+// FAVORITE DETAIL CAROUSEL FUNCTIONS
+// =====================================================
+
+const showDetailNextImage = useCallback(() => {
+  if (!selectedFavoritePost) return;
+  setDetailImageIndex((prev) => 
+    (prev + 1) % selectedFavoritePost.images.length
+  );
+}, [selectedFavoritePost]);
+
+const showDetailPreviousImage = useCallback(() => {
+  if (!selectedFavoritePost) return;
+  setDetailImageIndex((prev) => 
+    prev === 0 ? selectedFavoritePost.images.length - 1 : prev - 1
+  );
+}, [selectedFavoritePost]);
+
+
+
+
+  
   // =====================================================
   // DIALOG FUNCTIONS
   // =====================================================
@@ -1225,93 +1302,285 @@ export default function TheMemeBoxImplementation001() {
     );
   };
 
-  const renderViewCommentsDialog = () => {
-    if (!isViewCommentsDialogOpen) return null;
+const renderViewCommentsDialog = () => {
+  if (!isViewCommentsDialogOpen) return null;
 
-    return (
-      <div style={styles.overlay} onClick={closeViewCommentsDialog}>
-        <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
-          <div style={styles.dialogHeader}>
-            <h2 style={{ margin: 0, fontSize: "20px" }}>💬 Comments ({displayPost?.comments.length || 0})</h2>
-            <button style={styles.closeButton} onClick={closeViewCommentsDialog}>✕</button>
-          </div>
+  return (
+    <div style={styles.overlay} onClick={closeViewCommentsDialog}>
+      <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.dialogHeader}>
+          <h2 style={{ margin: 0, fontSize: "20px" }}>💬 Comments ({displayPost?.comments.length || 0})</h2>
+          <button style={styles.closeButton} onClick={closeViewCommentsDialog}>✕</button>
+        </div>
 
-          <div style={styles.dialogContent}>
-            {displayPost && displayPost.comments.length > 0 ? (
-              displayPost.comments.map((comment) => (
-                <div key={comment.id} style={{ backgroundColor: "#333333", padding: "12px", borderRadius: "8px", marginBottom: "12px" }}>
-                  <h3 style={{ margin: "0 0 8px 0", color: "#00ff00" }}>{comment.title}</h3>
-                  <p style={{ margin: 0, fontSize: "13px", color: "#cccccc" }}>{comment.description}</p>
+        <div style={styles.dialogContent}>
+          {displayPost && displayPost.comments.length > 0 ? (
+            displayPost.comments.map((comment, idx) => (
+              <div key={comment.id} style={{ 
+                backgroundColor: "#333333", 
+                padding: "12px", 
+                borderRadius: "8px", 
+                marginBottom: "12px",
+                borderLeft: "3px solid #0066ff",
+              }}>
+                {/* Comment header with title and timestamp */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <h3 style={{ margin: "0", color: "#00ff00", fontSize: "14px" }}>
+                    {comment.title}
+                  </h3>
+                  <span style={{ fontSize: "11px", color: "#999999" }}>
+                    {getTimeElapsed(comment.timestamp)}
+                  </span>
                 </div>
-              ))
-            ) : (
-              <div style={{ textAlign: "center", color: "#999999", padding: "20px" }}>
-                No comments yet. Be the first to comment!
-              </div>
-            )}
-          </div>
 
-          <div style={styles.dialogFooter}>
-            <button style={styles.submitButton} onClick={() => { closeViewCommentsDialog(); openCommentDialog(); }}>
-              Add Comment
-            </button>
-            <button style={styles.cancelButton} onClick={closeViewCommentsDialog}>Close</button>
-          </div>
+                {/* Comment image if exists */}
+                {comment.image && (
+                  <img 
+                    src={comment.image} 
+                    alt="comment"
+                    style={{ 
+                      width: "100%", 
+                      maxHeight: "150px", 
+                      objectFit: "cover", 
+                      borderRadius: "4px", 
+                      marginBottom: "8px" 
+                    }} 
+                  />
+                )}
+
+                {/* Comment description */}
+                <p style={{ margin: "0 0 8px 0", fontSize: "13px", color: "#cccccc" }}>
+                  {comment.description}
+                </p>
+
+                {/* Vote section */}
+                <div style={{
+                  display: "flex",
+                  gap: "12px",
+                  marginTop: "8px",
+                  paddingTop: "8px",
+                  borderTop: "1px solid #555555",
+                }}>
+                  <button
+                    style={{
+                      backgroundColor: comment.userVote === 1 ? "#00ff00" : "#555555",
+                      color: comment.userVote === 1 ? "#000000" : "#ffffff",
+                      border: "none",
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      transition: "all 0.2s",
+                    }}
+                    onClick={() => handleCommentVote(idx, 1)}
+                  >
+                    👍 {comment.upvotes}
+                  </button>
+                  <button
+                    style={{
+                      backgroundColor: comment.userVote === -1 ? "#ff6666" : "#555555",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontWeight: "500",
+                      transition: "all 0.2s",
+                    }}
+                    onClick={() => handleCommentVote(idx, -1)}
+                  >
+                    👎 {comment.downvotes}
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: "center", color: "#999999", padding: "20px" }}>
+              No comments yet. Be the first to comment!
+            </div>
+          )}
+        </div>
+
+        <div style={styles.dialogFooter}>
+          <button style={styles.submitButton} onClick={() => { closeViewCommentsDialog(); openCommentDialog(); }}>
+            Add Comment
+          </button>
+          <button style={styles.cancelButton} onClick={closeViewCommentsDialog}>Close</button>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
+
+
+
 
   const renderFavoritesDialog = () => {
-    if (!isFavoritesGridOpen) return null;
+  if (!isFavoritesGridOpen) return null;
 
+  // If a favorite is selected for detail view
+  if (isFavoriteDetailOpen && selectedFavoritePost) {
     return (
       <div style={styles.overlay} onClick={closeFavoritesGrid}>
-        <div style={styles.favoritesDialog} onClick={(e) => e.stopPropagation()}>
+        <div style={{
+          backgroundColor: "#222222",
+          borderRadius: "12px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)",
+          maxWidth: "600px",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "85vh",
+        }} onClick={(e) => e.stopPropagation()}>
+          {/* Header */}
           <div style={styles.dialogHeader}>
-            <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
-            <button style={styles.closeButton} onClick={closeFavoritesGrid}>✕</button>
+            <h2 style={{ margin: 0, fontSize: "20px" }}>
+              {selectedFavoritePost.title}
+            </h2>
+            <button 
+              style={styles.closeButton} 
+              onClick={() => closeFavoriteDetail()}
+            >
+              ✕
+            </button>
           </div>
 
-          <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
-            {favoritesPosts.length > 0 ? (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "16px" }}>
-                {favoritesPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    style={{
-                      backgroundColor: "#333333",
-                      borderRadius: "8px",
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
-                    }}
-                    onClick={() => openFavoriteDetail(post)}
-                  >
-                    <img src={post.images[0]} alt={post.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
-                    <div style={{ padding: "12px" }}>
-                      <h3 style={{ margin: "0 0 6px 0", fontSize: "13px", fontWeight: "bold", color: "#00ff00" }}>
-                        {post.title}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", color: "#999999", padding: "40px 20px" }}>
-                No favorites yet. Start favoriting memes! ⭐
+          {/* Content - Image carousel */}
+          <div style={{ flex: 1, overflow: "auto", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            {selectedFavoritePost.images.length > 0 && (
+              <>
+                <img 
+                  src={selectedFavoritePost.images[detailImageIndex]} 
+                  alt={`favorite-${detailImageIndex}`}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "400px",
+                    objectFit: "contain",
+                    borderRadius: "8px",
+                    marginBottom: "16px",
+                  }}
+                />
+                <p style={{ fontSize: "12px", color: "#999999", marginBottom: "16px" }}>
+                  {detailImageIndex + 1} / {selectedFavoritePost.images.length}
+                </p>
+              </>
+            )}
+
+            <p style={{ fontSize: "13px", color: "#cccccc", textAlign: "center", margin: "16px 0" }}>
+              {selectedFavoritePost.description}
+            </p>
+
+            {selectedFavoritePost.images.length > 1 && (
+              <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                <button
+                  style={{
+                    backgroundColor: "#0066ff",
+                    color: "#ffffff",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                  onClick={showDetailPreviousImage}
+                >
+                  ⬅ Prev
+                </button>
+                <button
+                  style={{
+                    backgroundColor: "#0066ff",
+                    color: "#ffffff",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                  onClick={showDetailNextImage}
+                >
+                  Next ➡
+                </button>
               </div>
             )}
           </div>
 
+          {/* Footer */}
           <div style={styles.dialogFooter}>
-            <button style={styles.cancelButton} onClick={closeFavoritesGrid}>Close</button>
+            <button 
+              style={{ ...styles.cancelButton, backgroundColor: "#ff6666" }} 
+              onClick={() => removeFromFavorites(selectedFavoritePost.id)}
+            >
+              Remove from Favorites
+            </button>
+            <button 
+              style={styles.submitButton} 
+              onClick={() => closeFavoriteDetail()}
+            >
+              Back
+            </button>
           </div>
         </div>
       </div>
     );
-  };
+  }
 
+  // Grid view
+  return (
+    <div style={styles.overlay} onClick={closeFavoritesGrid}>
+      <div style={styles.favoritesDialog} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.dialogHeader}>
+          <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
+          <button style={styles.closeButton} onClick={closeFavoritesGrid}>✕</button>
+        </div>
+
+        <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
+          {favoritesPosts.length > 0 ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "16px" }}>
+              {favoritesPosts.map((post) => (
+                <div
+                  key={post.id}
+                  style={{
+                    backgroundColor: "#333333",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                  onClick={() => {
+                    setSelectedFavoritePost(post);
+                    setIsFavoriteDetailOpen(true);
+                    setDetailImageIndex(0);
+                  }}
+                >
+                  <img src={post.images[0]} alt={post.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
+                  <div style={{ padding: "12px" }}>
+                    <h3 style={{ margin: "0 0 6px 0", fontSize: "13px", fontWeight: "bold", color: "#00ff00" }}>
+                      {post.title}
+                    </h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", color: "#999999", padding: "40px 20px" }}>
+              No favorites yet. Start favoriting memes! ⭐
+            </div>
+          )}
+        </div>
+
+        <div style={styles.dialogFooter}>
+          <button style={styles.cancelButton} onClick={closeFavoritesGrid}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+  
+  
+  
   const renderFooter = () => (
     <div style={styles.footer}>
       <p style={styles.footerText}>TheMemeBox v1.0 • {allPosts.length} posts • {favoritesPosts.length} favorites</p>
