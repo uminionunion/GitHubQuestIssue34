@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
 export default function TheMemeBoxImplementation001() {
-  // =====================================================
   // STATE VARIABLES
-  // =====================================================
-
   const [allPosts, setAllPosts] = useState([]);
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -18,50 +15,47 @@ export default function TheMemeBoxImplementation001() {
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [selectedFavoritePost, setSelectedFavoritePost] = useState(null);
   const [zoomImageIndex, setZoomImageIndex] = useState(0);
+  const [detailImageIndex, setDetailImageIndex] = useState(0);
   const [commentTitle, setCommentTitle] = useState("");
   const [commentDescription, setCommentDescription] = useState("");
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDescription, setUploadDescription] = useState("");
   const [currentUsername, setCurrentUsername] = useState("DemoUser");
-
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const SWIPE_THRESHOLD = 50;
   const MAX_UPLOAD_IMAGES = 50;
 
-  // =====================================================
   // AUTH STATUS CHECK
-  // =====================================================
-
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const res = await fetch("/api/auth/me", {
-          credentials: "include",
-        });
+        const res = await fetch("/api/auth/me", { credentials: "include" });
         if (res.ok) {
           const user = await res.json();
           setCurrentUsername(user.username);
+          setCurrentUserId(user.id);
           console.log("[MEMEBOX] ✅ Logged in as:", user.username);
-        } else if (res.status === 401) {
+        } else {
           setCurrentUsername("DemoUser");
+          setCurrentUserId(null);
         }
       } catch (error) {
         setCurrentUsername("DemoUser");
+        setCurrentUserId(null);
       }
     };
 
     checkAuthStatus();
   }, []);
 
-  // =====================================================
   // SAMPLE DATA
-  // =====================================================
-
   const samplePosts = [
     {
       id: 1,
+      user_id: 999,
       title: "Laughing Cat",
       description: "This cat is having the best time ever!",
       images: [
@@ -76,6 +70,7 @@ export default function TheMemeBoxImplementation001() {
     },
     {
       id: 2,
+      user_id: 999,
       title: "Dog Jump",
       description: "Pupper jumping super high!",
       images: [
@@ -90,43 +85,17 @@ export default function TheMemeBoxImplementation001() {
     },
   ];
 
-  // =====================================================
-  // INITIALIZATION - FETCH POSTS FROM DATABASE
-  // =====================================================
-
+  // FETCH POSTS FROM DATABASE
   useEffect(() => {
-    const fetchPostsFromDatabase = async () => {
+    const fetchPosts = async () => {
       try {
         console.log("[MEMEBOX] Fetching posts from database...");
+        const res = await fetch("/api/memes/posts", { credentials: "include" });
+        const posts = res.ok ? await res.json() : [];
 
-        const [viralRes, userSubmittedRes] = await Promise.all([
-          fetch("/api/memes/posts/viral"),
-          fetch("/api/memes/posts/user-submitted"),
-        ]);
-
-        const viralPosts = viralRes.ok ? await viralRes.json() : [];
-        const userSubmittedPosts = userSubmittedRes.ok ? await userSubmittedRes.json() : [];
-
-        console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
-        console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
-
-        const allDbPosts = [...viralPosts, ...userSubmittedPosts];
-
-        if (allDbPosts.length > 0) {
-          const formattedPosts = allDbPosts.map((post) => ({
-            id: post.id,
-            title: post.title,
-            description: post.description,
-            images: post.images || [samplePosts[0].images[0]], // ✅ FIXED: Use images array
-            upvotes: post.upvotes || 0,
-            downvotes: post.downvotes || 0,
-            userVote: null,
-            timestamp: new Date(post.created_at),
-            comments: [],
-            isFavorited: false,
-          }));
-
-          setAllPosts(formattedPosts);
+        if (posts.length > 0) {
+          console.log("[MEMEBOX] ✅ Fetched", posts.length, "posts");
+          setAllPosts(posts);
         } else {
           console.log("[MEMEBOX] No posts in database, using sample posts");
           setAllPosts(samplePosts);
@@ -137,13 +106,10 @@ export default function TheMemeBoxImplementation001() {
       }
     };
 
-    fetchPostsFromDatabase();
+    fetchPosts();
   }, []);
 
-  // =====================================================
   // POST NAVIGATION
-  // =====================================================
-
   const showNextPost = useCallback(() => {
     setCurrentPostIndex((prev) => (prev + 1) % allPosts.length);
   }, [allPosts.length]);
@@ -152,110 +118,105 @@ export default function TheMemeBoxImplementation001() {
     setCurrentPostIndex((prev) => (prev === 0 ? allPosts.length - 1 : prev - 1));
   }, [allPosts.length]);
 
-  // =====================================================
-  // VOTING FUNCTIONS
-  // =====================================================
-
-  const handleUpvote = useCallback(() => {
-    const updatedPosts = [...allPosts];
-    const post = updatedPosts[currentPostIndex];
-
-    if (post.userVote === 1) {
-      post.upvotes--;
-      post.userVote = null;
-    } else if (post.userVote === -1) {
-      post.downvotes--;
-      post.upvotes++;
-      post.userVote = 1;
-    } else {
-      post.upvotes++;
-      post.userVote = 1;
+  // VOTING FUNCTIONS (NOW WITH DATABASE PERSISTENCE)
+  const handleUpvote = useCallback(async () => {
+    if (!currentUserId) {
+      alert("Please log in to vote");
+      return;
     }
 
-    setAllPosts(updatedPosts);
-  }, [allPosts, currentPostIndex]);
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
 
-  const handleDownvote = useCallback(() => {
-    const updatedPosts = [...allPosts];
-    const post = updatedPosts[currentPostIndex];
+    try {
+      const res = await fetch(`/api/memes/posts/${post.id}/upvote`, {
+        method: "POST",
+        credentials: "include",
+      });
 
-    if (post.userVote === -1) {
-      post.downvotes--;
-      post.userVote = null;
-    } else if (post.userVote === 1) {
-      post.upvotes--;
-      post.downvotes++;
-      post.userVote = -1;
-    } else {
-      post.downvotes++;
-      post.userVote = -1;
-    }
+      if (!res.ok) throw new Error("Upvote failed");
 
-    if (post.downvotes >= 10) {
-      const newPosts = updatedPosts.filter((p) => p.id !== post.id);
-      setAllPosts(newPosts);
-      if (currentPostIndex >= newPosts.length) {
-        setCurrentPostIndex(Math.max(0, newPosts.length - 1));
-      }
-    } else {
+      const data = await res.json();
+      const updatedPosts = [...allPosts];
+      updatedPosts[currentPostIndex].upvotes = data.upvotes;
+      updatedPosts[currentPostIndex].downvotes = data.downvotes;
+      updatedPosts[currentPostIndex].userVote = data.userVote;
       setAllPosts(updatedPosts);
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Upvote error:", error);
+      alert("Failed to upvote");
     }
-  }, [allPosts, currentPostIndex]);
+  }, [allPosts, currentPostIndex, currentUserId]);
 
-
-
-
-// =====================================================
-// COMMENT VOTING FUNCTIONS
-// =====================================================
-
-const handleCommentVote = useCallback((commentIndex, voteType) => {
-  const updatedPosts = [...allPosts];
-  const post = updatedPosts[currentPostIndex];
-  const comment = post.comments[commentIndex];
-
-  if (!comment) return;
-
-  if (voteType === 1) {
-    // Upvote
-    if (comment.userVote === 1) {
-      comment.upvotes--;
-      comment.userVote = null;
-    } else if (comment.userVote === -1) {
-      comment.downvotes--;
-      comment.upvotes++;
-      comment.userVote = 1;
-    } else {
-      comment.upvotes++;
-      comment.userVote = 1;
+  const handleDownvote = useCallback(async () => {
+    if (!currentUserId) {
+      alert("Please log in to vote");
+      return;
     }
-  } else if (voteType === -1) {
-    // Downvote
-    if (comment.userVote === -1) {
-      comment.downvotes--;
-      comment.userVote = null;
-    } else if (comment.userVote === 1) {
-      comment.upvotes--;
-      comment.downvotes++;
-      comment.userVote = -1;
-    } else {
-      comment.downvotes++;
-      comment.userVote = -1;
+
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
+
+    try {
+      const res = await fetch(`/api/memes/posts/${post.id}/downvote`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Downvote failed");
+
+      const data = await res.json();
+      const updatedPosts = [...allPosts];
+      updatedPosts[currentPostIndex].upvotes = data.upvotes;
+      updatedPosts[currentPostIndex].downvotes = data.downvotes;
+      updatedPosts[currentPostIndex].userVote = data.userVote;
+      setAllPosts(updatedPosts);
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Downvote error:", error);
+      alert("Failed to downvote");
     }
-  }
+  }, [allPosts, currentPostIndex, currentUserId]);
 
-  setAllPosts(updatedPosts);
-}, [allPosts, currentPostIndex]);
+  // DELETE POST (ONLY IF USER OWNS IT)
+  const handleDeletePost = useCallback(async () => {
+    if (!currentUserId) {
+      alert("Please log in to delete posts");
+      return;
+    }
 
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
 
+    if (post.user_id !== currentUserId) {
+      alert("You can only delete your own posts");
+      return;
+    }
 
+    if (!window.confirm("Are you sure you want to delete this post?")) {
+      return;
+    }
 
-  
+    try {
+      const res = await fetch(`/api/memes/posts/${post.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
-  // =====================================================
+      if (!res.ok) throw new Error("Delete failed");
+
+      const updatedPosts = allPosts.filter((_, i) => i !== currentPostIndex);
+      setAllPosts(updatedPosts);
+      if (currentPostIndex >= updatedPosts.length) {
+        setCurrentPostIndex(Math.max(0, updatedPosts.length - 1));
+      }
+      console.log("[MEMEBOX] ✅ Post deleted");
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Delete error:", error);
+      alert("Failed to delete post");
+    }
+  }, [allPosts, currentPostIndex, currentUserId]);
+
   // FAVORITE FUNCTIONS
-  // =====================================================
-
   const handleFavorite = useCallback(() => {
     const updatedPosts = [...allPosts];
     updatedPosts[currentPostIndex].isFavorited = !updatedPosts[currentPostIndex].isFavorited;
@@ -273,34 +234,19 @@ const handleCommentVote = useCallback((commentIndex, voteType) => {
     [allPosts]
   );
 
+  const showDetailNextImage = useCallback(() => {
+    if (!selectedFavoritePost) return;
+    setDetailImageIndex((prev) => (prev + 1) % selectedFavoritePost.images.length);
+  }, [selectedFavoritePost]);
 
+  const showDetailPreviousImage = useCallback(() => {
+    if (!selectedFavoritePost) return;
+    setDetailImageIndex((prev) =>
+      prev === 0 ? selectedFavoritePost.images.length - 1 : prev - 1
+    );
+  }, [selectedFavoritePost]);
 
-// =====================================================
-// FAVORITE DETAIL CAROUSEL FUNCTIONS
-// =====================================================
-
-const showDetailNextImage = useCallback(() => {
-  if (!selectedFavoritePost) return;
-  setDetailImageIndex((prev) => 
-    (prev + 1) % selectedFavoritePost.images.length
-  );
-}, [selectedFavoritePost]);
-
-const showDetailPreviousImage = useCallback(() => {
-  if (!selectedFavoritePost) return;
-  setDetailImageIndex((prev) => 
-    prev === 0 ? selectedFavoritePost.images.length - 1 : prev - 1
-  );
-}, [selectedFavoritePost]);
-
-
-
-
-  
-  // =====================================================
   // DIALOG FUNCTIONS
-  // =====================================================
-
   const openUploadDialog = () => setIsUploadDialogOpen(true);
   const closeUploadDialog = () => {
     setIsUploadDialogOpen(false);
@@ -333,10 +279,7 @@ const showDetailPreviousImage = useCallback(() => {
     setSelectedFavoritePost(null);
   };
 
-  // =====================================================
   // ZOOM MODAL FUNCTIONS
-  // =====================================================
-
   const openZoomModal = (imageIndex = 0) => {
     setZoomImageIndex(imageIndex);
     setIsZoomModalOpen(true);
@@ -356,49 +299,19 @@ const showDetailPreviousImage = useCallback(() => {
     setZoomImageIndex(0);
   };
 
-  const zoomNextImage = () => {
-    const post = allPosts[currentPostIndex];
-    if (post && zoomImageIndex < post.images.length - 1) {
-      setZoomImageIndex((prev) => prev + 1);
-    }
-  };
-
-  const zoomPreviousImage = () => {
-    if (zoomImageIndex > 0) {
-      setZoomImageIndex((prev) => prev - 1);
-    }
-  };
-
-  // =====================================================
-  // FILE UPLOAD FUNCTIONS
-  // =====================================================
-
+  // FILE UPLOAD (NOW USING FormData for streaming)
   const handleFileSelect = (e) => {
-  const files = Array.from(e.target.files);
-  const MAX_FILE_SIZE = 50 * 1024 * 1024 * 1024; // 50GB
-  
-  files.slice(0, MAX_UPLOAD_IMAGES - uploadedImages.length).forEach((file) => {
-    if (file.size > MAX_FILE_SIZE) {
-      alert(`File "${file.name}" is too large. Max size: 50GB`);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setUploadedImages((prev) => [...prev, event.target.result]);
-    };
-    reader.readAsDataURL(file);
-  });
-};
+    const files = Array.from(e.target.files);
+    setUploadedImages((prev) => [
+      ...prev.slice(0, MAX_UPLOAD_IMAGES - files.length),
+      ...files,
+    ]);
+  };
 
   const handleCommentImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setCommentImageData(event.target.result);
-      };
-      reader.readAsDataURL(file);
+      setCommentImageData(file);
     }
   };
 
@@ -406,39 +319,38 @@ const showDetailPreviousImage = useCallback(() => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // =====================================================
-  // FORM SUBMISSION
-  // =====================================================
-
+  // SUBMIT UPLOAD (FormData streaming instead of base64 JSON)
   const submitUpload = async () => {
+    if (!currentUserId) {
+      alert("Please log in to upload");
+      return;
+    }
+
     if (!uploadTitle.trim() || uploadedImages.length === 0) {
       alert("Please enter a title and select at least one image");
       return;
     }
 
     try {
-      console.log("[MEMEBOX] Uploading post with", uploadedImages.length, "images...");
+      console.log("[MEMEBOX] Uploading post with", uploadedImages.length, "files...");
+
+      const formData = new FormData();
+      formData.append("title", uploadTitle);
+      formData.append("description", uploadDescription);
+      
+      uploadedImages.forEach((file, idx) => {
+        formData.append("images", file);
+      });
 
       const response = await fetch("/api/memes/posts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          title: uploadTitle,
-          description: uploadDescription,
-          imageBase64Array: uploadedImages, // ✅ Raw base64 array
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
-        let errorMsg = "Upload failed";
-        try {
-          const error = await response.json();
-          errorMsg = error.error || "Upload failed";
-        } catch {
-          errorMsg = `Upload failed (${response.status} ${response.statusText})`;
-        }
-        throw new Error(errorMsg);
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
       }
 
       const result = await response.json();
@@ -446,9 +358,10 @@ const showDetailPreviousImage = useCallback(() => {
 
       const newPost = {
         id: result.id,
+        user_id: currentUserId,
         title: uploadTitle,
         description: uploadDescription,
-        images: uploadedImages, // ✅ FIXED: Store as array
+        images: result.images,
         upvotes: 0,
         downvotes: 0,
         userVote: null,
@@ -465,36 +378,51 @@ const showDetailPreviousImage = useCallback(() => {
     }
   };
 
-  const submitComment = () => {
+  // SUBMIT COMMENT (WITH IMAGE AND DATABASE PERSISTENCE)
+  const submitComment = async () => {
+    if (!currentUserId) {
+      alert("Please log in to comment");
+      return;
+    }
+
     if (!commentTitle.trim() || !commentDescription.trim()) {
       alert("Please enter a comment title and description");
       return;
     }
 
-    const updatedPosts = [...allPosts];
-    const post = updatedPosts[currentPostIndex];
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
 
-    const newComment = {
-      id: Math.max(...post.comments.map((c) => c.id), 0) + 1,
-      title: commentTitle,
-      description: commentDescription,
-      image: commentImageData,
-      upvotes: 0,
-      downvotes: 0,
-      userVote: null,
-      timestamp: new Date(),
-      hidden: false,
-    };
+    try {
+      const formData = new FormData();
+      formData.append("title", commentTitle);
+      formData.append("description", commentDescription);
+      if (commentImageData) {
+        formData.append("commentImage", commentImageData);
+      }
 
-    post.comments.push(newComment);
-    setAllPosts(updatedPosts);
-    closeCommentDialog();
+      const response = await fetch(`/api/memes/posts/${post.id}/comments`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Comment failed");
+
+      const newComment = await response.json();
+      console.log("[MEMEBOX] ✅ Comment created with ID:", newComment.id);
+
+      const updatedPosts = [...allPosts];
+      updatedPosts[currentPostIndex].comments.push(newComment);
+      setAllPosts(updatedPosts);
+      closeCommentDialog();
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Comment error:", error);
+      alert("Failed to add comment");
+    }
   };
 
-  // =====================================================
   // UTILITY FUNCTIONS
-  // =====================================================
-
   const getTimeElapsed = (timestamp) => {
     const now = new Date();
     const seconds = Math.floor((now - timestamp) / 1000);
@@ -522,10 +450,7 @@ const showDetailPreviousImage = useCallback(() => {
     setCurrentPostIndex(0);
   };
 
-  // =====================================================
   // TOUCH HANDLING
-  // =====================================================
-
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -546,10 +471,7 @@ const showDetailPreviousImage = useCallback(() => {
     }
   };
 
-  // =====================================================
   // FILTERED POSTS & DISPLAY
-  // =====================================================
-
   const getFilteredPosts = useCallback(() => {
     if (currentPage === 1) {
       return allPosts;
@@ -565,10 +487,7 @@ const showDetailPreviousImage = useCallback(() => {
   const displayPost = filteredPosts[currentPostIndex];
   const favoritesPosts = allPosts.filter((p) => p.isFavorited);
 
-  // =====================================================
   // STYLES
-  // =====================================================
-
   const styles = {
     container: {
       display: "flex",
@@ -621,7 +540,6 @@ const showDetailPreviousImage = useCallback(() => {
       overflow: "auto",
       padding: "20px",
     },
-    // ✅ NEW: Stack images vertically
     imagesStack: {
       display: "flex",
       flexDirection: "column",
@@ -663,20 +581,6 @@ const showDetailPreviousImage = useCallback(() => {
       justifyContent: "center",
       fontSize: "30px",
       color: "#00ff00",
-    },
-    zoomButton: {
-      position: "absolute",
-      top: "10px",
-      right: "10px",
-      backgroundColor: "rgba(0, 102, 255, 0.8)",
-      color: "#ffffff",
-      border: "none",
-      width: "36px",
-      height: "36px",
-      borderRadius: "50%",
-      cursor: "pointer",
-      fontSize: "18px",
-      transition: "all 0.3s ease",
     },
     postInfo: {
       textAlign: "center",
@@ -744,6 +648,11 @@ const showDetailPreviousImage = useCallback(() => {
       backgroundColor: "#00ff00",
       color: "#000000",
       borderColor: "#00ff00",
+    },
+    actionButtonDelete: {
+      backgroundColor: "#ff6666",
+      color: "#ffffff",
+      border: "2px solid #ff6666",
     },
     navigationButtons: {
       display: "flex",
@@ -998,10 +907,7 @@ const showDetailPreviousImage = useCallback(() => {
     },
   };
 
-  // =====================================================
   // RENDER FUNCTIONS
-  // =====================================================
-
   const renderNavbar = () => (
     <div style={styles.navbar}>
       <div style={styles.navbarContent}>
@@ -1031,33 +937,35 @@ const showDetailPreviousImage = useCallback(() => {
     }
 
     return (
-      <div style={styles.postViewerContainer} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        {/* ✅ NEW: Stacked images */}
+      <div
+        style={styles.postViewerContainer}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div style={styles.imagesStack}>
           {displayPost.images.map((image, idx) => (
-  <div key={idx} style={styles.mediaItem} onClick={() => openZoomModal(idx)}>
-    {isVideoFile(image) ? (
-      <>
-        <video
-          style={styles.postVideo}
-          controls={false}
-          muted
-          onClick={(e) => {
-            e.stopPropagation();
-            const vid = e.currentTarget;
-            vid.muted = !vid.muted;
-          }}
-        >
-          <source src={image} />
-        </video>
-        <div style={styles.playIcon}>🔊</div>
-      </>
-    ) : (
-      <img src={image} alt={`post-${idx}`} style={styles.postImage} />
-    )}
-    {/* ✅ REMOVED: Eye icon button - clicking image still opens zoom modal */}
-  </div>
-))}
+            <div key={idx} style={styles.mediaItem} onClick={() => openZoomModal(idx)}>
+              {isVideoFile(image) ? (
+                <>
+                  <video
+                    style={styles.postVideo}
+                    controls={false}
+                    muted
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const vid = e.currentTarget;
+                      vid.muted = !vid.muted;
+                    }}
+                  >
+                    <source src={image} />
+                  </video>
+                  <div style={styles.playIcon}>🔊</div>
+                </>
+              ) : (
+                <img src={image} alt={`post-${idx}`} style={styles.postImage} />
+              )}
+            </div>
+          ))}
         </div>
 
         <div style={styles.postInfo}>
@@ -1115,6 +1023,14 @@ const showDetailPreviousImage = useCallback(() => {
           <button style={styles.actionButton} onClick={openViewCommentsDialog}>
             👁 View Comments
           </button>
+          {currentUserId === displayPost.user_id && (
+            <button
+              style={{ ...styles.actionButton, ...styles.actionButtonDelete }}
+              onClick={handleDeletePost}
+            >
+              🗑 Delete
+            </button>
+          )}
         </div>
 
         <div style={styles.navigationButtons}>
@@ -1129,58 +1045,64 @@ const showDetailPreviousImage = useCallback(() => {
     );
   };
 
-  // ✅ NEW: Zoom Modal
   const renderZoomModal = () => {
-  if (!isZoomModalOpen || !displayPost) return null;
+    if (!isZoomModalOpen || !displayPost) return null;
 
-  return (
-    <div style={styles.overlay} onClick={closeZoomModal}>
-      <div style={styles.zoomModalContent} onClick={(e) => e.stopPropagation()}>
-        {/* ✅ FIXED: Stack all images vertically, CENTER-ALIGNED */}
-        <div style={{
-          flex: 1,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          marginBottom: "16px",
-          padding: "0 8px",
-          alignItems: "center",  // ✅ NEW: Center all images horizontally
-          justifyContent: "flex-start",
-        }}>
-          {displayPost.images.map((media, idx) => (
-            <div key={idx}>
-              {isVideoFile(media) ? (
-                <video
-                  style={styles.zoomVideo}
-                  controls
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <source src={media} />
-                </video>
-              ) : (
-                <img src={media} alt={`zoom-${idx}`} style={styles.zoomImage} />
-              )}
-            </div>
-          ))}
-        </div>
+    return (
+      <div style={styles.overlay} onClick={closeZoomModal}>
+        <div
+          style={styles.zoomModalContent}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+              marginBottom: "16px",
+              padding: "0 8px",
+              alignItems: "center",
+              justifyContent: "flex-start",
+            }}
+          >
+            {displayPost.images.map((media, idx) => (
+              <div key={idx}>
+                {isVideoFile(media) ? (
+                  <video
+                    style={styles.zoomVideo}
+                    controls
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <source src={media} />
+                  </video>
+                ) : (
+                  <img
+                    src={media}
+                    alt={`zoom-${idx}`}
+                    style={styles.zoomImage}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
 
-        {/* ✅ FIXED: Navigation buttons for posts only, not images */}
-        <div style={styles.zoomControls}>
-          <button style={styles.zoomButton_control} onClick={zoomPreviousPost}>
-            ⬆ Prev Post
-          </button>
-          <button style={styles.zoomButton_control} onClick={zoomNextPost}>
-            ⬇ Next Post
-          </button>
-          <button style={styles.zoomButton_control} onClick={closeZoomModal}>
-            ✕ Close
-          </button>
+          <div style={styles.zoomControls}>
+            <button style={styles.zoomButton_control} onClick={zoomPreviousPost}>
+              ⬆ Prev Post
+            </button>
+            <button style={styles.zoomButton_control} onClick={zoomNextPost}>
+              ⬇ Next Post
+            </button>
+            <button style={styles.zoomButton_control} onClick={closeZoomModal}>
+              ✕ Close
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   const renderUploadDialog = () => {
     if (!isUploadDialogOpen) return null;
@@ -1190,7 +1112,9 @@ const showDetailPreviousImage = useCallback(() => {
         <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
           <div style={styles.dialogHeader}>
             <h2 style={{ margin: 0, fontSize: "20px" }}>📤 Upload New Meme</h2>
-            <button style={styles.closeButton} onClick={closeUploadDialog}>✕</button>
+            <button style={styles.closeButton} onClick={closeUploadDialog}>
+              ✕
+            </button>
           </div>
 
           <div style={styles.dialogContent}>
@@ -1213,7 +1137,9 @@ const showDetailPreviousImage = useCallback(() => {
                 onChange={(e) => setUploadDescription(e.target.value)}
                 placeholder="Tell us about your meme..."
               />
-              <span style={styles.characterCount}>{uploadDescription.length} characters</span>
+              <span style={styles.characterCount}>
+                {uploadDescription.length} characters
+              </span>
             </div>
 
             <div style={styles.formGroup}>
@@ -1226,18 +1152,27 @@ const showDetailPreviousImage = useCallback(() => {
                 onChange={handleFileSelect}
               />
               <span style={styles.helpText}>
-  {uploadedImages.length} / {MAX_UPLOAD_IMAGES} files selected (Max 50GB per file)
-</span>
+                {uploadedImages.length} / {MAX_UPLOAD_IMAGES} files selected
+              </span>
             </div>
 
             {uploadedImages.length > 0 && (
               <div style={styles.imagePreviewContainer}>
-                <span style={{ fontSize: "13px", fontWeight: "500" }}>Preview:</span>
+                <span style={{ fontSize: "13px", fontWeight: "500" }}>
+                  Preview:
+                </span>
                 <div style={styles.imagePreviewGrid}>
-                  {uploadedImages.map((img, idx) => (
+                  {uploadedImages.map((file, idx) => (
                     <div key={idx} style={styles.imagePreviewItem}>
-                      <img src={img} alt={`preview-${idx}`} style={styles.imagePreview} />
-                      <button style={styles.removeImageButton} onClick={() => removeUploadedImage(idx)}>
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`preview-${idx}`}
+                        style={styles.imagePreview}
+                      />
+                      <button
+                        style={styles.removeImageButton}
+                        onClick={() => removeUploadedImage(idx)}
+                      >
                         ✕
                       </button>
                     </div>
@@ -1248,8 +1183,12 @@ const showDetailPreviousImage = useCallback(() => {
           </div>
 
           <div style={styles.dialogFooter}>
-            <button style={styles.cancelButton} onClick={closeUploadDialog}>Cancel</button>
-            <button style={styles.submitButton} onClick={submitUpload}>Upload</button>
+            <button style={styles.cancelButton} onClick={closeUploadDialog}>
+              Cancel
+            </button>
+            <button style={styles.submitButton} onClick={submitUpload}>
+              Upload
+            </button>
           </div>
         </div>
       </div>
@@ -1264,7 +1203,9 @@ const showDetailPreviousImage = useCallback(() => {
         <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
           <div style={styles.dialogHeader}>
             <h2 style={{ margin: 0, fontSize: "20px" }}>💬 Add Comment</h2>
-            <button style={styles.closeButton} onClick={closeCommentDialog}>✕</button>
+            <button style={styles.closeButton} onClick={closeCommentDialog}>
+              ✕
+            </button>
           </div>
 
           <div style={styles.dialogContent}>
@@ -1287,308 +1228,374 @@ const showDetailPreviousImage = useCallback(() => {
                 onChange={(e) => setCommentDescription(e.target.value)}
                 placeholder="Share your thoughts..."
               />
-              <span style={styles.characterCount}>{commentDescription.length} characters</span>
+              <span style={styles.characterCount}>
+                {commentDescription.length} characters
+              </span>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Attach Image (Optional)</label>
+              <input
+                style={styles.fileInput}
+                type="file"
+                accept="image/*"
+                onChange={handleCommentImageSelect}
+              />
+              {commentImageData && (
+                <p style={{ fontSize: "12px", color: "#00ff00", marginTop: "8px" }}>
+                  ✅ Image selected: {commentImageData.name}
+                </p>
+              )}
             </div>
           </div>
 
           <div style={styles.dialogFooter}>
-            <button style={styles.cancelButton} onClick={closeCommentDialog}>Cancel</button>
-            <button style={styles.submitButton} onClick={submitComment}>Post Comment</button>
+            <button style={styles.cancelButton} onClick={closeCommentDialog}>
+              Cancel
+            </button>
+            <button style={styles.submitButton} onClick={submitComment}>
+              Post Comment
+            </button>
           </div>
         </div>
       </div>
     );
   };
 
-const renderViewCommentsDialog = () => {
-  if (!isViewCommentsDialogOpen) return null;
+  const renderViewCommentsDialog = () => {
+    if (!isViewCommentsDialogOpen) return null;
 
-  return (
-    <div style={styles.overlay} onClick={closeViewCommentsDialog}>
-      <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
-        <div style={styles.dialogHeader}>
-          <h2 style={{ margin: 0, fontSize: "20px" }}>💬 Comments ({displayPost?.comments.length || 0})</h2>
-          <button style={styles.closeButton} onClick={closeViewCommentsDialog}>✕</button>
-        </div>
-
-        <div style={styles.dialogContent}>
-          {displayPost && displayPost.comments.length > 0 ? (
-            displayPost.comments.map((comment, idx) => (
-              <div key={comment.id} style={{ 
-                backgroundColor: "#333333", 
-                padding: "12px", 
-                borderRadius: "8px", 
-                marginBottom: "12px",
-                borderLeft: "3px solid #0066ff",
-              }}>
-                {/* Comment header with title and timestamp */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <h3 style={{ margin: "0", color: "#00ff00", fontSize: "14px" }}>
-                    {comment.title}
-                  </h3>
-                  <span style={{ fontSize: "11px", color: "#999999" }}>
-                    {getTimeElapsed(comment.timestamp)}
-                  </span>
-                </div>
-
-                {/* Comment image if exists */}
-                {comment.image && (
-                  <img 
-                    src={comment.image} 
-                    alt="comment"
-                    style={{ 
-                      width: "100%", 
-                      maxHeight: "150px", 
-                      objectFit: "cover", 
-                      borderRadius: "4px", 
-                      marginBottom: "8px" 
-                    }} 
-                  />
-                )}
-
-                {/* Comment description */}
-                <p style={{ margin: "0 0 8px 0", fontSize: "13px", color: "#cccccc" }}>
-                  {comment.description}
-                </p>
-
-                {/* Vote section */}
-                <div style={{
-                  display: "flex",
-                  gap: "12px",
-                  marginTop: "8px",
-                  paddingTop: "8px",
-                  borderTop: "1px solid #555555",
-                }}>
-                  <button
-                    style={{
-                      backgroundColor: comment.userVote === 1 ? "#00ff00" : "#555555",
-                      color: comment.userVote === 1 ? "#000000" : "#ffffff",
-                      border: "none",
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      transition: "all 0.2s",
-                    }}
-                    onClick={() => handleCommentVote(idx, 1)}
-                  >
-                    👍 {comment.upvotes}
-                  </button>
-                  <button
-                    style={{
-                      backgroundColor: comment.userVote === -1 ? "#ff6666" : "#555555",
-                      color: "#ffffff",
-                      border: "none",
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      transition: "all 0.2s",
-                    }}
-                    onClick={() => handleCommentVote(idx, -1)}
-                  >
-                    👎 {comment.downvotes}
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div style={{ textAlign: "center", color: "#999999", padding: "20px" }}>
-              No comments yet. Be the first to comment!
-            </div>
-          )}
-        </div>
-
-        <div style={styles.dialogFooter}>
-          <button style={styles.submitButton} onClick={() => { closeViewCommentsDialog(); openCommentDialog(); }}>
-            Add Comment
-          </button>
-          <button style={styles.cancelButton} onClick={closeViewCommentsDialog}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-
-
-  const renderFavoritesDialog = () => {
-  if (!isFavoritesGridOpen) return null;
-
-  // If a favorite is selected for detail view
-  if (isFavoriteDetailOpen && selectedFavoritePost) {
     return (
-      <div style={styles.overlay} onClick={closeFavoritesGrid}>
-        <div style={{
-          backgroundColor: "#222222",
-          borderRadius: "12px",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)",
-          maxWidth: "600px",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          maxHeight: "85vh",
-        }} onClick={(e) => e.stopPropagation()}>
-          {/* Header */}
+      <div style={styles.overlay} onClick={closeViewCommentsDialog}>
+        <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
           <div style={styles.dialogHeader}>
             <h2 style={{ margin: 0, fontSize: "20px" }}>
-              {selectedFavoritePost.title}
+              💬 Comments ({displayPost?.comments.length || 0})
             </h2>
-            <button 
-              style={styles.closeButton} 
-              onClick={() => closeFavoriteDetail()}
-            >
+            <button style={styles.closeButton} onClick={closeViewCommentsDialog}>
               ✕
             </button>
           </div>
 
-          {/* Content - Image carousel */}
-          <div style={{ flex: 1, overflow: "auto", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-            {selectedFavoritePost.images.length > 0 && (
-              <>
-                <img 
-                  src={selectedFavoritePost.images[detailImageIndex]} 
-                  alt={`favorite-${detailImageIndex}`}
+          <div style={styles.dialogContent}>
+            {displayPost && displayPost.comments.length > 0 ? (
+              displayPost.comments.map((comment) => (
+                <div
+                  key={comment.id}
                   style={{
-                    maxWidth: "100%",
-                    maxHeight: "400px",
-                    objectFit: "contain",
+                    backgroundColor: "#333333",
+                    padding: "12px",
                     borderRadius: "8px",
-                    marginBottom: "16px",
+                    marginBottom: "12px",
+                    borderLeft: "3px solid #0066ff",
                   }}
-                />
-                <p style={{ fontSize: "12px", color: "#999999", marginBottom: "16px" }}>
-                  {detailImageIndex + 1} / {selectedFavoritePost.images.length}
-                </p>
-              </>
-            )}
-
-            <p style={{ fontSize: "13px", color: "#cccccc", textAlign: "center", margin: "16px 0" }}>
-              {selectedFavoritePost.description}
-            </p>
-
-            {selectedFavoritePost.images.length > 1 && (
-              <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
-                <button
-                  style={{
-                    backgroundColor: "#0066ff",
-                    color: "#ffffff",
-                    border: "none",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                  }}
-                  onClick={showDetailPreviousImage}
                 >
-                  ⬅ Prev
-                </button>
-                <button
-                  style={{
-                    backgroundColor: "#0066ff",
-                    color: "#ffffff",
-                    border: "none",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                  }}
-                  onClick={showDetailNextImage}
-                >
-                  Next ➡
-                </button>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: "0",
+                        color: "#00ff00",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {comment.title}
+                    </h3>
+                    <span
+                      style={{ fontSize: "11px", color: "#999999" }}
+                    >
+                      {getTimeElapsed(comment.timestamp)}
+                    </span>
+                  </div>
+
+                  {comment.image && (
+                    <img
+                      src={comment.image}
+                      alt="comment"
+                      style={{
+                        width: "100%",
+                        maxHeight: "150px",
+                        objectFit: "cover",
+                        borderRadius: "4px",
+                        marginBottom: "8px",
+                      }}
+                    />
+                  )}
+
+                  <p
+                    style={{
+                      margin: "0 0 8px 0",
+                      fontSize: "13px",
+                      color: "#cccccc",
+                    }}
+                  >
+                    {comment.description}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div
+                style={{
+                  textAlign: "center",
+                  color: "#999999",
+                  padding: "20px",
+                }}
+              >
+                No comments yet. Be the first to comment!
               </div>
             )}
           </div>
 
-          {/* Footer */}
           <div style={styles.dialogFooter}>
-            <button 
-              style={{ ...styles.cancelButton, backgroundColor: "#ff6666" }} 
-              onClick={() => removeFromFavorites(selectedFavoritePost.id)}
+            <button
+              style={styles.submitButton}
+              onClick={() => {
+                closeViewCommentsDialog();
+                openCommentDialog();
+              }}
             >
-              Remove from Favorites
+              Add Comment
             </button>
-            <button 
-              style={styles.submitButton} 
-              onClick={() => closeFavoriteDetail()}
+            <button
+              style={styles.cancelButton}
+              onClick={closeViewCommentsDialog}
             >
-              Back
+              Close
             </button>
           </div>
         </div>
       </div>
     );
-  }
+  };
 
-  // Grid view
-  return (
-    <div style={styles.overlay} onClick={closeFavoritesGrid}>
-      <div style={styles.favoritesDialog} onClick={(e) => e.stopPropagation()}>
-        <div style={styles.dialogHeader}>
-          <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
-          <button style={styles.closeButton} onClick={closeFavoritesGrid}>✕</button>
-        </div>
+  const renderFavoritesDialog = () => {
+    if (!isFavoritesGridOpen) return null;
 
-        <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
-          {favoritesPosts.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "16px" }}>
-              {favoritesPosts.map((post) => (
-                <div
-                  key={post.id}
-                  style={{
-                    backgroundColor: "#333333",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                  }}
-                  onClick={() => {
-                    setSelectedFavoritePost(post);
-                    setIsFavoriteDetailOpen(true);
-                    setDetailImageIndex(0);
-                  }}
-                >
-                  <img src={post.images[0]} alt={post.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
-                  <div style={{ padding: "12px" }}>
-                    <h3 style={{ margin: "0 0 6px 0", fontSize: "13px", fontWeight: "bold", color: "#00ff00" }}>
-                      {post.title}
-                    </h3>
-                  </div>
+    if (isFavoriteDetailOpen && selectedFavoritePost) {
+      return (
+        <div style={styles.overlay} onClick={closeFavoritesGrid}>
+          <div
+            style={{
+              backgroundColor: "#222222",
+              borderRadius: "12px",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)",
+              maxWidth: "600px",
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              maxHeight: "85vh",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={styles.dialogHeader}>
+              <h2 style={{ margin: 0, fontSize: "20px" }}>
+                {selectedFavoritePost.title}
+              </h2>
+              <button style={styles.closeButton} onClick={closeFavoriteDetail}>
+                ✕
+              </button>
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                overflow: "auto",
+                padding: "20px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {selectedFavoritePost.images.length > 0 && (
+                <>
+                  <img
+                    src={selectedFavoritePost.images[detailImageIndex]}
+                    alt={`favorite-${detailImageIndex}`}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "400px",
+                      objectFit: "contain",
+                      borderRadius: "8px",
+                      marginBottom: "16px",
+                    }}
+                  />
+                  <p style={{ fontSize: "12px", color: "#999999", marginBottom: "16px" }}>
+                    {detailImageIndex + 1} / {selectedFavoritePost.images.length}
+                  </p>
+                </>
+              )}
+
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#cccccc",
+                  textAlign: "center",
+                  margin: "16px 0",
+                }}
+              >
+                {selectedFavoritePost.description}
+              </p>
+
+              {selectedFavoritePost.images.length > 1 && (
+                <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                  <button
+                    style={{
+                      backgroundColor: "#0066ff",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "8px 16px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                    }}
+                    onClick={showDetailPreviousImage}
+                  >
+                    ⬅ Prev
+                  </button>
+                  <button
+                    style={{
+                      backgroundColor: "#0066ff",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "8px 16px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                    }}
+                    onClick={showDetailNextImage}
+                  >
+                    Next ➡
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
-          ) : (
-            <div style={{ textAlign: "center", color: "#999999", padding: "40px 20px" }}>
-              No favorites yet. Start favoriting memes! ⭐
-            </div>
-          )}
-        </div>
 
-        <div style={styles.dialogFooter}>
-          <button style={styles.cancelButton} onClick={closeFavoritesGrid}>Close</button>
+            <div style={styles.dialogFooter}>
+              <button
+                style={{
+                  ...styles.cancelButton,
+                  backgroundColor: "#ff6666",
+                }}
+                onClick={() =>
+                  removeFromFavorites(selectedFavoritePost.id)
+                }
+              >
+                Remove from Favorites
+              </button>
+              <button
+                style={styles.submitButton}
+                onClick={closeFavoriteDetail}
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={styles.overlay} onClick={closeFavoritesGrid}>
+        <div
+          style={styles.favoritesDialog}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={styles.dialogHeader}>
+            <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
+            <button style={styles.closeButton} onClick={closeFavoritesGrid}>
+              ✕
+            </button>
+          </div>
+
+          <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
+            {favoritesPosts.length > 0 ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                  gap: "16px",
+                }}
+              >
+                {favoritesPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    style={{
+                      backgroundColor: "#333333",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                    }}
+                    onClick={() => {
+                      setSelectedFavoritePost(post);
+                      setIsFavoriteDetailOpen(true);
+                      setDetailImageIndex(0);
+                    }}
+                  >
+                    <img
+                      src={post.images[0]}
+                      alt={post.title}
+                      style={{
+                        width: "100%",
+                        height: "150px",
+                        objectFit: "cover",
+                      }}
+                    />
+                    <div style={{ padding: "12px" }}>
+                      <h3
+                        style={{
+                          margin: "0 0 6px 0",
+                          fontSize: "13px",
+                          fontWeight: "bold",
+                          color: "#00ff00",
+                        }}
+                      >
+                        {post.title}
+                      </h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{
+                  textAlign: "center",
+                  color: "#999999",
+                  padding: "40px 20px",
+                }}
+              >
+                No favorites yet. Start favoriting memes! ⭐
+              </div>
+            )}
+          </div>
+
+          <div style={styles.dialogFooter}>
+            <button style={styles.cancelButton} onClick={closeFavoritesGrid}>
+              Close
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-  
-  
-  
   const renderFooter = () => (
     <div style={styles.footer}>
-      <p style={styles.footerText}>TheMemeBox v1.0 • {allPosts.length} posts • {favoritesPosts.length} favorites</p>
+      <p style={styles.footerText}>
+        TheMemeBox v1.0 • {allPosts.length} posts • {favoritesPosts.length}{" "}
+        favorites
+      </p>
     </div>
   );
 
-  // =====================================================
   // MAIN RENDER
-  // =====================================================
-
   return (
     <div style={styles.container}>
       {renderNavbar()}
