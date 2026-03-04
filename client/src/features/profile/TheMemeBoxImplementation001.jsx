@@ -17,6 +17,7 @@ export default function TheMemeBoxImplementation001() {
   const [isFavoriteDetailOpen, setIsFavoriteDetailOpen] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [selectedFavoritePost, setSelectedFavoritePost] = useState(null);
+  const [detailImageIndex, setDetailImageIndex] = useState(0);
   const [zoomImageIndex, setZoomImageIndex] = useState(0);
   const [commentTitle, setCommentTitle] = useState("");
   const [commentDescription, setCommentDescription] = useState("");
