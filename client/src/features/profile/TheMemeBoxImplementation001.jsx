@@ -157,25 +157,37 @@ export default function TheMemeBoxImplementation001() {
 
 
 
-useEffect(() => {
-  const loadCommentsForCurrentPost = async () => {
-    if (filteredPosts.length === 0) return;
+
+const fetchCommentsForPost = useCallback(async (postId) => {
+  try {
+    const response = await fetch(`/api/memes/posts/${postId}/comments`, {
+      credentials: "include",
+    });
     
-    const currentPost = filteredPosts[currentPostIndex];
-    if (!currentPost) return;
+    if (!response.ok) return [];
     
-    const comments = await fetchCommentsForPost(currentPost.id);
-    
-    const updatedPosts = [...allPosts];
-    const postIndexInAll = allPosts.findIndex(p => p.id === currentPost.id);
-    if (postIndexInAll !== -1) {
-      updatedPosts[postIndexInAll].comments = comments;
-      setAllPosts(updatedPosts);
-    }
-  };
+    const comments = await response.json();
+    return comments.map((comment) => ({
+      id: comment.id,
+      title: comment.title,
+      description: comment.description,
+      image: comment.image_url,
+      upvotes: comment.upvotes || 0,
+      downvotes: comment.downvotes || 0,
+      userVote: null,
+      timestamp: new Date(comment.created_at),
+      hidden: false,
+    }));
+  } catch (error) {
+    console.error("[MEMEBOX] Error fetching comments for post", postId, ":", error);
+    return [];
+  }
+}, []);
+
   
-  loadCommentsForCurrentPost();
-}, [currentPostIndex, filteredPosts, allPosts, fetchCommentsForPost]);
+
+
+
 
   
 
@@ -517,31 +529,7 @@ const handleFavorite = useCallback(async () => {
     }
   };
 
-const fetchCommentsForPost = useCallback(async (postId) => {
-  try {
-    const response = await fetch(`/api/memes/posts/${postId}/comments`, {
-      credentials: "include",
-    });
-    
-    if (!response.ok) return [];
-    
-    const comments = await response.json();
-    return comments.map((comment) => ({
-      id: comment.id,
-      title: comment.title,
-      description: comment.description,
-      image: comment.image_url,
-      upvotes: comment.upvotes || 0,
-      downvotes: comment.downvotes || 0,
-      userVote: null,
-      timestamp: new Date(comment.created_at),
-      hidden: false,
-    }));
-  } catch (error) {
-    console.error("[MEMEBOX] Error fetching comments for post", postId, ":", error);
-    return [];
-  }
-}, []);
+
 
 const submitComment = async () => {
   if (!commentTitle.trim() && !commentDescription.trim()) {
@@ -1550,8 +1538,8 @@ const renderViewCommentsDialog = () => {
             {selectedFavoritePost.images.length > 0 && (
               <>
                 <img 
-                  src={selectedFavoritePost.images[zoomImageIndex]}
-                  alt={`favorite-${detailImageIndex}`}
+                  src={selectedFavoritePost.images[zoomImageIndex]} 
+alt={`favorite-${zoomImageIndex}`}
                   style={{
                     maxWidth: "100%",
                     maxHeight: "400px",
