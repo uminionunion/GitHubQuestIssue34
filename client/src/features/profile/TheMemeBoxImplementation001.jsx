@@ -552,40 +552,37 @@ useEffect(() => {
     const submitUpload = () => {
         const submitUpload = async () => {
     if (!uploadTitle.trim() || uploadedImages.length === 0) {
-        alert('Please enter a title and select at least one image');
+        alert("Please enter a title and select at least one image");
         return;
     }
 
     try {
-        console.log('[MEMEBOX] Uploading post with', uploadedImages.length, 'images...');
-        
-        // Prepare images array with URL and metadata
+        console.log("[MEMEBOX] Uploading post with", uploadedImages.length, "images...");
+
         const imagesToUpload = uploadedImages.map((base64Image, index) => ({
-            url: base64Image,  // Frontend will send base64 for now
+            url: base64Image,
             title: `${uploadTitle} - Image ${index + 1}`,
-            description: uploadDescription
+            description: uploadDescription,
         }));
 
-        // Call API to save to database
-        const response = await fetch('/api/memes/posts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/memes/posts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 title: uploadTitle,
                 description: uploadDescription,
-                images: imagesToUpload
-            })
+                images: imagesToUpload,
+            }),
         });
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || 'Upload failed');
+            throw new Error(error.error || "Upload failed");
         }
 
         const result = await response.json();
-        console.log('[MEMEBOX] ✅ Post uploaded with ID:', result.id);
+        console.log("[MEMEBOX] ✅ Post uploaded with ID:", result.id);
 
-        // Create local post object matching database format
         const newPost = {
             id: result.id,
             title: uploadTitle,
@@ -597,17 +594,21 @@ useEffect(() => {
             timestamp: new Date(),
             comments: [],
             isFavorited: false,
-            user_id: currentUsername  // Track uploader
+            user_id: currentUsername,
         };
 
-        setAllPosts(prev => [newPost, ...prev]);
+        setAllPosts((prev) => [newPost, ...prev]);
         closeUploadDialog();
-        logAction('upload', newPost.id);
+        logAction("upload", newPost.id);
     } catch (error) {
-        console.error('[MEMEBOX] ❌ Upload error:', error);
-        alert('Failed to upload: ' + error.message);
+        console.error("[MEMEBOX] ❌ Upload error:", error);
+        alert("Failed to upload: " + error.message);
     }
 };
+
+
+
+        
 
     const submitComment = () => {
         if (!commentTitle.trim() || !commentDescription.trim()) {
