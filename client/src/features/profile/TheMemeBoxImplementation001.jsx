@@ -38,9 +38,9 @@ export default function TheMemeBoxImplementation001() {
 
 // Initial emojis (try to use these first)
 const EMOJIS = {
-  UPVOTE_INITIAL: "6f6a978e-1c83-423e-a8f5-d72de2f60d89.png",      // Fallback: 👍
-  DOWNVOTE_INITIAL: "09e39abc-8026-42be-83ab-ef2c2268bf82.png",    // Fallback: 👎
-  COMMENT_INITIAL: "de25d880-e586-4365-bd67-7de4ca5dd070.png",     // Fallback: 💬
+  UPVOTE_INITIAL: "👍",      // Fallback: 👍
+  DOWNVOTE_INITIAL: "👎",    // Fallback: 👎
+  COMMENT_INITIAL: "💬",     // Fallback: 💬
 
   // Fallback emojis (will appear if initial doesn't render)
   UPVOTE_FALLBACK: "👍",
