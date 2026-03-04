@@ -34,6 +34,30 @@ export default function TheMemeBoxImplementation001() {
   const AUTO_ROTATE_DELAY = 7000;
 
   // =====================================================
+  // AUTH STATUS CHECK
+  // =====================================================
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const user = await res.json();
+          setCurrentUsername(user.username);
+          console.log("[MEMEBOX] ✅ Logged in as:", user.username);
+        }
+      } catch (error) {
+        console.log("[MEMEBOX] Not authenticated");
+        setCurrentUsername("DemoUser");
+      }
+    };
+
+    checkAuthStatus();
+    const interval = setInterval(checkAuthStatus, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // =====================================================
   // SAMPLE DATA
   // =====================================================
 
@@ -106,8 +130,8 @@ export default function TheMemeBoxImplementation001() {
     },
     {
       id: 4,
-      title: "Fish Thinking",
-      description: "Deep thoughts from a fish",
+      title: "Fish Tank",
+      description: "Fish living their best life",
       images: [
         "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%2399ff99' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EFish Meme 4%3C/text%3E%3C/svg%3E",
       ],
@@ -120,8 +144,8 @@ export default function TheMemeBoxImplementation001() {
     },
     {
       id: 5,
-      title: "Monkey Party",
-      description: "Monkeys having the time of their lives!",
+      title: "Monkey Thinking",
+      description: "Deep thoughts from our primate friend",
       images: [
         "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ff99ff' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EMonkey Meme 5%3C/text%3E%3C/svg%3E",
       ],
@@ -132,8 +156,8 @@ export default function TheMemeBoxImplementation001() {
       comments: [
         {
           id: 501,
-          title: "Amazing!",
-          description: "Best meme ever",
+          title: "Amazing",
+          description: "This is the best meme ever",
           image: null,
           upvotes: 8,
           downvotes: 0,
@@ -144,68 +168,54 @@ export default function TheMemeBoxImplementation001() {
       ],
       isFavorited: true,
     },
-    {
-      id: 6,
-      title: "Penguin Waddle",
-      description: "Adorable penguin waddle",
-      images: [
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ccccff' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EPenguin Meme 6%3C/text%3E%3C/svg%3E",
-      ],
-      upvotes: 3,
-      downvotes: 2,
-      userVote: null,
-      timestamp: new Date(Date.now() - 432000000),
-      comments: [],
-      isFavorited: false,
-    },
-    {
-      id: 7,
-      title: "Rabbit Hop",
-      description: "Fastest rabbit in the west",
-      images: [
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffcccc' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3ERabbit Meme 7%3C/text%3E%3C/svg%3E",
-      ],
-      upvotes: 11,
-      downvotes: 4,
-      userVote: null,
-      timestamp: new Date(Date.now() - 518400000),
-      comments: [
-        {
-          id: 701,
-          title: "Super fast!",
-          description: "Incredible speed",
-          image: null,
-          upvotes: 2,
-          downvotes: 0,
-          userVote: null,
-          timestamp: new Date(Date.now() - 400000),
-          hidden: false,
-        },
-      ],
-      isFavorited: false,
-    },
-    {
-      id: 8,
-      title: "Owl Wisdom",
-      description: "The owl knows all secrets",
-      images: [
-        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffffcc' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='white' text-anchor='middle' dominant-baseline='middle'%3EOwl Meme 8%3C/text%3E%3C/svg%3E",
-      ],
-      upvotes: 7,
-      downvotes: 6,
-      userVote: null,
-      timestamp: new Date(Date.now() - 604800000),
-      comments: [],
-      isFavorited: false,
-    },
   ];
 
   // =====================================================
-  // INITIALIZATION
+  // INITIALIZATION - FETCH POSTS FROM DATABASE
   // =====================================================
 
   useEffect(() => {
-    setAllPosts(samplePosts);
+    const fetchPostsFromDatabase = async () => {
+      try {
+        console.log("[MEMEBOX] Fetching posts from database...");
+
+        const response = await fetch("/api/memes/posts");
+        if (!response.ok) {
+          throw new Error("Failed to fetch posts");
+        }
+
+        const dbPosts = await response.json();
+        console.log("[MEMEBOX] ✅ Fetched", dbPosts.length, "posts from database");
+
+        if (dbPosts.length > 0) {
+          const formattedPosts = dbPosts.map((post) => ({
+            id: post.id,
+            title: post.title,
+            description: post.description,
+            images: post.image_base64
+              ? [post.image_base64]
+              : [samplePosts[0].images[0]],
+            upvotes: post.upvotes || 0,
+            downvotes: post.downvotes || 0,
+            userVote: null,
+            timestamp: new Date(post.created_at),
+            comments: [],
+            isFavorited: false,
+            username: post.username,
+          }));
+
+          setAllPosts(formattedPosts);
+        } else {
+          console.log("[MEMEBOX] No posts in database, using sample posts");
+          setAllPosts(samplePosts);
+        }
+      } catch (error) {
+        console.error("[MEMEBOX] Error fetching posts:", error);
+        setAllPosts(samplePosts);
+      }
+    };
+
+    fetchPostsFromDatabase();
   }, []);
 
   // =====================================================
@@ -274,13 +284,7 @@ export default function TheMemeBoxImplementation001() {
       showNextPost();
     }
     restartAutoRotate();
-  }, [
-    allPosts,
-    currentPostIndex,
-    currentImageIndex,
-    showNextPost,
-    restartAutoRotate,
-  ]);
+  }, [allPosts, currentPostIndex, currentImageIndex, showNextPost, restartAutoRotate]);
 
   const showPreviousImage = useCallback(() => {
     if (currentImageIndex > 0) {
@@ -494,31 +498,62 @@ export default function TheMemeBoxImplementation001() {
   };
 
   // =====================================================
-  // FORM SUBMISSION - CORRECTED
+  // FORM SUBMISSION
   // =====================================================
 
-  const submitUpload = () => {
+  const submitUpload = async () => {
     if (!uploadTitle.trim() || uploadedImages.length === 0) {
       alert("Please enter a title and select at least one image");
       return;
     }
 
-    const newPost = {
-      id: Math.max(...allPosts.map((p) => p.id), 0) + 1,
-      title: uploadTitle,
-      description: uploadDescription,
-      images: uploadedImages,
-      upvotes: 0,
-      downvotes: 0,
-      userVote: null,
-      timestamp: new Date(),
-      comments: [],
-      isFavorited: false,
-    };
+    try {
+      console.log(
+        "[MEMEBOX] Uploading post with",
+        uploadedImages.length,
+        "images..."
+      );
 
-    setAllPosts((prev) => [newPost, ...prev]);
-    closeUploadDialog();
-    logAction("upload", newPost.id);
+      const response = await fetch("/api/memes/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: uploadTitle,
+          description: uploadDescription,
+          images: uploadedImages,
+          username: currentUsername,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
+      }
+
+      const result = await response.json();
+      console.log("[MEMEBOX] ✅ Post uploaded with ID:", result.id);
+
+      const newPost = {
+        id: result.id,
+        title: uploadTitle,
+        description: uploadDescription,
+        images: uploadedImages,
+        upvotes: 0,
+        downvotes: 0,
+        userVote: null,
+        timestamp: new Date(),
+        comments: [],
+        isFavorited: false,
+        username: currentUsername,
+      };
+
+      setAllPosts((prev) => [newPost, ...prev]);
+      closeUploadDialog();
+      logAction("upload", newPost.id);
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Upload error:", error);
+      alert("Failed to upload: " + error.message);
+    }
   };
 
   const submitComment = () => {
@@ -549,7 +584,7 @@ export default function TheMemeBoxImplementation001() {
   };
 
   // =====================================================
-  // UTILITY FUNCTIONS - CORRECTED TEMPLATE STRINGS
+  // UTILITY FUNCTIONS
   // =====================================================
 
   const getTimeElapsed = (timestamp) => {
@@ -1244,9 +1279,7 @@ export default function TheMemeBoxImplementation001() {
         onTouchEnd={handleTouchEnd}
       >
         <div style={styles.imageCarousel}>
-          {displayImage && (
-            <img src={displayImage} alt="post" style={styles.postImage} />
-          )}
+          {displayImage && <img src={displayImage} alt="post" style={styles.postImage} />}
           <div style={styles.imageCounter}>
             {currentImageIndex + 1} / {displayPost.images.length}
           </div>
@@ -1268,9 +1301,7 @@ export default function TheMemeBoxImplementation001() {
             <div style={styles.voteLabel}>Downvotes</div>
           </div>
           <div style={styles.voteCount}>
-            <div style={styles.voteNumber}>
-              💬 {displayPost.comments.length}
-            </div>
+            <div style={styles.voteNumber}>💬 {displayPost.comments.length}</div>
             <div style={styles.voteLabel}>Comments</div>
           </div>
         </div>
@@ -1396,9 +1427,7 @@ export default function TheMemeBoxImplementation001() {
 
             {uploadedImages.length > 0 && (
               <div style={styles.imagePreviewContainer}>
-                <span style={{ fontSize: "13px", fontWeight: "500" }}>
-                  Preview:
-                </span>
+                <span style={{ fontSize: "13px", fontWeight: "500" }}>Preview:</span>
                 <div style={styles.imagePreviewGrid}>
                   {uploadedImages.map((img, idx) => (
                     <div key={idx} style={styles.imagePreviewItem}>
@@ -1586,10 +1615,7 @@ export default function TheMemeBoxImplementation001() {
             >
               Add Comment
             </button>
-            <button
-              style={styles.cancelButton}
-              onClick={closeViewCommentsDialog}
-            >
+            <button style={styles.cancelButton} onClick={closeViewCommentsDialog}>
               Close
             </button>
           </div>
@@ -1603,10 +1629,7 @@ export default function TheMemeBoxImplementation001() {
 
     return (
       <div style={styles.overlay} onClick={closeFavoritesGrid}>
-        <div
-          style={styles.favoritesDialog}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div style={styles.favoritesDialog} onClick={(e) => e.stopPropagation()}>
           <div style={styles.dialogHeader}>
             <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
             <button style={styles.closeButton} onClick={closeFavoritesGrid}>
@@ -1762,8 +1785,7 @@ export default function TheMemeBoxImplementation001() {
   const renderFooter = () => (
     <div style={styles.footer}>
       <p style={styles.footerText}>
-        TheMemeBox v1.0 • {allPosts.length} posts • {favoritesPosts.length}{" "}
-        favorites
+        TheMemeBox v1.0 • {allPosts.length} posts • {favoritesPosts.length} favorites
       </p>
       <p style={styles.footerHint}>
         Keyboard: Arrow Keys to navigate • U/D for votes • F for favorite • C to
