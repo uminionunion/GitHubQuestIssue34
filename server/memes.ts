@@ -114,6 +114,10 @@ router.get('/api/memes/posts/:id', async (req: Request, res: Response) => {
   }
 });
 
+
+
+
+
 // Create new post (with images)
 router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response) => {
   try {
@@ -130,6 +134,14 @@ router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response)
 
     console.log('[MEME API] Creating post for user', userId, 'with', imagesToAdd.length, 'images');
 
+    // ✅ NEW: Calculate bonus upvotes for user_id=3
+    let initialUpvotes = 0;
+    if (userId === 3) {
+      // Random number between 6 and 12
+      initialUpvotes = Math.floor(Math.random() * 7) + 6;
+      console.log('[MEME API] ⭐ USER_ID=3 BONUS: Adding', initialUpvotes, 'initial upvotes to post');
+    }
+
     // Create post
     const postResult = await db
       .insertInto('MemeImplementation001Posts')
@@ -137,7 +149,7 @@ router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response)
         user_id: userId,
         title,
         description: description || null,
-        upvotes: 0,
+        upvotes: initialUpvotes, // ✅ NEW: Use bonus upvotes if user_id=3
         downvotes: 0,
       })
       .executeTakeFirstOrThrow();
@@ -165,13 +177,17 @@ router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response)
         .execute();
     }
 
-    console.log('[MEME API] ✅ Post created with ID', postId, 'with', imagesToAdd.length, 'images');
+    console.log('[MEME API] ✅ Post created with ID', postId, 'with', imagesToAdd.length, 'images', initialUpvotes > 0 ? `and ${initialUpvotes} bonus upvotes` : '');
     res.status(201).json({ id: postId, message: 'Post created' });
   } catch (error) {
     console.error('[MEME API] Error creating post:', error);
     res.status(500).json({ error: 'Failed to create post' });
   }
 });
+
+
+
+
 
 // Delete post (auto-triggered when downvotes >= 10)
 router.delete('/api/memes/posts/:id', requireAuth, async (req: Request, res: Response) => {
