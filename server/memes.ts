@@ -488,15 +488,64 @@ router.get('/api/memes/posts/:id/comments', async (req: Request, res: Response) 
     const { id } = req.params;
     console.log('[MEME API] Fetching comments for post', id);
 
+    // ✅ NEW: Extract userId from token if logged in
+    let userId: number | null = null;
+    const token = req.cookies?.token;
+    if (token) {
+      try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-key') as any;
+        userId = payload.userId;
+      } catch {
+        // Invalid token, continue as anonymous
+      }
+    }
+
     const comments = await db
-      .selectFrom('MemeImplementation001Comments')
-      .selectAll()
-      .where('post_id', '=', parseInt(id))
-      .orderBy('upvotes', 'desc')
-      .orderBy('created_at', 'desc')
+      .selectFrom('MemeImplementation001Comments as comments')
+      .innerJoin('Users', 'comments.user_id', 'Users.id')
+      .select([
+        'comments.id',
+        'comments.post_id',
+        'comments.user_id',
+        'comments.title',
+        'comments.description',
+        'comments.image_url',
+        'comments.upvotes',
+        'comments.downvotes',
+        'comments.created_at',
+        'Users.username',
+      ])
+      .where('comments.post_id', '=', parseInt(id))
+      .orderBy('comments.upvotes', 'desc')
+      .orderBy('comments.created_at', 'desc')
       .execute();
 
-    res.json(comments);
+    // ✅ NEW: Add userVote field for each comment if user is logged in
+    const commentsWithUserVote = await Promise.all(
+      comments.map(async (comment) => {
+        let userVote: number | null = null;
+        
+        if (userId) {
+          const vote = await db
+            .selectFrom('MemeImplementation001CommentVotes')
+            .select('vote_type')
+            .where('comment_id', '=', comment.id)
+            .where('user_id', '=', userId)
+            .executeTakeFirst();
+          
+          if (vote) {
+            userVote = vote.vote_type;
+          }
+        }
+
+        return {
+          ...comment,
+          userVote,
+        };
+      })
+    );
+
+    res.json(commentsWithUserVote);
   } catch (error) {
     console.error('[MEME API] Error fetching comments:', error);
     res.status(500).json({ error: 'Failed to fetch comments' });
