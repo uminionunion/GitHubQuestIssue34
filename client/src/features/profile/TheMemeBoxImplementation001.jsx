@@ -95,50 +95,52 @@ export default function TheMemeBoxImplementation001() {
   // =====================================================
 
   useEffect(() => {
-    const fetchPostsFromDatabase = async () => {
-      try {
-        console.log("[MEMEBOX] Fetching posts from database...");
+  const fetchPostsFromDatabase = async () => {
+    try {
+      console.log("[MEMEBOX] Fetching posts from database...");
 
-        const [viralRes, userSubmittedRes] = await Promise.all([
-          fetch("/api/memes/posts/viral"),
-          fetch("/api/memes/posts/user-submitted"),
-        ]);
+      const [viralRes, userSubmittedRes] = await Promise.all([
+        fetch("/api/memes/posts/viral", { credentials: "include" }),  // ✅ ADD credentials
+        fetch("/api/memes/posts/user-submitted", { credentials: "include" }),  // ✅ ADD credentials
+      ]);
 
-        const viralPosts = viralRes.ok ? await viralRes.json() : [];
-        const userSubmittedPosts = userSubmittedRes.ok ? await userSubmittedRes.json() : [];
+      const viralPosts = viralRes.ok ? await viralRes.json() : [];
+      const userSubmittedPosts = userSubmittedRes.ok
+        ? await userSubmittedRes.json()
+        : [];
 
-        console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
-        console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
+      console.log("[MEMEBOX] ✅ Fetched", viralPosts.length, "viral posts");
+      console.log("[MEMEBOX] ✅ Fetched", userSubmittedPosts.length, "user posts");
 
-        const allDbPosts = [...viralPosts, ...userSubmittedPosts];
+      const allDbPosts = [...viralPosts, ...userSubmittedPosts];
 
-        if (allDbPosts.length > 0) {
-          const formattedPosts = allDbPosts.map((post) => ({
-            id: post.id,
-            title: post.title,
-            description: post.description,
-            images: post.images || [samplePosts[0].images[0]], // ✅ FIXED: Use images array
-            upvotes: post.upvotes || 0,
-            downvotes: post.downvotes || 0,
-            userVote: null,
-            timestamp: new Date(post.created_at),
-            comments: [],
-            isFavorited: false,
-          }));
+      if (allDbPosts.length > 0) {
+        const formattedPosts = allDbPosts.map((post) => ({
+          id: post.id,
+          title: post.title,
+          description: post.description,
+          images: post.images || [samplePosts[0].images[0]],
+          upvotes: post.upvotes || 0,
+          downvotes: post.downvotes || 0,
+          userVote: null,
+          timestamp: new Date(post.created_at),
+          comments: [],
+          isFavorited: post.isFavorited || false,  // ✅ USE DATABASE VALUE
+        }));
 
-          setAllPosts(formattedPosts);
-        } else {
-          console.log("[MEMEBOX] No posts in database, using sample posts");
-          setAllPosts(samplePosts);
-        }
-      } catch (error) {
-        console.error("[MEMEBOX] Error fetching posts:", error);
+        setAllPosts(formattedPosts);
+      } else {
+        console.log("[MEMEBOX] No posts in database, using sample posts");
         setAllPosts(samplePosts);
       }
-    };
+    } catch (error) {
+      console.error("[MEMEBOX] Error fetching posts:", error);
+      setAllPosts(samplePosts);
+    }
+  };
 
-    fetchPostsFromDatabase();
-  }, []);
+  fetchPostsFromDatabase();
+}, []);
 
   // =====================================================
   // POST NAVIGATION
@@ -510,7 +512,7 @@ const showDetailPreviousImage = useCallback(() => {
   };
 
 const submitComment = async () => {
-  if (!commentTitle.trim() || !commentDescription.trim()) {
+  if (!commentTitle.trim() && !commentDescription.trim()) {
     alert("Please enter a comment title and description");
     return;
   }
@@ -526,14 +528,15 @@ const submitComment = async () => {
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title: commentTitle,
-        description: commentDescription,
-        image: commentImageData,
+        title: commentTitle.trim() || null,
+        description: commentDescription.trim() || null,
+        image: commentImageData || null,
       }),
     });
 
     if (!response.ok) {
       const error = await response.json();
+      console.error("[MEMEBOX] Server error:", error);
       throw new Error(error.error || "Failed to add comment");
     }
 
@@ -543,9 +546,9 @@ const submitComment = async () => {
     const updatedPosts = [...allPosts];
     updatedPosts[currentPostIndex].comments.push({
       id: newComment.id,
-      title: commentTitle,
-      description: commentDescription,
-      image: commentImageData,
+      title: newComment.title,
+      description: newComment.description,
+      image: newComment.image_url,
       upvotes: 0,
       downvotes: 0,
       userVote: null,
@@ -559,7 +562,6 @@ const submitComment = async () => {
     alert("Failed to add comment: " + error.message);
   }
 };
-
   // =====================================================
   // UTILITY FUNCTIONS
   // =====================================================
