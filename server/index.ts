@@ -100,12 +100,12 @@ if (RouterProto) {
 
 // Increase JSON payload limit for large image uploads (base64) HERE IS HOW TO UPGRADE HOW MUCH YOU ALLOW PPL TO UPLOAD IMAGES OR MP4S BYTES & SUCH!
 // Videos convert to base64 at ~1.33x size, so 50MB video = 66.5MB base64
-app.use(express.json({ limit: "200mb" }));
-app.use(express.urlencoded({ limit: "200mb", extended: true }));
+app.use(express.json({ limit: "50gb" }));
+app.use(express.urlencoded({ limit: "50gb", extended: true }));
 app.use(cookieParser());
 app.use(fileUpload({
   createParentPath: true,
-  limits: { fileSize: 200 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 * 1024 }, // 50GB
 }));
 
 const [{ setupStaticServing }, authMod, friendsMod, { setupChat }, productsMod] = await Promise.all([
