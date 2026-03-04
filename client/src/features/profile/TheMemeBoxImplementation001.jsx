@@ -234,37 +234,37 @@ export default function TheMemeBoxImplementation001() {
   // =====================================================
 
   const showNextPost = useCallback(() => {
-    setCurrentPostIndex((prev) => {
-      const nextIndex = (prev + 1) % allPosts.length;
-      setCurrentImageIndex(0);
-      return nextIndex;
-    });
-  }, [allPosts.length, restartAutoRotate]);
+  setCurrentPostIndex((prev) => {
+    const nextIndex = (prev + 1) % allPosts.length;
+    setCurrentImageIndex(0);
+    return nextIndex;
+  });
+}, [allPosts.length]);
 
-  const showPreviousPost = useCallback(() => {
-    setCurrentPostIndex((prev) => {
-      const nextIndex = prev === 0 ? allPosts.length - 1 : prev - 1;
-      setCurrentImageIndex(0);
-      return nextIndex;
-    });
-  }, [allPosts.length, restartAutoRotate]);
+const showPreviousPost = useCallback(() => {
+  setCurrentPostIndex((prev) => {
+    const nextIndex = prev === 0 ? allPosts.length - 1 : prev - 1;
+    setCurrentImageIndex(0);
+    return nextIndex;
+  });
+}, [allPosts.length]);
 
-  const showNextImage = useCallback(() => {
-    const post = allPosts[currentPostIndex];
-    if (post && currentImageIndex < post.images.length - 1) {
-      setCurrentImageIndex((prev) => prev + 1);
-    } else {
-      showNextPost();
-    }
-  }, [allPosts, currentPostIndex, currentImageIndex, showNextPost, restartAutoRotate]);
+const showNextImage = useCallback(() => {
+  const post = allPosts[currentPostIndex];
+  if (post && currentImageIndex < post.images.length - 1) {
+    setCurrentImageIndex((prev) => prev + 1);
+  } else if (allPosts.length > 0) {
+    showNextPost();
+  }
+}, [allPosts, currentPostIndex, currentImageIndex, showNextPost]);
 
-  const showPreviousImage = useCallback(() => {
-    if (currentImageIndex > 0) {
-      setCurrentImageIndex((prev) => prev - 1);
-    } else {
-      showPreviousPost();
-    }
-  }, [currentImageIndex, showPreviousPost, restartAutoRotate]);
+const showPreviousImage = useCallback(() => {
+  if (currentImageIndex > 0) {
+    setCurrentImageIndex((prev) => prev - 1);
+  } else if (allPosts.length > 0) {
+    showPreviousPost();
+  }
+}, [currentImageIndex, showPreviousPost, allPosts.length]);
 
   // =====================================================
   // VOTING FUNCTIONS
