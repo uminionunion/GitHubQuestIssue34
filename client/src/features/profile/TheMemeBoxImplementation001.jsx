@@ -1065,51 +1065,54 @@ export default function TheMemeBoxImplementation001() {
 
   // ✅ NEW: Zoom Modal
   const renderZoomModal = () => {
-    if (!isZoomModalOpen || !displayPost) return null;
+  if (!isZoomModalOpen || !displayPost) return null;
 
-    const zoomMedia = displayPost.images[zoomImageIndex];
+  return (
+    <div style={styles.overlay} onClick={closeZoomModal}>
+      <div style={styles.zoomModalContent} onClick={(e) => e.stopPropagation()}>
+        {/* ✅ FIXED: Stack all images vertically instead of showing prev/next buttons */}
+        <div style={{
+          flex: 1,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+          marginBottom: "16px",
+          padding: "0 8px",
+        }}>
+          {displayPost.images.map((media, idx) => (
+            <div key={idx}>
+              {isVideoFile(media) ? (
+                <video
+                  style={styles.zoomVideo}
+                  controls
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <source src={media} />
+                </video>
+              ) : (
+                <img src={media} alt={`zoom-${idx}`} style={styles.zoomImage} />
+              )}
+            </div>
+          ))}
+        </div>
 
-    return (
-      <div style={styles.overlay} onClick={closeZoomModal}>
-        <div style={styles.zoomModalContent} onClick={(e) => e.stopPropagation()}>
-          {isVideoFile(zoomMedia) ? (
-            <video
-              style={styles.zoomVideo}
-              controls
-              autoPlay
-              onClick={(e) => e.stopPropagation()}
-            >
-              <source src={zoomMedia} />
-            </video>
-          ) : (
-            <img src={zoomMedia} alt="zoom" style={styles.zoomImage} onClick={(e) => e.stopPropagation()} />
-          )}
-
-          <div style={styles.zoomControls}>
-            <button style={styles.zoomButton_control} onClick={zoomPreviousImage} disabled={zoomImageIndex === 0}>
-              ← Prev Image
-            </button>
-            <button
-              style={styles.zoomButton_control}
-              onClick={zoomNextImage}
-              disabled={zoomImageIndex === displayPost.images.length - 1}
-            >
-              Next Image →
-            </button>
-            <button style={styles.zoomButton_control} onClick={zoomPreviousPost}>
-              ⬆ Prev Post
-            </button>
-            <button style={styles.zoomButton_control} onClick={zoomNextPost}>
-              ⬇ Next Post
-            </button>
-            <button style={styles.zoomButton_control} onClick={closeZoomModal}>
-              ✕ Close
-            </button>
-          </div>
+        {/* ✅ FIXED: Navigation buttons for posts only, not images */}
+        <div style={styles.zoomControls}>
+          <button style={styles.zoomButton_control} onClick={zoomPreviousPost}>
+            ⬆ Prev Post
+          </button>
+          <button style={styles.zoomButton_control} onClick={zoomNextPost}>
+            ⬇ Next Post
+          </button>
+          <button style={styles.zoomButton_control} onClick={closeZoomModal}>
+            ✕ Close
+          </button>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const renderUploadDialog = () => {
     if (!isUploadDialogOpen) return null;
