@@ -258,12 +258,6 @@ export default function TheMemeBoxImplementation001() {
 
   // FAVORITE FUNCTIONS
   const handleFavorite = useCallback(async () => {
-  // Wait for auth to load
-  if (!currentUserId) {
-  alert("Please log in to [action]");
-  return;
-}
-
   if (!currentUserId) {
     alert("Please log in to favorite posts");
     return;
@@ -274,23 +268,25 @@ export default function TheMemeBoxImplementation001() {
 
   try {
     console.log("[MEMEBOX] Toggling favorite for post", post.id);
-    const res = await fetch(`/api/memes/posts/${post.id}/favorite`, {
+    
+    const response = await fetch(`/api/memes/posts/${post.id}/favorite`, {
       method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      credentials: "include",  // ✅ CRITICAL: Send cookies
+      headers: { "Content-Type": "application/json" },
     });
 
-    if (!res.ok) {
-      const error = await res.json();
+    if (!response.ok) {
+      const error = await response.json();
       throw new Error(error.error || "Failed to toggle favorite");
     }
 
-    const data = await res.json();
+    const data = await response.json();
+    
+    // Update local state with server response
     const updatedPosts = [...allPosts];
     updatedPosts[currentPostIndex].isFavorited = data.isFavorited;
     setAllPosts(updatedPosts);
+    
     console.log("[MEMEBOX] ✅ Favorite toggled:", data.isFavorited);
   } catch (error) {
     console.error("[MEMEBOX] ❌ Favorite error:", error);
