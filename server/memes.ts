@@ -21,8 +21,25 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
       .limit(100)
       .execute();
     
+    // ✅ FIXED: Fetch images for each post
+    const postsWithImages = await Promise.all(
+      posts.map(async (post) => {
+        const images = await db
+          .selectFrom('MemeImplementation001Images')
+          .select('image_url')
+          .where('post_id', '=', post.id)
+          .orderBy('display_order', 'asc')
+          .execute();
+        
+        return {
+          ...post,
+          image_base64: images.length > 0 ? images[0].image_url : null,
+        };
+      })
+    );
+
     // Return with randomized order
-    const randomized = posts.sort(() => Math.random() - 0.5);
+    const randomized = postsWithImages.sort(() => Math.random() - 0.5);
     res.json(randomized);
   } catch (error) {
     console.error('[MEME API] Error fetching viral posts:', error);
@@ -43,7 +60,24 @@ router.get('/api/memes/posts/user-submitted', async (req: Request, res: Response
       .limit(100)
       .execute();
     
-    res.json(posts);
+    // ✅ FIXED: Fetch images for each post
+    const postsWithImages = await Promise.all(
+      posts.map(async (post) => {
+        const images = await db
+          .selectFrom('MemeImplementation001Images')
+          .select('image_url')
+          .where('post_id', '=', post.id)
+          .orderBy('display_order', 'asc')
+          .execute();
+        
+        return {
+          ...post,
+          image_base64: images.length > 0 ? images[0].image_url : null,
+        };
+      })
+    );
+
+    res.json(postsWithImages);
   } catch (error) {
     console.error('[MEME API] Error fetching user-submitted posts:', error);
     res.status(500).json({ error: 'Failed to fetch posts' });
@@ -83,14 +117,18 @@ router.get('/api/memes/posts/:id', async (req: Request, res: Response) => {
 // Create new post (with images)
 router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { title, description, images } = req.body;
+    const { title, description, imageBase64Array } = req.body;
     const userId = (req as any).user?.userId;
 
-    if (!title || !images || images.length === 0) {
+    // ✅ FIXED: Handle both old format (images array of objects) and new format (imageBase64Array)
+    const imagesToAdd = imageBase64Array || [];
+
+    if (!title || !imagesToAdd || imagesToAdd.length === 0) {
+      console.log('[MEME API] Missing title or images. Title:', title, 'Images count:', imagesToAdd.length);
       return res.status(400).json({ error: 'Title and images required' });
     }
 
-    console.log('[MEME API] Creating post for user', userId, 'with', images.length, 'images');
+    console.log('[MEME API] Creating post for user', userId, 'with', imagesToAdd.length, 'images');
 
     // Create post
     const postResult = await db
@@ -106,21 +144,28 @@ router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response)
 
     const postId = Number(postResult.insertId);
 
-    // Add images
-    for (let i = 0; i < images.length; i++) {
+    // ✅ FIXED: Handle base64 strings directly
+    for (let i = 0; i < imagesToAdd.length; i++) {
+      const imageData = imagesToAdd[i];
+      
+      // imageData can be either a string (base64) or an object with .url property
+      const imageUrl = typeof imageData === 'string' ? imageData : imageData.url;
+
+      console.log(`[MEME API] Storing image ${i + 1}/${imagesToAdd.length} for post ${postId}`);
+
       await db
         .insertInto('MemeImplementation001Images')
         .values({
           post_id: postId,
-          image_url: images[i].url,
-          title: images[i].title || null,
-          description: images[i].description || null,
+          image_url: imageUrl, // ✅ Store base64 string directly
+          title: null,
+          description: null,
           display_order: i,
         })
         .execute();
     }
 
-    console.log('[MEME API] ✅ Post created with ID', postId);
+    console.log('[MEME API] ✅ Post created with ID', postId, 'with', imagesToAdd.length, 'images');
     res.status(201).json({ id: postId, message: 'Post created' });
   } catch (error) {
     console.error('[MEME API] Error creating post:', error);
