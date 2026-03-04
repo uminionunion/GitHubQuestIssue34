@@ -38,24 +38,28 @@ export default function TheMemeBoxImplementation001() {
   // =====================================================
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const user = await res.json();
-          setCurrentUsername(user.username);
-          console.log("[MEMEBOX] ✅ Logged in as:", user.username);
-        }
-      } catch (error) {
-        console.log("[MEMEBOX] Not authenticated");
+  const checkAuthStatus = async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const user = await res.json();
+        setCurrentUsername(user.username);
+        console.log("[MEMEBOX] ✅ Logged in as:", user.username);
+      } else if (res.status === 401) {
+        // Not authenticated - this is normal, don't log as error
         setCurrentUsername("DemoUser");
       }
-    };
+    } catch (error) {
+      // Network error - set default
+      setCurrentUsername("DemoUser");
+    }
+  };
 
-    checkAuthStatus();
-    const interval = setInterval(checkAuthStatus, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  checkAuthStatus();
+  // Only check every 3000 seconds instead of 5 to reduce spam
+  const interval = setInterval(checkAuthStatus, 3000000);
+  return () => clearInterval(interval);
+}, []);
 
   // =====================================================
   // SAMPLE DATA
