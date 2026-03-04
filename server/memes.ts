@@ -552,6 +552,7 @@ router.get('/api/memes/posts/:id/comments', async (req: Request, res: Response) 
   }
 });
 
+
 // Add comment to post
 router.post('/api/memes/posts/:id/comments', requireAuth, async (req: Request, res: Response) => {
   try {
