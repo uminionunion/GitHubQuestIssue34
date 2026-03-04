@@ -528,22 +528,13 @@ router.post('/api/memes/posts/:id/comments', requireAuth, async (req: Request, r
     upvotes: 0,
     downvotes: 0,
   })
-  .executeTakeFirst();
+  .returning('id')
+  .executeTakeFirstOrThrow();
 
-if (!result) {
-  console.error('[MEME API] Failed to insert comment - no result returned');
-  return res.status(500).json({ error: 'Failed to create comment' });
-}
-
-const commentId = result.insertId || result.id || result[0]?.id;
-if (!commentId) {
-  console.error('[MEME API] Cannot determine comment ID from insert result:', result);
-  return res.status(500).json({ error: 'Failed to get comment ID' });
-}
-
+const commentId = result.id;
 console.log('[MEME API] ✅ Comment created with ID', commentId);
-  res.status(201).json({ 
-  id: commentId,  // ✅ Use the actual ID
+res.status(201).json({ 
+  id: commentId,
   title: title?.trim() || null,
   description: description?.trim() || null,
   image_url: image || null,
