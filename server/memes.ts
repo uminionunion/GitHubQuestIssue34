@@ -124,7 +124,6 @@ router.get('/api/memes/posts', async (req: Request, res: Response) => {
       .orderBy('created_at', 'desc')
       .execute();
 
-    // Fetch images and comments for each post
     const postsWithData = await Promise.all(posts.map(async (post) => {
       const images = await db
         .selectFrom('MemeImplementation001Images')
@@ -153,6 +152,19 @@ router.get('/api/memes/posts', async (req: Request, res: Response) => {
         userVote = voteRecord?.vote_type || null;
       }
 
+      // ✅ NEW: Check if post is favorited by current user
+      let isFavorited = false;
+      if (authUser) {
+        const favorite = await db
+          .selectFrom('MemeImplementation001Favorites')
+          .select('id')
+          .where('post_id', '=', post.id)
+          .where('user_id', '=', authUser.userId)
+          .executeTakeFirst();
+        
+        isFavorited = !!favorite;
+      }
+
       return {
         id: post.id,
         user_id: post.user_id,
@@ -175,7 +187,7 @@ router.get('/api/memes/posts', async (req: Request, res: Response) => {
           timestamp: new Date(c.created_at!),
           hidden: false,
         })),
-        isFavorited: false,
+        isFavorited,  // ✅ Now uses database value
       };
     }));
 
@@ -476,5 +488,75 @@ router.delete('/api/memes/posts/:postId', async (req: Request, res: Response) =>
     res.status(500).json({ error: 'Failed to delete post' });
   }
 });
+
+
+
+// POST: Favorite/Unfavorite a post
+router.post('/api/memes/posts/:postId/favorite', async (req: Request, res: Response) => {
+  try {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    const postId = parseInt(req.params.postId, 10);
+    if (isNaN(postId)) {
+      res.status(400).json({ error: 'Invalid post ID' });
+      return;
+    }
+
+    // Check if post exists
+    const post = await db
+      .selectFrom('MemeImplementation001Posts')
+      .selectAll()
+      .where('id', '=', postId)
+      .executeTakeFirst();
+
+    if (!post) {
+      res.status(404).json({ error: 'Post not found' });
+      return;
+    }
+
+    // Check if already favorited
+    const existingFavorite = await db
+      .selectFrom('MemeImplementation001Favorites')
+      .select('id')
+      .where('post_id', '=', postId)
+      .where('user_id', '=', authUser.userId)
+      .executeTakeFirst();
+
+    let isFavorited = false;
+
+    if (existingFavorite) {
+      // Remove favorite
+      await db
+        .deleteFrom('MemeImplementation001Favorites')
+        .where('post_id', '=', postId)
+        .where('user_id', '=', authUser.userId)
+        .execute();
+      console.log(`[MEMEBOX] ✅ Removed favorite: post ${postId}, user ${authUser.username}`);
+    } else {
+      // Add favorite
+      await db
+        .insertInto('MemeImplementation001Favorites')
+        .values({
+          post_id: postId,
+          user_id: authUser.userId,
+        })
+        .execute();
+      isFavorited = true;
+      console.log(`[MEMEBOX] ✅ Added favorite: post ${postId}, user ${authUser.username}`);
+    }
+
+    res.status(200).json({ isFavorited });
+  } catch (error) {
+    console.error('[MEMEBOX] Error toggling favorite:', error);
+    res.status(500).json({ error: 'Failed to toggle favorite' });
+  }
+});
+
+
+
 
 export default router;
