@@ -113,6 +113,84 @@ router.post('/api/memes/posts', async (req: Request, res: Response) => {
   }
 });
 
+
+
+
+router.get('/api/memes/posts/user-submitted', async (req: Request, res: Response) => {
+  try {
+    console.log('[MEME API] Fetching user-submitted posts (<5 upvotes)');
+    
+    // Get userId from token if logged in
+    let userId: number | null = null;
+    const token = req.cookies?.token;
+    if (token) {
+      try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-key') as any;
+        userId = payload.userId;
+      } catch {
+        // Invalid token, continue as anonymous
+      }
+    }
+
+    const posts = await db
+      .selectFrom('MemeImplementation001Posts')
+      .selectAll()
+      .where('upvotes', '<', 5)
+      .where('downvotes', '<', 10)
+      .orderBy('created_at', 'desc')
+      .limit(100)
+      .execute();
+
+    // Enhance posts with images and favorite status
+    const postsWithData = await Promise.all(posts.map(async (post) => {
+      const images = await db
+        .selectFrom('MemeImplementation001Images')
+        .select('image_url')
+        .where('post_id', '=', post.id)
+        .orderBy('display_order', 'asc')
+        .execute();
+
+      // Check if favorited by current user
+      let isFavorited = false;
+      if (userId) {
+        const favorite = await db
+          .selectFrom('MemeImplementation001Favorites')
+          .select('id')
+          .where('post_id', '=', post.id)
+          .where('user_id', '=', userId)
+          .executeTakeFirst();
+        isFavorited = !!favorite;
+      }
+
+      return {
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        upvotes: post.upvotes,
+        downvotes: post.downvotes,
+        image_base64: images.length > 0 ? images[0].image_url : null,
+        created_at: post.created_at,
+        isFavorited,  // ← ADD THIS
+      };
+    }));
+
+    res.json(postsWithData);
+  } catch (error) {
+    console.error('[MEME API] Error fetching user-submitted posts:', error);
+    res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
 // GET: Fetch all posts with vote counts
 router.get('/api/memes/posts', async (req: Request, res: Response) => {
   try {
@@ -552,6 +630,61 @@ router.post('/api/memes/posts/:postId/favorite', async (req: Request, res: Respo
     res.status(200).json({ isFavorited });
   } catch (error) {
     console.error('[MEMEBOX] Error toggling favorite:', error);
+    res.status(500).json({ error: 'Failed to toggle favorite' });
+  }
+});
+
+
+
+
+// ==========================================
+// FAVORITES ROUTES
+// ==========================================
+
+// Toggle favorite status for a post
+router.post('/api/memes/posts/:id/favorite', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.userId;
+    const postId = parseInt(id);
+
+    if (isNaN(postId)) {
+      return res.status(400).json({ error: 'Invalid post ID' });
+    }
+
+    console.log('[MEME API] User', userId, 'toggling favorite for post', postId);
+
+    // Check if already favorited
+    const existingFavorite = await db
+      .selectFrom('MemeImplementation001Favorites')
+      .selectAll()
+      .where('post_id', '=', postId)
+      .where('user_id', '=', userId)
+      .executeTakeFirst();
+
+    let isFavorited = false;
+
+    if (existingFavorite) {
+      // Remove favorite
+      await db
+        .deleteFrom('MemeImplementation001Favorites')
+        .where('post_id', '=', postId)
+        .where('user_id', '=', userId)
+        .execute();
+      console.log('[MEME API] ✅ Favorite removed for post', postId);
+    } else {
+      // Add favorite
+      await db
+        .insertInto('MemeImplementation001Favorites')
+        .values({ post_id: postId, user_id: userId })
+        .execute();
+      isFavorited = true;
+      console.log('[MEME API] ✅ Favorite added for post', postId);
+    }
+
+    res.json({ isFavorited });
+  } catch (error) {
+    console.error('[MEME API] Error toggling favorite:', error);
     res.status(500).json({ error: 'Failed to toggle favorite' });
   }
 });
