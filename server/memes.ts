@@ -677,10 +677,80 @@ router.post('/api/memes/comments/:id/upvote', requireAuth, async (req: Request, 
     }
 
     console.log('[MEME API] ✅ Comment upvote processed');
-    res.json({ message: 'Comment upvoted' });
+     res.json({ message: 'Comment upvoted' });
+   } catch (error) {
+     console.error('[MEME API] Error upvoting comment:', error);
+     res.status(500).json({ error: 'Failed to upvote comment' });
+   }
+ });
+
+// ✅ NEW: Downvote comment
+router.post('/api/memes/comments/:id/downvote', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.userId;
+    const commentId = parseInt(id);
+
+    console.log('[MEME API] User', userId, 'downvoting comment', commentId);
+
+    const existingVote = await db
+      .selectFrom('MemeImplementation001CommentVotes')
+      .select(['id', 'vote_type'])
+      .where('comment_id', '=', commentId)
+      .where('user_id', '=', userId)
+      .executeTakeFirst();
+
+    if (existingVote) {
+      if (existingVote.vote_type === -1) {
+        // Remove downvote
+        await db
+          .deleteFrom('MemeImplementation001CommentVotes')
+          .where('comment_id', '=', commentId)
+          .where('user_id', '=', userId)
+          .execute();
+
+        await db
+          .updateTable('MemeImplementation001Comments')
+          .set({ downvotes: sql<number>`downvotes - 1` })
+          .where('id', '=', commentId)
+          .execute();
+      } else {
+        // Change from upvote to downvote
+        await db
+          .updateTable('MemeImplementation001CommentVotes')
+          .set({ vote_type: -1 })
+          .where('comment_id', '=', commentId)
+          .where('user_id', '=', userId)
+          .execute();
+
+        await db
+          .updateTable('MemeImplementation001Comments')
+          .set({
+            downvotes: sql<number>`downvotes + 1`,
+            upvotes: sql<number>`upvotes - 1`,
+          })
+          .where('id', '=', commentId)
+          .execute();
+      }
+    } else {
+      // New downvote
+      await db
+        .insertInto('MemeImplementation001CommentVotes')
+        .values({ comment_id: commentId, user_id: userId, vote_type: -1 })
+        .execute();
+
+      await db
+        .updateTable('MemeImplementation001Comments')
+        .set({ downvotes: sql<number>`downvotes + 1` })
+        .where('id', '=', commentId)
+        .execute();
+    }
+
+    console.log('[MEME API] ✅ Comment downvote processed');
+    res.json({ message: 'Comment downvoted' });
   } catch (error) {
-    console.error('[MEME API] Error upvoting comment:', error);
-    res.status(500).json({ error: 'Failed to upvote comment' });
+    console.error('[MEME API] Error downvoting comment:', error);
+    res.status(500).json({ error: 'Failed to downvote comment' });
   }
 });
 
