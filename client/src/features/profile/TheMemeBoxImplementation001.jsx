@@ -43,9 +43,9 @@ export default function TheMemeBoxImplementation001() {
 
 // Initial emojis (try to use these first)
 const EMOJIS = {
-  UPVOTE_INITIAL: <img src="../../../Public/EmojisForUminionWebsite/GreenEmoji002ThumbsUp.jpg" width="24" />",      // Fallback: 👍
-  DOWNVOTE_INITIAL: <img src="../../../Public/EmojisForUminionWebsite/GreenEmoji003ThumbsDown.jpg" width="24" />",    // Fallback: 👎
-  COMMENT_INITIAL: <img src="../../../Public/EmojisForUminionWebsite/GreenEmoji004CommentOrChat.jpg" width="24" />",     // Fallback: 💬
+  UPVOTE_INITIAL: <img src="../../../Public/EmojisForUminionWebsite/GreenEmoji002ThumbsUp.jpg" width="24" />,      // Fallback: 👍
+  DOWNVOTE_INITIAL: <img src="../../../Public/EmojisForUminionWebsite/GreenEmoji003ThumbsDown.jpg" width="24" />,    // Fallback: 👎
+  COMMENT_INITIAL: <img src="../../../Public/EmojisForUminionWebsite/GreenEmoji004CommentOrChat.jpg" width="24" />,     // Fallback: 💬
 
   // Fallback emojis (will appear if initial doesn't render)
   UPVOTE_FALLBACK: "👍",
