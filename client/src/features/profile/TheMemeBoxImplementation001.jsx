@@ -42,10 +42,10 @@ export default function TheMemeBoxImplementation001() {
 // =====================================================
 
 // Initial emojis (try to use these first)
-const EMOJIS = {
-  UPVOTE_INITIAL: "/EmojisForUminionWebsite/GreenEmoji002ThumbsUp.ong",      // Fallback: 👍
-  DOWNVOTE_INITIAL: "/EmojisForUminionWebsite/GreenEmoji003ThumbsDown.png",    // Fallback: 👎
-  COMMENT_INITIAL: "/EmojisForUminionWebsite/GreenEmoji004CommentOrChat.png" />,     // Fallback: 💬
+const EMOJIS = { 
+  UPVOTE_INITIAL: <img src="/EmojisForUminionWebsite/GreenEmoji002ThumbsUp.png" width="24" />,     // Fallback: 👍
+  DOWNVOTE_INITIAL: <img src="/EmojisForUminionWebsite/GreenEmoji003ThumbsDown.png" width="24" />,   // Fallback: 👎
+  COMMENT_INITIAL: <img src="/EmojisForUminionWebsite/GreenEmoji004CommentOrChat" width="24" />,     // Fallback: 💬
 
   // Fallback emojis (will appear if initial doesn't render)
   UPVOTE_FALLBACK: "👍",
