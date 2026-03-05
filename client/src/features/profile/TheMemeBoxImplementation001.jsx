@@ -504,6 +504,46 @@ const handleDeletePost = useCallback(async () => {
       throw new Error(error.error || "Failed to delete post");
     }
 
+    const updatedPosts = allPosts.filter((p) => p.id !== post.id);
+    setAllPosts(updatedPosts);
+
+    if (updatedPosts.length > 0) {
+      setCurrentPostIndex(Math.max(0, currentPostIndex - 1));
+    }
+
+    console.log("[MEMEBOX] ✅ Post deleted successfully");
+  } catch (error) {
+    console.error("[MEMEBOX] ❌ Delete error:", error);
+    alert("Failed to delete post: " + error.message);
+  }
+}, [allPosts, currentPostIndex]);
+
+
+  
+
+const handleDeletePost = useCallback(async () => {
+  const post = allPosts[currentPostIndex];
+  if (!post) return;
+
+  const confirmed = window.confirm(
+    `Are you sure you want to delete "${post.title}"? This will also delete all comments on this post.`
+  );
+  if (!confirmed) return;
+
+  try {
+    console.log("[MEMEBOX] Deleting post", post.id);
+
+    const response = await fetch(`/api/memes/posts/${post.id}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to delete post");
+    }
+
     // Remove post from allPosts
     const updatedPosts = allPosts.filter((p) => p.id !== post.id);
     setAllPosts(updatedPosts);
@@ -520,7 +560,44 @@ const handleDeletePost = useCallback(async () => {
   }
 }, [allPosts, currentPostIndex]);
 
-  
+  const handleDeleteComment = useCallback(
+  async (commentId, commentIndex) => {
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this comment? The text will be replaced with 'author deleted comment'."
+    );
+    if (!confirmed) return;
+
+    try {
+      console.log("[MEMEBOX] Deleting comment", commentId);
+
+      const response = await fetch(`/api/memes/comments/${commentId}/delete`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete comment");
+      }
+
+      // Update comment in state to mark as deleted
+      const updatedPosts = [...allPosts];
+      updatedPosts[currentPostIndex].comments[commentIndex].is_deleted = 1;
+      updatedPosts[currentPostIndex].comments[commentIndex].description = null;
+      setAllPosts(updatedPosts);
+
+      console.log("[MEMEBOX] ✅ Comment deleted successfully");
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Delete comment error:", error);
+      alert("Failed to delete comment: " + error.message);
+    }
+  },
+  [allPosts, currentPostIndex]
+);
 
   const removeFromFavorites = useCallback(
     (postId) => {
@@ -1392,7 +1469,8 @@ const submitComment = async () => {
   </div>
 </div>
 
-        <div style={styles.actionButtonsContainer}>
+        {/* ROW 1: Upvote, Downvote, Favorites */}
+<div style={styles.actionButtonsContainer}>
   <button
     style={{
       ...styles.actionButton,
@@ -1426,6 +1504,7 @@ const submitComment = async () => {
   </button>
 </div>
 
+{/* ROW 2: Comment, View Comments, Delete (if owner) */}
 <div style={styles.actionButtonsContainer}>
   <button style={styles.actionButton} onClick={openCommentDialog}>
     {EMOJIS.COMMENT_INITIAL} Comment
@@ -1437,7 +1516,7 @@ const submitComment = async () => {
     />{" "}
     View Comments
   </button>
-  {currentUsername === displayPost.username && (
+  {currentUsername === displayPost.user_id && (
     <button
       style={{ ...styles.actionButton, backgroundColor: "#ff6666" }}
       onClick={handleDeletePost}
@@ -1757,52 +1836,82 @@ const renderViewCommentsDialog = () => {
     onClick={() => openCommentImageZoom(comment.image)}
   />
 )}
-                {/* Comment description */}
-                <p style={{ margin: "0 0 8px 0", fontSize: "13px", color: "#cccccc" }}>
-                  {comment.description}
-                </p>
+                {/* Comment description - or deleted message */}
+<p
+  style={{
+    margin: "0 0 8px 0",
+    fontSize: "13px",
+    color: comment.is_deleted ? "#999999" : "#cccccc",
+    fontStyle: comment.is_deleted ? "italic" : "normal",
+  }}
+>
+  {comment.is_deleted ? "author deleted comment" : comment.description}
+</p>
 
-                {/* Vote section */}
-                <div style={{
-                  display: "flex",
-                  gap: "12px",
-                  marginTop: "8px",
-                  paddingTop: "8px",
-                  borderTop: "1px solid #555555",
-                }}>
-                  <button
-                    style={{
-                      backgroundColor: comment.userVote === 1 ? "#00ff00" : "#555555",
-                      color: comment.userVote === 1 ? "#000000" : "#ffffff",
-                      border: "none",
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      transition: "all 0.2s",
-                    }}
-                    onClick={() => handleCommentVoteWithAPI(comment.id, idx, 1)}
-                  >
-                    {EMOJIS.UPVOTE_INITIAL} {comment.upvotes}
-                  </button>
-                  <button
-                    style={{
-                      backgroundColor: comment.userVote === -1 ? "#ff6666" : "#555555",
-                      color: "#ffffff",
-                      border: "none",
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      transition: "all 0.2s",
-                    }}
-                    onClick={() => handleCommentVoteWithAPI(comment.id, idx, -1)}
-                  >
-                    {EMOJIS.DOWNVOTE_INITIAL} {comment.downvotes}
-                  </button>
-                </div>
+                {/* Vote section with delete button for owner */}
+<div
+  style={{
+    display: "flex",
+    gap: "12px",
+    marginTop: "8px",
+    paddingTop: "8px",
+    borderTop: "1px solid #555555",
+    flexWrap: "wrap",
+  }}
+>
+  <button
+    style={{
+      backgroundColor:
+        comment.userVote === 1 ? "#00ff00" : "#555555",
+      color: comment.userVote === 1 ? "#000000" : "#ffffff",
+      border: "none",
+      padding: "4px 8px",
+      borderRadius: "4px",
+      cursor: "pointer",
+      fontSize: "12px",
+      fontWeight: "500",
+      transition: "all 0.2s",
+    }}
+    onClick={() => handleCommentVoteWithAPI(comment.id, idx, 1)}
+  >
+    {EMOJIS.UPVOTE_INITIAL} {comment.upvotes}
+  </button>
+  <button
+    style={{
+      backgroundColor:
+        comment.userVote === -1 ? "#ff6666" : "#555555",
+      color: "#ffffff",
+      border: "none",
+      padding: "4px 8px",
+      borderRadius: "4px",
+      cursor: "pointer",
+      fontSize: "12px",
+      fontWeight: "500",
+      transition: "all 0.2s",
+    }}
+    onClick={() => handleCommentVoteWithAPI(comment.id, idx, -1)}
+  >
+    {EMOJIS.DOWNVOTE_INITIAL} {comment.downvotes}
+  </button>
+  {currentUsername === comment.username && (
+    <button
+      style={{
+        backgroundColor: "#ff6666",
+        color: "#ffffff",
+        border: "none",
+        padding: "4px 8px",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "12px",
+        fontWeight: "500",
+        transition: "all 0.2s",
+      }}
+      onClick={() => handleDeleteComment(comment.id, idx)}
+    >
+      🗑️ Delete
+    </button>
+  )}
+</div>
               </div>
             ))
           ) : (
