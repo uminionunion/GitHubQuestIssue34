@@ -159,7 +159,7 @@ const EMOJIS = {
                });
                if (commentRes.ok) {
                  const rawComments = await commentRes.json();
-                 comments = rawComments.map((comment) => ({
+               comments = rawComments.map((comment) => ({
   id: comment.id,
   username: comment.username || "Anonymous",
   title: comment.title,
@@ -170,6 +170,7 @@ const EMOJIS = {
   userVote: comment.userVote || null,
   timestamp: new Date(comment.created_at),
   hidden: false,
+  is_deleted: comment.is_deleted || 0, // ✅ ADD THIS
 }));
                }
              } catch (err) {
@@ -232,18 +233,19 @@ const fetchCommentsForPost = useCallback(async (postId) => {
     if (!response.ok) return [];
 
     const comments = await response.json();
-    return comments.map((comment) => ({
-      id: comment.id,
-      username: comment.username || "Anonymous", // ✅ NEW: Add username
-      title: comment.title,
-      description: comment.description,
-      image: comment.image_url,
-      upvotes: comment.upvotes || 0,
-      downvotes: comment.downvotes || 0,
-      userVote: comment.userVote || null, // ✅ NEW: Get from server instead of null
-      timestamp: new Date(comment.created_at),
-      hidden: false,
-    }));
+return comments.map((comment) => ({
+  id: comment.id,
+  username: comment.username || "Anonymous", // ✅ NEW: Add username
+  title: comment.title,
+  description: comment.description,
+  image: comment.image_url,
+  upvotes: comment.upvotes || 0,
+  downvotes: comment.downvotes || 0,
+  userVote: comment.userVote || null, // ✅ NEW: Get from server instead of null
+  timestamp: new Date(comment.created_at),
+  hidden: false,
+  is_deleted: comment.is_deleted || 0, // ✅ ADD THIS
+}));
   } catch (error) {
     console.error(
       "[MEMEBOX] Error fetching comments for post",
@@ -956,7 +958,7 @@ const submitComment = async () => {
       gap: "12px",
     },
     navButton: {
-      backgroundColor: "#0066ff",
+      backgroundColor: "#555555",
       color: "#ffffff",
       border: "none",
       padding: "8px 16px",
@@ -1104,7 +1106,7 @@ const submitComment = async () => {
       justifyContent: "center",
     },
     navArrowButton: {
-      backgroundColor: "#0066ff",
+      backgroundColor: "#555555",
       color: "#ffffff",
       border: "none",
       padding: "10px 20px",
@@ -1158,7 +1160,7 @@ const submitComment = async () => {
       flexWrap: "wrap",
     },
     zoomButton_control: {
-      backgroundColor: "#0066ff",
+      backgroundColor: "#555555",
       color: "#ffffff",
       border: "none",
       padding: "10px 20px",
@@ -1413,12 +1415,20 @@ const submitComment = async () => {
         </div>
 
         <div style={styles.postInfo}>
-          <h2 style={styles.postTitle}>{displayPost.title}</h2>
-          <p style={styles.postDescription}>{displayPost.description}</p>
-          <p style={styles.postTime}>{getTimeElapsed(displayPost.timestamp)}</p>
-        </div>
+  <h2 style={styles.postTitle}>{displayPost.title}</h2>
+  <p style={styles.postDescription}>{displayPost.description}</p>
+  <p style={{ 
+    fontSize: "13px", 
+    color: "#0099ff",
+    margin: "6px 0 8px 0",
+    fontWeight: "500"
+  }}>
+    By: {displayPost.username || "Anonymous"}
+  </p>
+  <p style={styles.postTime}>{getTimeElapsed(displayPost.timestamp)}</p>
+</div>
 
-        <div style={styles.voteSection}>
+<div style={styles.voteSection}>
   <div style={styles.voteCount}>
     <div style={styles.voteNumber}>{EMOJIS.UPVOTE_INITIAL} {displayPost.upvotes}</div>
     <div style={styles.voteLabel}>Upvotes</div>
@@ -1482,7 +1492,7 @@ const submitComment = async () => {
     />{" "}
     View Comments
   </button>
-  {currentUsername === displayPost.user_id && (
+  {currentUsername === displayPost.username && (
     <button
       style={{ ...styles.actionButton, backgroundColor: "#ff6666" }}
       onClick={handleDeletePost}
