@@ -28,7 +28,9 @@ export default function TheMemeBoxImplementation001() {
   const [isCommentImageZoomOpen, setIsCommentImageZoomOpen] = useState(false);
   const [zoomedCommentImage, setZoomedCommentImage] = useState(null);
 
-
+  const [isUserProfileModalOpen, setIsUserProfileModalOpen] = useState(false);
+  const [selectedUsername, setSelectedUsername] = useState(null);
+  
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const SWIPE_THRESHOLD = 50;
@@ -41,9 +43,9 @@ export default function TheMemeBoxImplementation001() {
 
 // Initial emojis (try to use these first)
 const EMOJIS = {
-  UPVOTE_INITIAL: "👍",      // Fallback: 👍
-  DOWNVOTE_INITIAL: "👎",    // Fallback: 👎
-  COMMENT_INITIAL: "💬",     // Fallback: 💬
+  UPVOTE_INITIAL: "<img src="../../../Public/EmojisForUminionWebsite/GreenEmoji002ThumbsUp.jpg" width="24" />",      // Fallback: 👍
+  DOWNVOTE_INITIAL: "<img src="../../../Public/EmojisForUminionWebsite/GreenEmoji003ThumbsDown.jpg" width="24" />",    // Fallback: 👎
+  COMMENT_INITIAL: "<img src="../../../Public/EmojisForUminionWebsite/GreenEmoji004CommentOrChat.jpg" width="24" />",     // Fallback: 💬
 
   // Fallback emojis (will appear if initial doesn't render)
   UPVOTE_FALLBACK: "👍",
@@ -563,6 +565,16 @@ const handleFavorite = useCallback(async () => {
 const openCommentImageZoom = (imageUrl) => {
   setZoomedCommentImage(imageUrl);
   setIsCommentImageZoomOpen(true);
+};
+
+  const openUserProfile = (username) => {
+  setSelectedUsername(username);
+  setIsUserProfileModalOpen(true);
+};
+
+const closeUserProfile = () => {
+  setIsUserProfileModalOpen(false);
+  setSelectedUsername(null);
 };
 
 const closeCommentImageZoom = () => {
@@ -1595,9 +1607,21 @@ const renderViewCommentsDialog = () => {
   }}
 >
   <div>
-    <span style={{ fontSize: "12px", color: "#0099ff", fontWeight: "bold" }}>
-      @{comment.username}
-    </span>
+    <button
+  style={{
+    fontSize: "12px",
+    color: "#0099ff",
+    fontWeight: "bold",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: "0",
+    textDecoration: "underline",
+  }}
+  onClick={() => openUserProfile(comment.username)}
+>
+  {comment.username}
+</button>
     <h3
       style={{
         margin: "4px 0 0 0",
@@ -1742,6 +1766,41 @@ const renderCommentImageZoomModal = () => {
 };
 
 
+const renderUserProfileModal = () => {
+  if (!isUserProfileModalOpen || !selectedUsername) return null;
+
+  return (
+    <div style={styles.overlay} onClick={closeUserProfile}>
+      <div
+        style={{...styles.dialog, maxWidth: "400px"}}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={styles.dialogHeader}>
+          <h2 style={{ margin: 0, fontSize: "20px" }}>👤 {selectedUsername}</h2>
+          <button style={styles.closeButton} onClick={closeUserProfile}>
+            ✕
+          </button>
+        </div>
+
+        <div style={styles.dialogContent}>
+          <p style={{ color: "#cccccc", marginBottom: "12px" }}>
+            Username: <strong>@{selectedUsername}</strong>
+          </p>
+          <p style={{ color: "#999999", fontSize: "12px" }}>
+            Click to visit their profile (integration with main app profile system)
+          </p>
+        </div>
+
+        <div style={styles.dialogFooter}>
+          <button style={styles.submitButton} onClick={closeUserProfile}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+  
   
 
 
@@ -1898,7 +1957,8 @@ const renderCommentImageZoomModal = () => {
       {renderCommentDialog()}
       {renderViewCommentsDialog()}
       {renderCommentImageZoomModal()}
-      {renderFavoritesDialog()}
+{renderUserProfileModal()}
+{renderFavoritesDialog()}
     </div>
   );
 }
