@@ -1255,7 +1255,7 @@ const submitComment = async () => {
             📄 {getPageTitle()}
           </button>
           <button style={styles.navButton} onClick={showFavoritesGrid}>
-            ⭐ Favorites ({favoritesPosts.length})
+            <img src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png" width="24" /> Favorites ({favoritesPosts.length})
           </button>
         </div>
       </div>
@@ -1341,7 +1341,7 @@ const submitComment = async () => {
   {EMOJIS.COMMENT_INITIAL} Comment
 </button>
           <button style={styles.actionButton} onClick={openViewCommentsDialog}>
-            👁 View Comments
+            <img src="/EmojisForUminionWebsite/GreenEmoji005CommentsChats.png" width="24" /> View Comments
           </button>
         </div>
 
