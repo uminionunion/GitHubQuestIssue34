@@ -247,6 +247,7 @@ export interface MemeImplementation001Comments {
   upvotes: Generated<number>;
   downvotes: Generated<number>;
   created_at: Generated<string | null>;
+  is_deleted: Generated<number>;
 }
 
 export interface MemeImplementation001PostVotes {
