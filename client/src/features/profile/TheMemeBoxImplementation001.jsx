@@ -30,6 +30,10 @@ export default function TheMemeBoxImplementation001() {
 
   const [isUserProfileModalOpen, setIsUserProfileModalOpen] = useState(false);
   const [selectedUsername, setSelectedUsername] = useState(null);
+
+ // For user profile modal integration
+  const [isViewingUserProfile, setIsViewingUserProfile] = useState(false);
+  const [viewingUserData, setViewingUserData] = useState(null);
   
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -47,7 +51,7 @@ const EMOJIS = {
   DOWNVOTE_INITIAL: <img src="/EmojisForUminionWebsite/GreenEmoji003ThumbsDown.png" width="24" />,   // Fallback: 👎
   COMMENT_INITIAL: <img src="/EmojisForUminionWebsite/GreenEmoji004CommentOrChat.png" width="24" />,     // Fallback: 💬
 
-  // Fallback emojis (will appear if initial doesn't render)
+  // Fallback emojis (will appear if initial doesn't render) ((((Note from Salem: Fallback function presently not working (i believe, at least, not by actually falling back. anywho; keep that in mind -1:01pm on 3/5/26)
   UPVOTE_FALLBACK: "👍",
   DOWNVOTE_FALLBACK: "👎",
   COMMENT_FALLBACK: "💬",
@@ -567,15 +571,33 @@ const openCommentImageZoom = (imageUrl) => {
   setIsCommentImageZoomOpen(true);
 };
 
-  const openUserProfile = (username) => {
-  setSelectedUsername(username);
-  setIsUserProfileModalOpen(true);
-};
+  const openUserProfile = async (username) => {
+    try {
+      console.log('[MEMEBOX] Fetching profile for user:', username);
+      // Fetch user by username
+      const response = await fetch(`/api/users/by-username/${username}`, {
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        console.log('[MEMEBOX] ✅ User profile fetched:', userData);
+        setViewingUserData(userData);
+        setIsViewingUserProfile(true);
+      } else {
+        console.error('[MEMEBOX] User not found:', username);
+        alert(`User "${username}" not found`);
+      }
+    } catch (error) {
+      console.error('[MEMEBOX] Error fetching user profile:', error);
+      alert('Failed to load user profile');
+    }
+  };
 
-const closeUserProfile = () => {
-  setIsUserProfileModalOpen(false);
-  setSelectedUsername(null);
-};
+  const closeUserProfile = () => {
+    setIsViewingUserProfile(false);
+    setViewingUserData(null);
+  };
 
 const closeCommentImageZoom = () => {
   setIsCommentImageZoomOpen(false);
@@ -1765,175 +1787,248 @@ const renderCommentImageZoomModal = () => {
   );
 };
 
-
 const renderUserProfileModal = () => {
-  if (!isUserProfileModalOpen || !selectedUsername) return null;
+    if (!isViewingUserProfile || !viewingUserData) return null;
 
-  return (
-    <div style={styles.overlay} onClick={closeUserProfile}>
-      <div
-        style={{...styles.dialog, maxWidth: "400px"}}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={styles.dialogHeader}>
-          <h2 style={{ margin: 0, fontSize: "20px" }}>👤 {selectedUsername}</h2>
-          <button style={styles.closeButton} onClick={closeUserProfile}>
-            ✕
-          </button>
-        </div>
+    // Use the MainUhubFeatureV001ForUserProfileModal if available
+    // For now, show a simple modal with user info
+    return (
+      <div style={styles.overlay} onClick={closeUserProfile}>
+        <div
+          style={{ ...styles.dialog, maxWidth: "600px" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={styles.dialogHeader}>
+            <h2 style={{ margin: 0, fontSize: "20px" }}>
+              👤 {viewingUserData.username}
+            </h2>
+            <button style={styles.closeButton} onClick={closeUserProfile}>
+              ✕
+            </button>
+          </div>
 
-        <div style={styles.dialogContent}>
-          <p style={{ color: "#cccccc", marginBottom: "12px" }}>
-            Username: <strong>@{selectedUsername}</strong>
-          </p>
-          <p style={{ color: "#999999", fontSize: "12px" }}>
-            Click to visit their profile (integration with main app profile system)
-          </p>
-        </div>
+          <div style={styles.dialogContent}>
+            <p style={{ color: "#cccccc", marginBottom: "12px" }}>
+              <strong>Username:</strong> @{viewingUserData.username}
+            </p>
+            {viewingUserData.profile_image_url && (
+              <div
+                style={{
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "8px",
+                  marginBottom: "16px",
+                  backgroundImage: `url(${viewingUserData.profile_image_url})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            )}
+            <p style={{ color: "#999999", fontSize: "12px" }}>
+              This user's profile and store information.
+            </p>
+          </div>
 
-        <div style={styles.dialogFooter}>
-          <button style={styles.submitButton} onClick={closeUserProfile}>
-            Close
-          </button>
+          <div style={styles.dialogFooter}>
+            <button style={styles.submitButton} onClick={closeUserProfile}>
+              Close
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
-  
-  
+    );
+  };
 
 
   const renderFavoritesDialog = () => {
-   if (!isFavoritesGridOpen) return null;
+    if (!isFavoritesGridOpen) return null;
 
-   // If a favorite is selected for detail view
-   if (isFavoriteDetailOpen && selectedFavoritePost) {
-     return (
-       <div style={styles.overlay} onClick={closeFavoritesGrid}>
-         <div style={{
-           backgroundColor: "#222222",
-           borderRadius: "12px",
-           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)",
-           maxWidth: "600px",
-           width: "100%",
-           display: "flex",
-           flexDirection: "column",
-           maxHeight: "85vh",
-         }} onClick={(e) => e.stopPropagation()}>
-           {/* Header */}
-           <div style={styles.dialogHeader}>
-             <h2 style={{ margin: 0, fontSize: "20px" }}>
-               {selectedFavoritePost.title}
-             </h2>
-             <button 
-               style={styles.closeButton} 
-               onClick={() => closeFavoriteDetail()}
-             >
-               ✕
-             </button>
-           </div>
+    // If a favorite is selected for detail view
+    if (isFavoriteDetailOpen && selectedFavoritePost) {
+      return (
+        <div style={styles.overlay} onClick={closeFavoritesGrid}>
+          <div
+            style={{
+              backgroundColor: "#222222",
+              borderRadius: "12px",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.8)",
+              maxWidth: "600px",
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              maxHeight: "85vh",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={styles.dialogHeader}>
+              <h2 style={{ margin: 0, fontSize: "20px" }}>
+                {selectedFavoritePost.title}
+              </h2>
+              <button
+                style={styles.closeButton}
+                onClick={() => closeFavoriteDetail()}
+              >
+                ✕
+              </button>
+            </div>
 
-           {/* Content - STACKED IMAGES WITH OVERFLOW */}
-           <div style={{ flex: 1, overflow: "auto", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start" }}>
-             {/* ✅ FIXED: Stack all images vertically with gap */}
-             {selectedFavoritePost.images.length > 0 && (
-               <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%", alignItems: "center" }}>
-                 {selectedFavoritePost.images.map((image, idx) => (
-                   <img 
-                     key={idx}
-                     src={image} 
-                     alt={`favorite-${idx}`}
-                     style={{
-                       maxWidth: "100%",
-                       maxHeight: "400px",
-                       objectFit: "contain",
-                       borderRadius: "8px",
-                     }}
-                   />
-                 ))}
-               </div>
-             )}
-
-             <p style={{ fontSize: "13px", color: "#cccccc", textAlign: "center", margin: "16px 0" }}>
-               {selectedFavoritePost.description}
-             </p>
-           </div>
-
-           {/* Footer */}
-           <div style={styles.dialogFooter}>
-             <button 
-               style={{ ...styles.cancelButton, backgroundColor: "#ff6666" }} 
-               onClick={() => removeFromFavorites(selectedFavoritePost.id)}
-             >
-               Remove from Favorites
-             </button>
-             <button 
-               style={styles.submitButton} 
-               onClick={() => closeFavoriteDetail()}
-             >
-               Back
-             </button>
-           </div>
-         </div>
-       </div>
-     );
-   }
-
-    
-
-  // Grid view
-  return (
-    <div style={styles.overlay} onClick={closeFavoritesGrid}>
-      <div style={styles.favoritesDialog} onClick={(e) => e.stopPropagation()}>
-        <div style={styles.dialogHeader}>
-          <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
-          <button style={styles.closeButton} onClick={closeFavoritesGrid}>✕</button>
-        </div>
-
-        <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
-          {favoritesPosts.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "16px" }}>
-              {favoritesPosts.map((post) => (
+            {/* Content - STACKED IMAGES WITH OVERFLOW */}
+            <div
+              style={{
+                flex: 1,
+                overflow: "auto",
+                padding: "20px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "flex-start",
+              }}
+            >
+              {/* Stack all images vertically */}
+              {selectedFavoritePost.images.length > 0 && (
                 <div
-                  key={post.id}
                   style={{
-                    backgroundColor: "#333333",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                    width: "100%",
+                    alignItems: "center",
                   }}
-                  onClick={() => {
-  setSelectedFavoritePost(post);
-  setZoomImageIndex(0);
-  setIsFavoriteDetailOpen(true);
-}}
                 >
-                  <img src={post.images[0]} alt={post.title} style={{ width: "100%", height: "150px", objectFit: "cover" }} />
-                  <div style={{ padding: "12px" }}>
-                    <h3 style={{ margin: "0 0 6px 0", fontSize: "13px", fontWeight: "bold", color: "#00ff00" }}>
-                      {post.title}
-                    </h3>
-                  </div>
+                  {selectedFavoritePost.images.map((image, idx) => (
+                    <img
+                      key={idx}
+                      src={image}
+                      alt={`favorite-${idx}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "400px",
+                        objectFit: "contain",
+                        borderRadius: "8px",
+                      }}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ textAlign: "center", color: "#999999", padding: "40px 20px" }}>
-              No favorites yet. Start favoriting memes! ⭐
-            </div>
-          )}
-        </div>
+              )}
 
-        <div style={styles.dialogFooter}>
-          <button style={styles.cancelButton} onClick={closeFavoritesGrid}>Close</button>
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#cccccc",
+                  textAlign: "center",
+                  margin: "16px 0",
+                }}
+              >
+                {selectedFavoritePost.description}
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div style={styles.dialogFooter}>
+              <button
+                style={{ ...styles.cancelButton, backgroundColor: "#ff6666" }}
+                onClick={() => removeFromFavorites(selectedFavoritePost.id)}
+              >
+                Remove from Favorites
+              </button>
+              <button
+                style={styles.submitButton}
+                onClick={() => closeFavoriteDetail()}
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Grid view - showing all favorites
+    return (
+      <div style={styles.overlay} onClick={closeFavoritesGrid}>
+        <div
+          style={styles.favoritesDialog}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={styles.dialogHeader}>
+            <h2 style={{ margin: 0, fontSize: "20px" }}>⭐ Your Favorites</h2>
+            <button style={styles.closeButton} onClick={closeFavoritesGrid}>
+              ✕
+            </button>
+          </div>
+
+          <div style={{ flex: 1, overflow: "auto", padding: "16px" }}>
+            {favoritesPosts.length > 0 ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                  gap: "16px",
+                }}
+              >
+                {favoritesPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    style={{
+                      backgroundColor: "#333333",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                    }}
+                    onClick={() => {
+                      setSelectedFavoritePost(post);
+                      setZoomImageIndex(0);
+                      setIsFavoriteDetailOpen(true);
+                    }}
+                  >
+                    <img
+                      src={post.images[0]}
+                      alt={post.title}
+                      style={{
+                        width: "100%",
+                        height: "150px",
+                        objectFit: "cover",
+                      }}
+                    />
+                    <div style={{ padding: "12px" }}>
+                      <h3
+                        style={{
+                          margin: "0 0 6px 0",
+                          fontSize: "13px",
+                          fontWeight: "bold",
+                          color: "#00ff00",
+                        }}
+                      >
+                        {post.title}
+                      </h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{
+                  textAlign: "center",
+                  color: "#999999",
+                  padding: "40px 20px",
+                }}
+              >
+                No favorites yet. Start favoriting memes! ⭐
+              </div>
+            )}
+          </div>
+
+          <div style={styles.dialogFooter}>
+            <button style={styles.cancelButton} onClick={closeFavoritesGrid}>
+              Close
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
-
+    );
+  };
   
   
   
@@ -1959,6 +2054,7 @@ const renderUserProfileModal = () => {
       {renderCommentImageZoomModal()}
 {renderUserProfileModal()}
 {renderFavoritesDialog()}
+      {renderUserProfileModal()}
     </div>
   );
 }
