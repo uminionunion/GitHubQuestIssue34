@@ -513,6 +513,7 @@ router.get('/api/memes/posts/:id/comments', async (req: Request, res: Response) 
     'MemeImplementation001Comments.upvotes',
     'MemeImplementation001Comments.downvotes',
     'MemeImplementation001Comments.created_at',
+    'MemeImplementation001Comments.is_deleted',
     'users.username',
   ])
   .where('MemeImplementation001Comments.post_id', '=', parseInt(id))
@@ -611,6 +612,49 @@ router.delete('/api/memes/comments/:id', requireAuth, async (req: Request, res: 
       .execute();
 
     res.json({ message: 'Comment deleted' });
+  } catch (error) {
+    console.error('[MEME API] Error deleting comment:', error);
+    res.status(500).json({ error: 'Failed to delete comment' });
+  }
+});
+
+// Mark comment as deleted (soft delete - keeps data for admins)
+router.post('/api/memes/comments/:id/delete', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.userId;
+
+    console.log('[MEME API] Soft-deleting comment', id, 'by user', userId);
+
+    // Check if user owns this comment
+    const comment = await db
+      .selectFrom('MemeImplementation001Comments')
+      .select(['id', 'user_id'])
+      .where('id', '=', parseInt(id))
+      .executeTakeFirst();
+
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    if (comment.user_id !== userId) {
+      return res.status(403).json({ error: 'Can only delete your own comments' });
+    }
+
+    // Soft delete: mark as deleted and clear description
+    await db
+      .updateTable('MemeImplementation001Comments')
+      .set({
+        is_deleted: 1,
+        description: null,
+        title: null,
+        image_url: null,
+      })
+      .where('id', '=', parseInt(id))
+      .execute();
+
+    console.log('[MEME API] ✅ Comment soft-deleted:', id);
+    res.status(200).json({ message: 'Comment deleted' });
   } catch (error) {
     console.error('[MEME API] Error deleting comment:', error);
     res.status(500).json({ error: 'Failed to delete comment' });
