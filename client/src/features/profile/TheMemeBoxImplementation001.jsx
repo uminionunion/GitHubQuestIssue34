@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import MainUhubFeatureV001ForUserProfileModal from "./MainUhubFeatureV001ForUserProfileModal";
 
 export default function TheMemeBoxImplementation001() {
   // =====================================================
@@ -34,6 +35,7 @@ export default function TheMemeBoxImplementation001() {
  // For user profile modal integration
   const [isViewingUserProfile, setIsViewingUserProfile] = useState(false);
   const [viewingUserData, setViewingUserData] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -72,12 +74,15 @@ const EMOJIS = {
         if (res.ok) {
           const user = await res.json();
           setCurrentUsername(user.username);
+          setCurrentUser(user);
           console.log("[MEMEBOX] ✅ Logged in as:", user.username);
         } else if (res.status === 401) {
           setCurrentUsername("DemoUser");
+          setCurrentUser(null);
         }
       } catch (error) {
         setCurrentUsername("DemoUser");
+        setCurrentUser(null);
       }
     };
 
@@ -476,6 +481,47 @@ const handleFavorite = useCallback(async () => {
   }
 }, [allPosts, currentPostIndex]);
 
+const handleDeletePost = useCallback(async () => {
+  const post = allPosts[currentPostIndex];
+  if (!post) return;
+
+  const confirmed = window.confirm(
+    `Are you sure you want to delete "${post.title}"? This will also delete all comments on this post.`
+  );
+  if (!confirmed) return;
+
+  try {
+    console.log("[MEMEBOX] Deleting post", post.id);
+
+    const response = await fetch(`/api/memes/posts/${post.id}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to delete post");
+    }
+
+    // Remove post from allPosts
+    const updatedPosts = allPosts.filter((p) => p.id !== post.id);
+    setAllPosts(updatedPosts);
+    
+    // Navigate to next post or previous
+    if (updatedPosts.length > 0) {
+      setCurrentPostIndex(Math.max(0, currentPostIndex - 1));
+    }
+
+    console.log("[MEMEBOX] ✅ Post deleted successfully");
+  } catch (error) {
+    console.error("[MEMEBOX] ❌ Delete error:", error);
+    alert("Failed to delete post: " + error.message);
+  }
+}, [allPosts, currentPostIndex]);
+
+  
+
   const removeFromFavorites = useCallback(
     (postId) => {
       const updatedPosts = allPosts.map((post) =>
@@ -571,28 +617,28 @@ const openCommentImageZoom = (imageUrl) => {
   setIsCommentImageZoomOpen(true);
 };
 
-  const openUserProfile = async (username) => {
-    try {
-      console.log('[MEMEBOX] Fetching profile for user:', username);
-      // Fetch user by username
-      const response = await fetch(`/api/users/by-username/${username}`, {
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('[MEMEBOX] ✅ User profile fetched:', userData);
-        setViewingUserData(userData);
-        setIsViewingUserProfile(true);
-      } else {
-        console.error('[MEMEBOX] User not found:', username);
-        alert(`User "${username}" not found`);
-      }
-    } catch (error) {
-      console.error('[MEMEBOX] Error fetching user profile:', error);
-      alert('Failed to load user profile');
+const openUserProfile = async (username) => {
+  try {
+    console.log("[MEMEBOX] Fetching profile for user:", username);
+    // Fetch user by username - endpoint must return full user object with ID
+    const response = await fetch(`/api/users/by-username/${username}`, {
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      console.log("[MEMEBOX] ✅ User profile fetched:", userData);
+      setViewingUserData(userData);
+      setIsViewingUserProfile(true);
+    } else {
+      console.error("[MEMEBOX] User not found:", username);
+      alert(`User "${username}" not found`);
     }
-  };
+  } catch (error) {
+    console.error("[MEMEBOX] Error fetching user profile:", error);
+    alert("Failed to load user profile");
+  }
+};
 
   const closeUserProfile = () => {
     setIsViewingUserProfile(false);
@@ -1347,25 +1393,59 @@ const submitComment = async () => {
 </div>
 
         <div style={styles.actionButtonsContainer}>
-          <button
-  style={{...styles.actionButton, ...(displayPost.userVote === 1 ? styles.actionButtonActive : {})}}
-  onClick={handleUpvote}
->
-  {EMOJIS.UPVOTE_INITIAL} Upvote
-</button>
-<button
-  style={{...styles.actionButton, ...(displayPost.userVote === -1 ? styles.actionButtonActive : {})}}
-  onClick={handleDownvote}
->
-  {EMOJIS.DOWNVOTE_INITIAL} Downvote
-</button> 
-<button style={styles.actionButton} onClick={openCommentDialog}>
-  {EMOJIS.COMMENT_INITIAL} Comment
-</button>
-          <button style={styles.actionButton} onClick={openViewCommentsDialog}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji005CommentsChats.png" width="24" /> View Comments
-          </button>
-        </div>
+  <button
+    style={{
+      ...styles.actionButton,
+      ...(displayPost.userVote === 1 ? styles.actionButtonActive : {}),
+    }}
+    onClick={handleUpvote}
+  >
+    {EMOJIS.UPVOTE_INITIAL} Upvote
+  </button>
+  <button
+    style={{
+      ...styles.actionButton,
+      ...(displayPost.userVote === -1 ? styles.actionButtonActive : {}),
+    }}
+    onClick={handleDownvote}
+  >
+    {EMOJIS.DOWNVOTE_INITIAL} Downvote
+  </button>
+  <button
+    style={{
+      ...styles.actionButton,
+      ...(displayPost.isFavorited ? styles.actionButtonActive : {}),
+    }}
+    onClick={handleFavorite}
+  >
+    <img
+      src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png"
+      width="24"
+    />{" "}
+    Favorites
+  </button>
+</div>
+
+<div style={styles.actionButtonsContainer}>
+  <button style={styles.actionButton} onClick={openCommentDialog}>
+    {EMOJIS.COMMENT_INITIAL} Comment
+  </button>
+  <button style={styles.actionButton} onClick={openViewCommentsDialog}>
+    <img
+      src="/EmojisForUminionWebsite/GreenEmoji005CommentsChats.png"
+      width="24"
+    />{" "}
+    View Comments
+  </button>
+  {currentUsername === displayPost.username && (
+    <button
+      style={{ ...styles.actionButton, backgroundColor: "#ff6666" }}
+      onClick={handleDeletePost}
+    >
+      🗑️ Delete Post
+    </button>
+  )}
+</div>
 
         <div style={styles.navigationButtons}>
           <button style={styles.navArrowButton} onClick={showPreviousPost}>
@@ -1788,57 +1868,24 @@ const renderCommentImageZoomModal = () => {
 };
 
 const renderUserProfileModal = () => {
-    if (!isViewingUserProfile || !viewingUserData) return null;
+  if (!isViewingUserProfile || !viewingUserData) return null;
 
-    // Use the MainUhubFeatureV001ForUserProfileModal if available
-    // For now, show a simple modal with user info
-    return (
-      <div style={styles.overlay} onClick={closeUserProfile}>
-        <div
-          style={{ ...styles.dialog, maxWidth: "600px" }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div style={styles.dialogHeader}>
-            <h2 style={{ margin: 0, fontSize: "20px" }}>
-              👤 {viewingUserData.username}
-            </h2>
-            <button style={styles.closeButton} onClick={closeUserProfile}>
-              ✕
-            </button>
-          </div>
-
-          <div style={styles.dialogContent}>
-            <p style={{ color: "#cccccc", marginBottom: "12px" }}>
-              <strong>Username:</strong> @{viewingUserData.username}
-            </p>
-            {viewingUserData.profile_image_url && (
-              <div
-                style={{
-                  width: "120px",
-                  height: "120px",
-                  borderRadius: "8px",
-                  marginBottom: "16px",
-                  backgroundImage: `url(${viewingUserData.profile_image_url})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              />
-            )}
-            <p style={{ color: "#999999", fontSize: "12px" }}>
-              This user's profile and store information.
-            </p>
-          </div>
-
-          <div style={styles.dialogFooter}>
-            <button style={styles.submitButton} onClick={closeUserProfile}>
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
+  // ✅ FIXED: Use the correct MainUhubFeatureV001ForUserProfileModal component
+  return (
+    <MainUhubFeatureV001ForUserProfileModal
+      isOpen={isViewingUserProfile}
+      onClose={closeUserProfile}
+      user={viewingUserData}
+      currentUser={currentUser}
+      onProductView={(product) => {
+        console.log("[MEMEBOX] Viewing product:", product);
+      }}
+      onBadgeZoomOpen={(badge) => {
+        console.log("[MEMEBOX] Zooming badge:", badge);
+      }}
+    />
+  );
+};
 
   const renderFavoritesDialog = () => {
     if (!isFavoritesGridOpen) return null;
