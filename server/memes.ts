@@ -35,34 +35,42 @@ router.get('/api/memes/posts/viral', async (req: Request, res: Response) => {
       .execute();
 
     // ✅ FIXED: Fetch images array for each post
-    const postsWithImages = await Promise.all(
-      posts.map(async (post) => {
-        const images = await db
-          .selectFrom('MemeImplementation001Images')
-          .select('image_url')
-          .where('post_id', '=', post.id)
-          .orderBy('display_order', 'asc')
-          .execute();
+const postsWithImages = await Promise.all(
+  posts.map(async (post) => {
+    const images = await db
+      .selectFrom('MemeImplementation001Images')
+      .select('image_url')
+      .where('post_id', '=', post.id)
+      .orderBy('display_order', 'asc')
+      .execute();
 
-        // ✅ Check if favorited by current user
-        let isFavorited = false;
-        if (userId) {
-          const favorite = await db
-            .selectFrom('MemeImplementation001Favorites')
-            .select('id')
-            .where('post_id', '=', post.id)
-            .where('user_id', '=', userId)
-            .executeTakeFirst();
-          isFavorited = !!favorite;
-        }
+    // ✅ Fetch post author's username
+    const author = await db
+      .selectFrom('users')
+      .select('username')
+      .where('id', '=', post.user_id)
+      .executeTakeFirst();
 
-        return {
-          ...post,
-          images: images.map((img) => img.image_url), // ✅ Array of URLs
-          isFavorited, // ✅ Add favorite status
-        };
-      })
-    );
+    // ✅ Check if favorited by current user
+    let isFavorited = false;
+    if (userId) {
+      const favorite = await db
+        .selectFrom('MemeImplementation001Favorites')
+        .select('id')
+        .where('post_id', '=', post.id)
+        .where('user_id', '=', userId)
+        .executeTakeFirst();
+      isFavorited = !!favorite;
+    }
+
+    return {
+      ...post,
+      images: images.map((img) => img.image_url), // ✅ Array of URLs
+      username: author?.username || 'Anonymous', // ✅ ADD THIS
+      isFavorited, // ✅ Add favorite status
+    };
+  })
+);
 
     // Return with randomized order
     const randomized = postsWithImages.sort(() => Math.random() - 0.5);
