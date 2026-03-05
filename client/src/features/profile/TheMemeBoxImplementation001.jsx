@@ -481,46 +481,9 @@ const handleFavorite = useCallback(async () => {
   }
 }, [allPosts, currentPostIndex]);
 
-const handleDeletePost = useCallback(async () => {
-  const post = allPosts[currentPostIndex];
-  if (!post) return;
-
-  const confirmed = window.confirm(
-    `Are you sure you want to delete "${post.title}"? This will also delete all comments on this post.`
-  );
-  if (!confirmed) return;
-
-  try {
-    console.log("[MEMEBOX] Deleting post", post.id);
-
-    const response = await fetch(`/api/memes/posts/${post.id}`, {
-      method: "DELETE",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to delete post");
-    }
-
-    const updatedPosts = allPosts.filter((p) => p.id !== post.id);
-    setAllPosts(updatedPosts);
-
-    if (updatedPosts.length > 0) {
-      setCurrentPostIndex(Math.max(0, currentPostIndex - 1));
-    }
-
-    console.log("[MEMEBOX] ✅ Post deleted successfully");
-  } catch (error) {
-    console.error("[MEMEBOX] ❌ Delete error:", error);
-    alert("Failed to delete post: " + error.message);
-  }
-}, [allPosts, currentPostIndex]);
 
 
   
-
 const handleDeletePost = useCallback(async () => {
   const post = allPosts[currentPostIndex];
   if (!post) return;
@@ -559,6 +522,9 @@ const handleDeletePost = useCallback(async () => {
     alert("Failed to delete post: " + error.message);
   }
 }, [allPosts, currentPostIndex]);
+
+  
+
 
   const handleDeleteComment = useCallback(
   async (commentId, commentIndex) => {
