@@ -25,6 +25,9 @@ export default function TheMemeBoxImplementation001() {
   const [uploadDescription, setUploadDescription] = useState("");
   const [currentUsername, setCurrentUsername] = useState("DemoUser");
 
+  const [isCommentImageZoomOpen, setIsCommentImageZoomOpen] = useState(false);
+  const [zoomedCommentImage, setZoomedCommentImage] = useState(null);
+
 
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -146,16 +149,17 @@ const EMOJIS = {
                if (commentRes.ok) {
                  const rawComments = await commentRes.json();
                  comments = rawComments.map((comment) => ({
-                   id: comment.id,
-                   title: comment.title,
-                   description: comment.description,
-                   image: comment.image_url,
-                   upvotes: comment.upvotes || 0,
-                   downvotes: comment.downvotes || 0,
-                   userVote: null,
-                   timestamp: new Date(comment.created_at),
-                   hidden: false,
-                 }));
+  id: comment.id,
+  username: comment.username || "Anonymous",
+  title: comment.title,
+  description: comment.description,
+  image: comment.image_url,
+  upvotes: comment.upvotes || 0,
+  downvotes: comment.downvotes || 0,
+  userVote: comment.userVote || null,
+  timestamp: new Date(comment.created_at),
+  hidden: false,
+}));
                }
              } catch (err) {
                console.log("[MEMEBOX] Error fetching comments for post", post.id);
@@ -363,6 +367,72 @@ const handleCommentVote = useCallback((commentIndex, voteType) => {
 
 
 
+
+  const handleCommentVoteWithAPI = useCallback(
+  async (commentId, commentIndex, voteType) => {
+    const post = allPosts[currentPostIndex];
+    if (!post) return;
+
+    try {
+      // Update backend first
+      const endpoint = voteType === 1 
+        ? `/api/memes/comments/${commentId}/upvote`
+        : `/api/memes/comments/${commentId}/downvote`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error("Vote failed");
+      }
+
+      // Then update frontend state
+      const updatedPosts = [...allPosts];
+      const comment = updatedPosts[currentPostIndex].comments[commentIndex];
+      if (!comment) return;
+
+      if (voteType === 1) {
+        if (comment.userVote === 1) {
+          comment.upvotes--;
+          comment.userVote = null;
+        } else if (comment.userVote === -1) {
+          comment.downvotes--;
+          comment.upvotes++;
+          comment.userVote = 1;
+        } else {
+          comment.upvotes++;
+          comment.userVote = 1;
+        }
+      } else if (voteType === -1) {
+        if (comment.userVote === -1) {
+          comment.downvotes--;
+          comment.userVote = null;
+        } else if (comment.userVote === 1) {
+          comment.upvotes--;
+          comment.downvotes++;
+          comment.userVote = -1;
+        } else {
+          comment.downvotes++;
+          comment.userVote = -1;
+        }
+      }
+
+      setAllPosts(updatedPosts);
+      console.log("[MEMEBOX] ✅ Comment vote synced with database");
+    } catch (error) {
+      console.error("[MEMEBOX] ❌ Comment vote error:", error);
+      alert("Failed to vote on comment: " + error.message);
+    }
+  },
+  [allPosts, currentPostIndex]
+);
+
+
+  
+
   
 
   // =====================================================
@@ -488,6 +558,22 @@ const handleFavorite = useCallback(async () => {
     }
   };
 
+
+
+const openCommentImageZoom = (imageUrl) => {
+  setZoomedCommentImage(imageUrl);
+  setIsCommentImageZoomOpen(true);
+};
+
+const closeCommentImageZoom = () => {
+  setIsCommentImageZoomOpen(false);
+  setZoomedCommentImage(null);
+};
+
+
+
+
+  
   // =====================================================
   // FILE UPLOAD FUNCTIONS
   // =====================================================
@@ -1211,16 +1297,16 @@ const submitComment = async () => {
 
         <div style={styles.voteSection}>
   <div style={styles.voteCount}>
-    <div style={styles.voteNumber}>{EMOJIS.UPVOTE_INITIAL}{EMOJIS.UPVOTE_FALLBACK} {displayPost.upvotes}</div>
+    <div style={styles.voteNumber}>{EMOJIS.UPVOTE_INITIAL} {displayPost.upvotes}</div>
     <div style={styles.voteLabel}>Upvotes</div>
   </div>
-  <div style={styles.voteCount}>
-    <div style={styles.voteNumber}>{EMOJIS.DOWNVOTE_INITIAL}{EMOJIS.DOWNVOTE_FALLBACK} {displayPost.downvotes}</div>
+  <div style={styles.voteCount}> 
+    <div style={styles.voteNumber}>{EMOJIS.DOWNVOTE_INITIAL} {displayPost.downvotes}</div>
     <div style={styles.voteLabel}>Downvotes</div>
   </div>
   <div style={styles.voteCount}>
-    <div style={styles.voteNumber}>
-      {EMOJIS.COMMENT_INITIAL}{EMOJIS.COMMENT_FALLBACK} {displayPost.comments.length}
+    <div style={styles.voteNumber}> 
+      {EMOJIS.COMMENT_INITIAL} {displayPost.comments.length}
     </div>
     <div style={styles.voteLabel}>Comments</div>
   </div>
@@ -1231,16 +1317,16 @@ const submitComment = async () => {
   style={{...styles.actionButton, ...(displayPost.userVote === 1 ? styles.actionButtonActive : {})}}
   onClick={handleUpvote}
 >
-  {EMOJIS.UPVOTE_INITIAL}{EMOJIS.UPVOTE_FALLBACK} Upvote
+  {EMOJIS.UPVOTE_INITIAL} Upvote
 </button>
 <button
   style={{...styles.actionButton, ...(displayPost.userVote === -1 ? styles.actionButtonActive : {})}}
   onClick={handleDownvote}
 >
-  {EMOJIS.DOWNVOTE_INITIAL}{EMOJIS.DOWNVOTE_FALLBACK} Downvote
-</button>
+  {EMOJIS.DOWNVOTE_INITIAL} Downvote
+</button> 
 <button style={styles.actionButton} onClick={openCommentDialog}>
-  {EMOJIS.COMMENT_INITIAL}{EMOJIS.COMMENT_FALLBACK} Comment
+  {EMOJIS.COMMENT_INITIAL} Comment
 </button>
           <button style={styles.actionButton} onClick={openViewCommentsDialog}>
             👁 View Comments
@@ -1530,20 +1616,21 @@ const renderViewCommentsDialog = () => {
 
                 
                 {/* Comment image if exists */}
-                {comment.image && (
-                  <img 
-                    src={comment.image} 
-                    alt="comment"
-                    style={{ 
-                      width: "100%", 
-                      maxHeight: "150px", 
-                      objectFit: "cover", 
-                      borderRadius: "4px", 
-                      marginBottom: "8px" 
-                    }} 
-                  />
-                )}
-
+           {comment.image && (
+  <img
+    src={comment.image}
+    alt="comment"
+    style={{
+      width: "100%",
+      maxHeight: "150px",
+      objectFit: "cover",
+      borderRadius: "4px",
+      marginBottom: "8px",
+      cursor: "pointer",
+    }}
+    onClick={() => openCommentImageZoom(comment.image)}
+  />
+)}
                 {/* Comment description */}
                 <p style={{ margin: "0 0 8px 0", fontSize: "13px", color: "#cccccc" }}>
                   {comment.description}
@@ -1569,9 +1656,9 @@ const renderViewCommentsDialog = () => {
                       fontWeight: "500",
                       transition: "all 0.2s",
                     }}
-                    onClick={() => handleCommentVote(idx, 1)}
+                    onClick={() => handleCommentVoteWithAPI(comment.id, idx, 1)}
                   >
-                    {EMOJIS.UPVOTE_INITIAL}{EMOJIS.UPVOTE_FALLBACK} {comment.upvotes}
+                    {EMOJIS.UPVOTE_INITIAL} {comment.upvotes}
                   </button>
                   <button
                     style={{
@@ -1585,9 +1672,9 @@ const renderViewCommentsDialog = () => {
                       fontWeight: "500",
                       transition: "all 0.2s",
                     }}
-                    onClick={() => handleCommentVote(idx, -1)}
+                    onClick={() => handleCommentVoteWithAPI(comment.id, idx, -1)}
                   >
-                    {EMOJIS.DOWNVOTE_INITIAL}{EMOJIS.DOWNVOTE_FALLBACK} {comment.downvotes}
+                    {EMOJIS.DOWNVOTE_INITIAL} {comment.downvotes}
                   </button>
                 </div>
               </div>
@@ -1611,6 +1698,51 @@ const renderViewCommentsDialog = () => {
 };
 
 
+
+const renderCommentImageZoomModal = () => {
+  if (!isCommentImageZoomOpen || !zoomedCommentImage) return null;
+
+  return (
+    <div style={styles.overlay} onClick={closeCommentImageZoom}>
+      <div
+        style={styles.zoomModalContent}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+            marginBottom: "16px",
+            padding: "0 8px",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <img
+            src={zoomedCommentImage}
+            alt="zoomed-comment"
+            style={styles.zoomImage}
+          />
+        </div>
+
+        <div style={styles.zoomControls}>
+          <button
+            style={styles.zoomButton_control}
+            onClick={closeCommentImageZoom}
+          >
+            ✕ Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+  
 
 
   const renderFavoritesDialog = () => {
@@ -1765,6 +1897,7 @@ const renderViewCommentsDialog = () => {
       {renderUploadDialog()}
       {renderCommentDialog()}
       {renderViewCommentsDialog()}
+      {renderCommentImageZoomModal()}
       {renderFavoritesDialog()}
     </div>
   );
