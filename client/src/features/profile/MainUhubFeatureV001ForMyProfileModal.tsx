@@ -377,92 +377,94 @@ const BroadcastView = ({
   const isMobile = window.innerWidth < 768;
 
     if (isMobile) {
-    // MOBILE LAYOUT: Vertical stack (carousel on top, memebox below) with 20px gap
-    return (
-      <div className="flex flex-col h-full overflow-y-auto" style={{ gap: '20px', maxHeight: '60000px' }}>
-         {/* TOP: Broadcast Carousel - FULL WIDTH */}
-        {!isBroadcastCarouselCollapsed && (
-          <div className="flex-1 flex flex-col overflow-hidden min-h-[200px] w-[75%] mx-auto">
-            <div className="flex items-center gap-2 mb-2">
-              <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
-              <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
-            </div>
-            <div className="flex items-center gap-2 mb-2">
-              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
-              {user?.is_high_high_high_admin === 1 && (
-                <Button 
-                  className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
-                  onClick={() => onOpenUnionNews14Modal()}
-                >
-                  Add
-                </Button>
-              )}
-            </div>
-
-            {/* CAROUSEL CONTENT */}
-            <div className="flex-1 overflow-hidden">
-              <BroadcastCarousel 
-                items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
-                isAdmin={user?.is_high_high_high_admin === 1}
-                onReorderLeft={handleReorderLeft}
-                onReorderRight={handleReorderRight}
-                onImageZoom={handleCarouselImageZoom}
-                maxVisibleItems={broadcastCarouselImageCount}
-              />
-            </div>
+  // MOBILE LAYOUT: Vertical stack with proper scrolling
+  return (
+    <div className="flex flex-col h-full w-full overflow-y-auto">
+      {/* TOP: Broadcast Carousel */}
+      {!isBroadcastCarouselCollapsed && (
+        <div className="flex-shrink-0 flex flex-col w-[100%] mx-auto py-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
+            <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
           </div>
-        )}
+          <div className="flex items-center gap-2 mb-2">
+            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
+            {user?.is_high_high_high_admin === 1 && (
+              <Button 
+                className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
+                onClick={() => onOpenUnionNews14Modal()}
+              >
+                Add
+              </Button>
+            )}
+          </div>
 
-        {isBroadcastCarouselCollapsed && (
-          <button
-            onClick={() => {
-              setIsBroadcastCarouselCollapsed(false);
-              setBroadcastCarouselImageCount(3);
-            }}
-            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-          >
-            <span>📸 Carousel</span>
-          </button>
-        )}
-
-        {/* BOTTOM: Memebox - FULL WIDTH */}
-        {!isBroadcastLeftCollapsed && (
-          <div className="flex-1 flex flex-col overflow-hidden min-h-[200px]">
-            <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
-            <div
-              id="TheReactMemeImplementationConnection001"
-              className="flex-1 bg-muted rounded-md my-2 overflow-hidden"
-              style={{ minHeight: '200px' }}
+          {/* CAROUSEL CONTENT - NO overflow-hidden */}
+          <div className="flex-shrink-0">
+            <BroadcastCarousel 
+              items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
+              isAdmin={user?.is_high_high_high_admin === 1}
+              onReorderLeft={handleReorderLeft}
+              onReorderRight={handleReorderRight}
+              onImageZoom={handleCarouselImageZoom}
+              maxVisibleItems={broadcastCarouselImageCount}
             />
-            <div className="flex justify-between items-center">
-              <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronLeft className="h-4 w-4" /></Button>
-              <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
-              <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronRight className="h-4 w-4" /></Button>
-            </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {isBroadcastLeftCollapsed && (
-          <button
-            onClick={() => {
-              setIsBroadcastLeftCollapsed(false);
-              // Force memebox re-render
+      {isBroadcastCarouselCollapsed && (
+        <button
+          onClick={() => {
+            setIsBroadcastCarouselCollapsed(false);
+            setBroadcastCarouselImageCount(3);
+          }}
+          className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition m-4"
+        >
+          <span>📸 Carousel</span>
+        </button>
+      )}
+
+      {/* BOTTOM: Memebox */}
+      {!isBroadcastLeftCollapsed && (
+        <div className="flex-shrink-0 flex flex-col w-full px-4 py-4">
+          <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
+          <div
+            id="TheReactMemeImplementationConnection001"
+            className="bg-muted rounded-md my-2"
+            style={{ minHeight: '400px' }}
+          />
+          <div className="flex justify-between items-center">
+            <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronLeft className="h-4 w-4" /></Button>
+            <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronRight className="h-4 w-4" /></Button>
+          </div>
+        </div>
+      )}
+
+      {isBroadcastLeftCollapsed && (
+        <button
+          onClick={() => {
+            setIsBroadcastLeftCollapsed(false);
+            setTimeout(() => {
+              unmountTheMemeBox();
               setTimeout(() => {
-                unmountTheMemeBox();
-                setTimeout(() => {
-                  renderTheMemeBox(broadcasts['UnionNews#14']);
-                }, 100);
-              }, 50);
-            }}
-            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-            title="Restore content"
-          >
-            🎁 Content
-          </button>
-        )}
-      </div>
-    );
-  }
+                renderTheMemeBox(broadcasts['UnionNews#14']);
+              }, 100);
+            }, 50);
+          }}
+          className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition m-4"
+          title="Restore content"
+        >
+          🎁 Content
+        </button>
+      )}
+
+      {/* SPACER for bottom padding */}
+      <div className="h-8 flex-shrink-0" />
+    </div>
+  );
+}
 
   // DESKTOP LAYOUT: Horizontal split with draggable divider (UNCHANGED)
   return (
