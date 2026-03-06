@@ -377,9 +377,9 @@ const BroadcastView = ({
   const isMobile = window.innerWidth < 768;
 
   if (isMobile) {
-    // MOBILE LAYOUT: Vertical stack (carousel on top, memebox below)
+    // MOBILE LAYOUT: Vertical stack (carousel on top, memebox below) with 20px gap
     return (
-      <div className="flex flex-col gap-4 h-full">
+      <div className="flex flex-col h-full" style={{ gap: '20px' }}>
         {/* TOP: Broadcast Carousel - FULL WIDTH */}
         {!isBroadcastCarouselCollapsed && (
           <div className="flex-1 flex flex-col overflow-hidden min-h-[200px]">
@@ -1711,12 +1711,12 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isBroadcastCarouselCollapsed, setIsBroadcastCarouselCollapsed] = useState(false);
   const [broadcastDividerDragging, setBroadcastDividerDragging] = useState(false);
   // NEW: Collapse state for left (uHome-Hub) and right (UnionSAM#20) sections
-const [isLeftSectionCollapsed, setIsLeftSectionCollapsed] = useState(false);
-const [isRightSectionCollapsed, setIsRightSectionCollapsed] = useState(false);
-const [leftDividerDragging, setLeftDividerDragging] = useState(false);
-const [rightDividerDragging, setRightDividerDragging] = useState(false);
+ const [isLeftSectionCollapsed, setIsLeftSectionCollapsed] = useState(window.innerWidth < 768);
+  const [isRightSectionCollapsed, setIsRightSectionCollapsed] = useState(window.innerWidth < 768);
+  const [leftDividerDragging, setLeftDividerDragging] = useState(false);
+  const [rightDividerDragging, setRightDividerDragging] = useState(false);
   const broadcasts = {
-      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
+      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
@@ -2743,7 +2743,13 @@ return (
     {/* LEFT SECTION (uHome-Hub) COLLAPSE BUTTON */}
     {isLeftSectionCollapsed && (
       <button
-        onClick={resetLeftSection}
+        onClick={() => {
+          setIsLeftSectionCollapsed(false);
+          if (window.innerWidth >= 768) {
+            setLeftWidthDesktop(20);
+            setCenterWidthDesktop(60);
+          }
+        }}
         className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
         title="Restore uHome-Hub"
       >
@@ -2754,7 +2760,13 @@ return (
     {/* RIGHT SECTION (UnionSAM#20) COLLAPSE BUTTON */}
     {isRightSectionCollapsed && (
       <button
-        onClick={resetRightSection}
+        onClick={() => {
+          setIsRightSectionCollapsed(false);
+          if (window.innerWidth >= 768) {
+            setRightWidthDesktop(20);
+            setCenterWidthDesktop(60);
+          }
+        }}
         className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
         title="Restore UnionSAM#20"
       >
@@ -3043,11 +3055,11 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
          </div>
 
         {/* Center Section */}
-<div className="flex-grow flex overflow-hidden" data-profile-main-container>
+<div className="flex-grow flex overflow-hidden" data-profile-main-container style={{ flexDirection: window.innerWidth < 768 ? 'column' : 'row' }}>
   {/* LEFT SECTION - ONLY SHOW IF NOT COLLAPSED */}
   {!isLeftSectionCollapsed && (
     <>
-      <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : `${leftWidthDesktop}%` }}>
+      <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? '100%' : `${leftWidthDesktop}%`, height: window.innerWidth < 768 ? 'auto' : 'auto' }}>
         <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
         <div className="grid grid-cols-2 gap-1 md:gap-2">
           {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
@@ -3070,22 +3082,29 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
         </div>
       </div>
       
-      {/* LEFT DIVIDER - ONLY SHOW IF LEFT NOT COLLAPSED */}
-<div
-  className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
-  onMouseDown={() => setLeftDividerDragging(true)}
-  onTouchStart={() => setLeftDividerDragging(true)}
-/>
+      {/* LEFT DIVIDER - ONLY SHOW IF LEFT NOT COLLAPSED (DESKTOP ONLY) */}
+{window.innerWidth >= 768 && (
+  <div
+    className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
+    onMouseDown={() => setLeftDividerDragging(true)}
+    onTouchStart={() => setLeftDividerDragging(true)}
+  />
+)}
     </>
   )}
 
   {/* CENTER SECTION */}
-  <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : `${centerWidthDesktop}%` }}>
+  <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="p-2 md:p-4 overflow-y-auto" style={{ 
+    width: window.innerWidth < 768 ? '100%' : `${centerWidthDesktop}%`,
+    height: window.innerWidth < 768 ? 'auto' : 'auto',
+    display: 'flex',
+    flexDirection: 'column'
+  }}>
     {renderCenterContent()}
   </div>
 
   {/* RIGHT DIVIDER - ONLY SHOW IF RIGHT NOT COLLAPSED */}
-{!isRightSectionCollapsed && (
+{!isRightSectionCollapsed && window.innerWidth >= 768 && (
   <div
     className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
     onMouseDown={() => setRightDividerDragging(true)}
@@ -3095,7 +3114,11 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
 
   {/* RIGHT SECTION - ONLY SHOW IF NOT COLLAPSED */}
   {!isRightSectionCollapsed && (
-    <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:border-l overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : `${rightWidthDesktop}%` }}>
+    <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:border-l overflow-y-auto p-2 md:p-4" style={{ 
+      width: window.innerWidth < 768 ? '100%' : `${rightWidthDesktop}%`,
+      height: window.innerWidth < 768 ? 'auto' : 'auto',
+      borderTop: window.innerWidth < 768 ? '1px solid #374151' : 'none'
+    }}>
       <div className="flex items-center justify-center mb-2 md:mb-4">
         <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
         <h3 className="text-center font-bold mx-1 md:mx-2 text-xs md:text-base">{centerRightView.displayName}</h3>
