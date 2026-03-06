@@ -373,7 +373,98 @@ const BroadcastView = ({
     );
   }
 
-  // UnionNews#14 layout with draggable divider
+  // UnionNews#14 layout with mobile-responsive stacking
+  const isMobile = window.innerWidth < 768;
+
+  if (isMobile) {
+    // MOBILE LAYOUT: Vertical stack (carousel on top, memebox below)
+    return (
+      <div className="flex flex-col gap-4 h-full">
+        {/* TOP: Broadcast Carousel - FULL WIDTH */}
+        {!isBroadcastCarouselCollapsed && (
+          <div className="flex-1 flex flex-col overflow-hidden min-h-[200px]">
+            <div className="flex items-center gap-2 mb-2">
+              <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
+              <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
+              {user?.is_high_high_high_admin === 1 && (
+                <Button 
+                  className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
+                  onClick={() => onOpenUnionNews14Modal()}
+                >
+                  Add
+                </Button>
+              )}
+            </div>
+
+            {/* CAROUSEL CONTENT */}
+            <div className="flex-1 overflow-hidden">
+              <BroadcastCarousel 
+                items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
+                isAdmin={user?.is_high_high_high_admin === 1}
+                onReorderLeft={handleReorderLeft}
+                onReorderRight={handleReorderRight}
+                onImageZoom={handleCarouselImageZoom}
+                maxVisibleItems={broadcastCarouselImageCount}
+              />
+            </div>
+          </div>
+        )}
+
+        {isBroadcastCarouselCollapsed && (
+          <button
+            onClick={() => {
+              setIsBroadcastCarouselCollapsed(false);
+              setBroadcastCarouselImageCount(3);
+            }}
+            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+          >
+            <span>📸 Carousel</span>
+          </button>
+        )}
+
+        {/* BOTTOM: Memebox - FULL WIDTH */}
+        {!isBroadcastLeftCollapsed && (
+          <div className="flex-1 flex flex-col overflow-hidden min-h-[200px]">
+            <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
+            <div
+              id="TheReactMemeImplementationConnection001"
+              className="flex-1 bg-muted rounded-md my-2 overflow-hidden"
+              style={{ minHeight: '200px' }}
+            />
+            <div className="flex justify-between items-center">
+              <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronLeft className="h-4 w-4" /></Button>
+              <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
+              <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronRight className="h-4 w-4" /></Button>
+            </div>
+          </div>
+        )}
+
+        {isBroadcastLeftCollapsed && (
+          <button
+            onClick={() => {
+              setIsBroadcastLeftCollapsed(false);
+              // Force memebox re-render
+              setTimeout(() => {
+                unmountTheMemeBox();
+                setTimeout(() => {
+                  renderTheMemeBox(broadcasts['UnionNews#14']);
+                }, 100);
+              }, 50);
+            }}
+            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+            title="Restore content"
+          >
+            🎁 Content
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // DESKTOP LAYOUT: Horizontal split with draggable divider (UNCHANGED)
   return (
     <div className="flex flex-col gap-4 h-full">
       <div className="flex gap-2 flex-1" data-broadcast-container>
@@ -382,8 +473,8 @@ const BroadcastView = ({
           <>
             <div style={{ width: `${broadcastLeftWidth}%` }} className="flex flex-col overflow-hidden">
               <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
-              <div 
-                id="TheReactMemeImplementationConnection001" 
+              <div
+                id="TheReactMemeImplementationConnection001"
                 className="flex-1 bg-muted rounded-md my-2 overflow-hidden"
                 style={{ minHeight: '200px' }}
               />
@@ -395,15 +486,15 @@ const BroadcastView = ({
             </div>
 
             {/* DRAGGABLE DIVIDER - WITH MOBILE TOUCH SUPPORT */}
-<div 
-  className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
-  onMouseDown={handleDividerMouseDown}
-  onTouchStart={handleDividerMouseDown}
-/>
+            <div
+              className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
+              onMouseDown={handleDividerMouseDown}
+              onTouchStart={handleDividerMouseDown}
+            />
           </>
         )}
 
-        {/* RIGHT HALF - Carousel Area - ONLY RENDER IF NOT COLLAPSED! */}
+        {/* RIGHT HALF - Carousel Area */}
         {!isBroadcastCarouselCollapsed && (
           <div style={{ width: `${broadcastRightWidth}%` }} className="flex flex-col overflow-hidden">
             <div className="flex items-center gap-2 mb-2">
@@ -436,7 +527,7 @@ const BroadcastView = ({
           </div>
         )}
         
-        {/* DIVIDER - ONLY RENDER IF CAROUSEL NOT COLLAPSED */}
+        {/* DIVIDER - ONLY RENDER IF CAROUSEL NOT COLLAPSED AND LEFT NOT COLLAPSED */}
         {!isBroadcastCarouselCollapsed && !isBroadcastLeftCollapsed && (
           <div
             className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
@@ -449,7 +540,7 @@ const BroadcastView = ({
       {/* COLLAPSED BANNERS - Below main content */}
       <div className="flex gap-2">
         {isBroadcastCarouselCollapsed && (
-          <button 
+          <button
             onClick={() => resetToDefaultPosition()}
             className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
           >
@@ -457,23 +548,23 @@ const BroadcastView = ({
           </button>
         )}
         {isBroadcastLeftCollapsed && (
-  <button 
-    onClick={() => {
-      resetToPosition002();
-      // Force memebox re-render
-      setTimeout(() => {
-        unmountTheMemeBox();
-        setTimeout(() => {
-          renderTheMemeBox(broadcasts['UnionNews#14']);
-        }, 100);
-      }, 50);
-    }}
-    className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-    title="Restore content"
-  >
-    🎁 Content
-  </button>
-)}
+          <button
+            onClick={() => {
+              resetToPosition002();
+              // Force memebox re-render
+              setTimeout(() => {
+                unmountTheMemeBox();
+                setTimeout(() => {
+                  renderTheMemeBox(broadcasts['UnionNews#14']);
+                }, 100);
+              }, 50);
+            }}
+            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+            title="Restore content"
+          >
+            🎁 Content
+          </button>
+        )}
       </div>
     </div>
   );
