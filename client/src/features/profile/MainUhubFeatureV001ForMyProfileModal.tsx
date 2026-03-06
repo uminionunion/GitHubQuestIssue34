@@ -3105,10 +3105,10 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
     </>
   )}
 
-  {/* CENTER SECTION */}
+  {/* CENTER SECTION is it this one? */}
   <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="p-2 md:p-4 overflow-y-auto" style={{ 
     width: window.innerWidth < 768 ? '100%' : `${centerWidthDesktop}%`,
-      height: '200vh',
+       height: window.innerWidth < 768 ? '100%' : 'auto', 
     display: 'flex',
     flexDirection: 'column'
   }}>
