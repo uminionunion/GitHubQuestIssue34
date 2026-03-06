@@ -1566,9 +1566,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [leftWidthMobile, setLeftWidthMobile] = useState(25);
   const [centerWidthMobile, setCenterWidthMobile] = useState(50);
   const [rightWidthMobile, setRightWidthMobile] = useState(25);
-  const [leftWidthDesktop, setLeftWidthDesktop] = useState(20);
-  const [centerWidthDesktop, setCenterWidthDesktop] = useState(60);
-  const [rightWidthDesktop, setRightWidthDesktop] = useState(20);
+  const [leftWidthDesktop, setLeftWidthDesktop] = useState(20); //this is how to change uHome-Hub's 30chatrooms far left section into a smaller section or bigger section -11:25pm on 3/5/26
+  const [centerWidthDesktop, setCenterWidthDesktop] = useState(60); //this is how to change broadcast section into a smaller section or bigger section -11:25pm on 3/5/26
+  const [rightWidthDesktop, setRightWidthDesktop] = useState(20); //this is how to change UnionSAM#20's section into a smaller section or bigger section -11:25pm on 3/5/26
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
   const [isDraggingRight, setIsDraggingRight] = useState(false);
   const [isQuadrantsModalOpen, setIsQuadrantsModalOpen] = useState(false);
@@ -1592,6 +1592,11 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isBroadcastLeftCollapsed, setIsBroadcastLeftCollapsed] = useState(false);
   const [isBroadcastCarouselCollapsed, setIsBroadcastCarouselCollapsed] = useState(false);
   const [broadcastDividerDragging, setBroadcastDividerDragging] = useState(false);
+  // NEW: Collapse state for left (uHome-Hub) and right (UnionSAM#20) sections
+const [isLeftSectionCollapsed, setIsLeftSectionCollapsed] = useState(false);
+const [isRightSectionCollapsed, setIsRightSectionCollapsed] = useState(false);
+const [leftDividerDragging, setLeftDividerDragging] = useState(false);
+const [rightDividerDragging, setRightDividerDragging] = useState(false);
   const broadcasts = {
       'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Union Tech #18 is presently upgrading our uminion website from v1 to v2; so some features will be considered -underConstruction- until the upgrade is done. For now, be sure to join us over at FB; till our own Social Media site is live:', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
@@ -1716,6 +1721,85 @@ useEffect(() => {
 }, [user, isOpen]);
 
 
+// Handle left divider (uHome-Hub ↔ Broadcasts)
+useEffect(() => {
+  if (!leftDividerDragging) return;
+
+  const handleMouseMove = (e: MouseEvent) => {
+    const container = document.querySelector('[data-profile-main-container]');
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const newLeftPercent = ((e.clientX - rect.left) / rect.width) * 100;
+
+    // Constrain between 5% and 35%
+    if (newLeftPercent >= 5 && newLeftPercent <= 35) {
+      setLeftWidthDesktop(newLeftPercent);
+      setCenterWidthDesktop(100 - newLeftPercent - rightWidthDesktop);
+
+      // Collapse if dragged below 10%
+      if (newLeftPercent <= 10) {
+        setIsLeftSectionCollapsed(true);
+      } else {
+        setIsLeftSectionCollapsed(false);
+      }
+    }
+  };
+
+  const handleMouseUp = () => {
+    setLeftDividerDragging(false);
+  };
+
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+
+  return () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
+}, [leftDividerDragging, rightWidthDesktop]);
+
+// Handle right divider (Broadcasts ↔ UnionSAM#20)
+useEffect(() => {
+  if (!rightDividerDragging) return;
+
+  const handleMouseMove = (e: MouseEvent) => {
+    const container = document.querySelector('[data-profile-main-container]');
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const rightEdgePercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const newRightPercent = 100 - rightEdgePercent;
+
+    // Constrain between 5% and 35%
+    if (newRightPercent >= 5 && newRightPercent <= 35) {
+      setRightWidthDesktop(newRightPercent);
+      setCenterWidthDesktop(rightEdgePercent - leftWidthDesktop);
+
+      // Collapse if dragged below 10%
+      if (newRightPercent <= 10) {
+        setIsRightSectionCollapsed(true);
+      } else {
+        setIsRightSectionCollapsed(false);
+      }
+    }
+  };
+
+  const handleMouseUp = () => {
+    setRightDividerDragging(false);
+  };
+
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+
+  return () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
+}, [rightDividerDragging, leftWidthDesktop]);
+
+
+  
 
   
 useEffect(() => {
@@ -2068,6 +2152,20 @@ useEffect(() => {
 
   
 
+
+
+const resetLeftSection = () => {
+  setLeftWidthDesktop(20);
+  setCenterWidthDesktop(60);
+  setIsLeftSectionCollapsed(false);
+};
+
+const resetRightSection = () => {
+  setRightWidthDesktop(20);
+  setCenterWidthDesktop(60);
+  setIsRightSectionCollapsed(false);
+};
+  
   
 
   
@@ -2465,59 +2563,90 @@ default:
     const currentBroadcast = broadcasts[broadcastView];
 return (
   <>
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => {
-          const currentIndex = broadcastKeys.indexOf(broadcastView);
-          const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
-          setBroadcastView(broadcastKeys[nextIndex]);
-        }}>
-          <ChevronLeft />
-        </Button>
-        <h3 className="text-center font-bold">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
-        <Button variant="ghost" size="icon" onClick={() => {
-          const currentIndex = broadcastKeys.indexOf(broadcastView);
-          const nextIndex = (currentIndex + 1) % broadcastKeys.length;
-          setBroadcastView(broadcastKeys[nextIndex]);
-        }}>
-          <ChevronRight />
-        </Button>
-      </div>
+   <div className="flex items-center justify-between mb-4">
+  <div className="flex items-center gap-2">
+    <Button variant="ghost" size="icon" onClick={() => {
+      const currentIndex = broadcastKeys.indexOf(broadcastView);
+      const nextIndex = (currentIndex - 1 + broadcastKeys.length) % broadcastKeys.length;
+      setBroadcastView(broadcastKeys[nextIndex]);
+    }}>
+      <ChevronLeft />
+    </Button>
+    <h3 className="text-center font-bold">{currentBroadcast?.title || 'MyBroadcasts'}</h3>
+    <Button variant="ghost" size="icon" onClick={() => {
+      const currentIndex = broadcastKeys.indexOf(broadcastView);
+      const nextIndex = (currentIndex + 1) % broadcastKeys.length;
+      setBroadcastView(broadcastKeys[nextIndex]);
+    }}>
+      <ChevronRight />
+    </Button>
+  </div>
 
-      {/* Show collapsed banner buttons in title bar */}
-      {broadcastView === 'UnionNews#14' && (
-        <div className="flex gap-1">
-          {isBroadcastCarouselCollapsed && (
-            <button 
-              onClick={() => {
-                setBroadcastCarouselCollapsed(false);
-                setBroadcastRightWidth(67);
-                setBroadcastLeftWidth(33);
-                setBroadcastCarouselImageCount(3);
-              }}
-              className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-              title="Restore carousel"
-            >
-              📸
-            </button>
-          )}
-          {isBroadcastLeftCollapsed && (
-            <button 
-              onClick={() => {
-                setBroadcastLeftCollapsed(false);
-                setBroadcastLeftWidth(65);
-                setBroadcastRightWidth(35);
-                setBroadcastCarouselImageCount(1);
-              }}
-              className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-              title="Restore left content"
-            >
-              🎁
-            </button>
-          )}
-        </div>
-      )}
-    </div>
+  {/* Show ALL collapsed section buttons in title bar */}
+  <div className="flex gap-1">
+    {/* LEFT SECTION (uHome-Hub) COLLAPSE BUTTON */}
+    {isLeftSectionCollapsed && (
+      <button
+        onClick={resetLeftSection}
+        className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+        title="Restore uHome-Hub"
+      >
+        <span>💬</span>
+      </button>
+    )}
+    
+    {/* RIGHT SECTION (UnionSAM#20) COLLAPSE BUTTON */}
+    {isRightSectionCollapsed && (
+      <button
+        onClick={resetRightSection}
+        className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+        title="Restore UnionSAM#20"
+      >
+        <span>🛒</span>
+      </button>
+    )}
+    
+    {/* BROADCAST INTERNAL COLLAPSE BUTTONS (UnionNews#14 only) */}
+    {broadcastView === 'UnionNews#14' && (
+      <>
+        {isBroadcastCarouselCollapsed && (
+          <button 
+            onClick={() => {
+              setBroadcastCarouselCollapsed(false);
+              setBroadcastRightWidth(67);
+              setBroadcastLeftWidth(33);
+              setBroadcastCarouselImageCount(3);
+            }}
+            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+            title="Restore carousel"
+          >
+            📸
+          </button>
+        )}
+        {isBroadcastLeftCollapsed && (
+          <button 
+            onClick={() => {
+              setBroadcastLeftCollapsed(false);
+              setBroadcastLeftWidth(65);
+              setBroadcastRightWidth(35);
+              setBroadcastCarouselImageCount(1);
+            }}
+            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+            title="Restore left content"
+          >
+            🎁
+          </button>
+        )}
+      </>
+    )}
+  </div>
+</div>
+
+
+
+
+
+    
     {broadcastView === 'MyBroadcasts' ? 
       (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
       : (currentBroadcast ? <BroadcastView 
@@ -2749,7 +2878,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
          </div>
 
         {/* Center Section */}
-<div className="flex-grow flex overflow-hidden">
+<div className="flex-grow flex overflow-hidden" data-profile-main-container>
   <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : `${leftWidthDesktop}%` }}>
     <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
     <div className="grid grid-cols-2 gap-1 md:gap-2">
@@ -2772,11 +2901,19 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
       ))}
     </div>
   </div>
-           <div className="w-1 bg-gray-300 cursor-ew-resize hover:bg-blue-500" onMouseDown={handleStartDragMobile}></div>
+           <div
+  className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
+  onMouseDown={() => setLeftDividerDragging(true)}
+/>
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : `${centerWidthDesktop}%` }}>
              {renderCenterContent()}
            </div>
-           <div className="w-1 bg-gray-300 cursor-ew-resize hover:bg-green-500" onMouseDown={handleStartDragRight}></div>
+           {!isRightSectionCollapsed && (
+  <div
+    className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
+    onMouseDown={() => setRightDividerDragging(true)}
+  />
+)}
            <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:border-l overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : `${rightWidthDesktop}%` }}>
              <div className="flex items-center justify-center mb-2 md:mb-4">
                  <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
