@@ -1732,17 +1732,20 @@ useEffect(() => {
     const rect = container.getBoundingClientRect();
     const newLeftPercent = ((e.clientX - rect.left) / rect.width) * 100;
 
-    // Constrain between 5% and 35%
-    if (newLeftPercent >= 5 && newLeftPercent <= 35) {
+    // Check if should collapse (drag far left)
+    if (newLeftPercent < 5) {
+      // Collapse the left section completely
+      setIsLeftSectionCollapsed(true);
+      setLeftWidthDesktop(0);
+      setCenterWidthDesktop(100 - rightWidthDesktop);
+    } else if (newLeftPercent > 35) {
+      // Don't allow dragging past 35%
+      return;
+    } else {
+      // Normal drag behavior
+      setIsLeftSectionCollapsed(false);
       setLeftWidthDesktop(newLeftPercent);
       setCenterWidthDesktop(100 - newLeftPercent - rightWidthDesktop);
-
-      // Collapse if dragged below 10%
-      if (newLeftPercent <= 10) {
-        setIsLeftSectionCollapsed(true);
-      } else {
-        setIsLeftSectionCollapsed(false);
-      }
     }
   };
 
@@ -1771,17 +1774,20 @@ useEffect(() => {
     const rightEdgePercent = ((e.clientX - rect.left) / rect.width) * 100;
     const newRightPercent = 100 - rightEdgePercent;
 
-    // Constrain between 5% and 35%
-    if (newRightPercent >= 5 && newRightPercent <= 35) {
+    // Check if should collapse (drag far right)
+    if (newRightPercent < 5) {
+      // Collapse the right section completely
+      setIsRightSectionCollapsed(true);
+      setRightWidthDesktop(0);
+      setCenterWidthDesktop(rightEdgePercent - leftWidthDesktop);
+    } else if (newRightPercent > 35) {
+      // Don't allow dragging past 35%
+      return;
+    } else {
+      // Normal drag behavior
+      setIsRightSectionCollapsed(false);
       setRightWidthDesktop(newRightPercent);
       setCenterWidthDesktop(rightEdgePercent - leftWidthDesktop);
-
-      // Collapse if dragged below 10%
-      if (newRightPercent <= 10) {
-        setIsRightSectionCollapsed(true);
-      } else {
-        setIsRightSectionCollapsed(false);
-      }
     }
   };
 
@@ -1797,7 +1803,6 @@ useEffect(() => {
     document.removeEventListener('mouseup', handleMouseUp);
   };
 }, [rightDividerDragging, leftWidthDesktop]);
-
 
   
 
@@ -2623,20 +2628,20 @@ return (
             📸
           </button>
         )}
-        {isBroadcastLeftCollapsed && (
-          <button 
-            onClick={() => {
-              setBroadcastLeftCollapsed(false);
-              setBroadcastLeftWidth(65);
-              setBroadcastRightWidth(35);
-              setBroadcastCarouselImageCount(1);
-            }}
-            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-            title="Restore left content"
-          >
-            🎁
-          </button>
-        )}
+{isBroadcastLeftCollapsed && (
+  <button 
+    onClick={() => {
+      setIsBroadcastLeftCollapsed(false);
+      setBroadcastLeftWidth(65);
+      setBroadcastRightWidth(35);
+      setBroadcastCarouselImageCount(1);
+    }}
+    className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+    title="Restore left content"
+  >
+    🎁
+  </button>
+)}
       </>
     )}
   </div>
