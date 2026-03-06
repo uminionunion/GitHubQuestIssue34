@@ -403,42 +403,38 @@ const BroadcastView = ({
           </>
         )}
 
-        {/* RIGHT HALF - Carousel Area */}
-        <div style={{ width: `${broadcastRightWidth}%` }} className="flex flex-col overflow-hidden">
-          {!isBroadcastCarouselCollapsed && (
-            <>
-              <div className="flex items-center gap-2 mb-2">
-                <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
-                <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
-              </div>
-              <div className="flex items-center gap-2 mb-2">
-                <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
-                {user?.is_high_high_high_admin === 1 && (
-                  <Button 
-                    className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
-                    onClick={() => onOpenUnionNews14Modal()}
-                  >
-                    Add
-                  </Button>
-                )}
-              </div>
-            </>
-          )}
+        {/* RIGHT HALF - Carousel Area - ONLY RENDER IF NOT COLLAPSED! */}
+        {!isBroadcastCarouselCollapsed && (
+          <div style={{ width: `${broadcastRightWidth}%` }} className="flex flex-col overflow-hidden">
+            <div className="flex items-center gap-2 mb-2">
+              <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
+              <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
+              {user?.is_high_high_high_admin === 1 && (
+                <Button 
+                  className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
+                  onClick={() => onOpenUnionNews14Modal()}
+                >
+                  Add
+                </Button>
+              )}
+            </div>
 
-          {/* CAROUSEL - Shows limited images based on width */}
-{!isBroadcastCarouselCollapsed && (
-  <div className="flex-1 overflow-hidden">
-    <BroadcastCarousel 
-      items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
-      isAdmin={user?.is_high_high_high_admin === 1}
-      onReorderLeft={handleReorderLeft}
-      onReorderRight={handleReorderRight}
-      onImageZoom={handleCarouselImageZoom}
-      maxVisibleItems={broadcastCarouselImageCount}
-    />
-  </div>
-)}
-        </div>
+            {/* CAROUSEL - Shows limited images based on width */}
+            <div className="flex-1 overflow-hidden">
+              <BroadcastCarousel 
+                items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
+                isAdmin={user?.is_high_high_high_admin === 1}
+                onReorderLeft={handleReorderLeft}
+                onReorderRight={handleReorderRight}
+                onImageZoom={handleCarouselImageZoom}
+                maxVisibleItems={broadcastCarouselImageCount}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* COLLAPSED BANNERS - Below main content */}
