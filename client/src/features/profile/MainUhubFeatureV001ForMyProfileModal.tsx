@@ -379,7 +379,7 @@ const BroadcastView = ({
     if (isMobile) {
     // MOBILE LAYOUT: Vertical stack (carousel on top, memebox below) with 20px gap
     return (
-      <div className="flex flex-col h-full overflow-y-auto" style={{ gap: '20px', maxHeight: '600px' }}>
+      <div className="flex flex-col h-full overflow-y-auto" style={{ gap: '20px', maxHeight: '60000px' }}>
          {/* TOP: Broadcast Carousel - FULL WIDTH */}
         {!isBroadcastCarouselCollapsed && (
           <div className="flex-1 flex flex-col overflow-hidden min-h-[200px] w-[75%] mx-auto">
