@@ -249,55 +249,70 @@ const BroadcastView = ({
   };
 
   useEffect(() => {
-    if (!broadcastDividerDragging) return;
+  if (!broadcastDividerDragging) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const container = document.querySelector('[data-broadcast-container]');
-      if (!container) return;
+  const handleMove = (clientX: number) => {
+    const container = document.querySelector('[data-broadcast-container]');
+    if (!container) return;
 
-      const rect = container.getBoundingClientRect();
-      const newLeftPercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const rect = container.getBoundingClientRect();
+    const newLeftPercent = ((clientX - rect.left) / rect.width) * 100;
 
-      // Constrain between 20% and 70%
-      if (newLeftPercent >= 20 && newLeftPercent <= 70) {
-        const newLeft = newLeftPercent;
-        const newRight = 100 - newLeftPercent;
+    // Constrain between 20% and 70%
+    if (newLeftPercent >= 20 && newLeftPercent <= 70) {
+      const newLeft = newLeftPercent;
+      const newRight = 100 - newLeftPercent;
 
-        setBroadcastLeftWidth(newLeft);
-        setBroadcastRightWidth(newRight);
+      setBroadcastLeftWidth(newLeft);
+      setBroadcastRightWidth(newRight);
 
-        // Update carousel image count
-        const newImageCount = calculateCarouselImageCount(newRight);
-        setBroadcastCarouselImageCount(newImageCount);
+      // Update carousel image count
+      const newImageCount = calculateCarouselImageCount(newRight);
+      setBroadcastCarouselImageCount(newImageCount);
 
-        // Check if carousel should collapse
-        if (newImageCount === 0) {
-          setIsBroadcastCarouselCollapsed(true);
-        } else {
-          setIsBroadcastCarouselCollapsed(false);
-        }
-
-        // Check if left should collapse (when right is too wide for meme box)
-        if (newLeft <= 25) {
-          setIsBroadcastLeftCollapsed(true);
-        } else {
-          setIsBroadcastLeftCollapsed(false);
-        }
+      // Check if carousel should collapse
+      if (newImageCount === 0) {
+        setIsBroadcastCarouselCollapsed(true);
+      } else {
+        setIsBroadcastCarouselCollapsed(false);
       }
-    };
 
-    const handleMouseUp = () => {
-      setBroadcastDividerDragging(false);
-    };
+      // Check if left should collapse (when right is too wide for meme box)
+      if (newLeft <= 25) {
+        setIsBroadcastLeftCollapsed(true);
+      } else {
+        setIsBroadcastLeftCollapsed(false);
+      }
+    }
+  };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+  const handleMouseMove = (e: MouseEvent) => {
+    handleMove(e.clientX);
+  };
 
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [broadcastDividerDragging]);
+  const handleTouchMove = (e: TouchEvent) => {
+    if (e.touches.length > 0) {
+      e.preventDefault();
+      handleMove(e.touches[0].clientX);
+    }
+  };
+
+  const handleEnd = () => {
+    setBroadcastDividerDragging(false);
+  };
+
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleEnd);
+  document.addEventListener('touchmove', handleTouchMove, { passive: false });
+  document.addEventListener('touchend', handleEnd);
+
+  return () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleEnd);
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleEnd);
+  };
+}, [broadcastDividerDragging]);
 
   const resetToDefaultPosition = () => {
     setBroadcastLeftWidth(33);
@@ -379,11 +394,12 @@ const BroadcastView = ({
               </div>
             </div>
 
-            {/* DRAGGABLE DIVIDER */}
-            <div 
-              className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
-              onMouseDown={handleDividerMouseDown}
-            />
+            {/* DRAGGABLE DIVIDER - WITH MOBILE TOUCH SUPPORT */}
+<div 
+  className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
+  onMouseDown={handleDividerMouseDown}
+  onTouchStart={handleDividerMouseDown}
+/>
           </>
         )}
 
@@ -440,13 +456,23 @@ const BroadcastView = ({
           </button>
         )}
         {isBroadcastLeftCollapsed && (
-          <button 
-            onClick={() => resetToPosition002()}
-            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-          >
-            <span>🎁 Content</span>
-          </button>
-        )}
+  <button 
+    onClick={() => {
+      resetToPosition002();
+      // Force memebox re-render
+      setTimeout(() => {
+        unmountTheMemeBox();
+        setTimeout(() => {
+          renderTheMemeBox(broadcasts['UnionNews#14']);
+        }, 100);
+      }, 50);
+    }}
+    className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+    title="Restore content"
+  >
+    🎁 Content
+  </button>
+)}
       </div>
     </div>
   );
@@ -1721,16 +1747,16 @@ useEffect(() => {
 }, [user, isOpen]);
 
 
-// Handle left divider (uHome-Hub ↔ Broadcasts)
+// Handle left divider (uHome-Hub ↔ Broadcasts) - WITH MOBILE TOUCH SUPPORT
 useEffect(() => {
   if (!leftDividerDragging) return;
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMove = (clientX: number) => {
     const container = document.querySelector('[data-profile-main-container]');
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
-    const newLeftPercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const newLeftPercent = ((clientX - rect.left) / rect.width) * 100;
 
     // ALLOW COLLAPSE - Check if should collapse (drag far left)
     if (newLeftPercent < 5) {
@@ -1749,32 +1775,47 @@ useEffect(() => {
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseMove = (e: MouseEvent) => {
+    handleMove(e.clientX);
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (e.touches.length > 0) {
+      e.preventDefault();
+      handleMove(e.touches[0].clientX);
+    }
+  };
+
+  const handleEnd = () => {
     setLeftDividerDragging(false);
   };
 
   document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
+  document.addEventListener('mouseup', handleEnd);
+  document.addEventListener('touchmove', handleTouchMove, { passive: false });
+  document.addEventListener('touchend', handleEnd);
 
   return () => {
     document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener('mouseup', handleEnd);
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleEnd);
   };
 }, [leftDividerDragging, rightWidthDesktop]);
 
 
   
 
-// Handle right divider (Broadcasts ↔ UnionSAM#20)
+// Handle right divider (Broadcasts ↔ UnionSAM#20) - WITH MOBILE TOUCH SUPPORT
 useEffect(() => {
   if (!rightDividerDragging) return;
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMove = (clientX: number) => {
     const container = document.querySelector('[data-profile-main-container]');
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
-    const rightEdgePercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const rightEdgePercent = ((clientX - rect.left) / rect.width) * 100;
     const newRightPercent = 100 - rightEdgePercent;
 
     // ALLOW COLLAPSE - Check if should collapse (drag far right)
@@ -1794,16 +1835,31 @@ useEffect(() => {
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseMove = (e: MouseEvent) => {
+    handleMove(e.clientX);
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (e.touches.length > 0) {
+      e.preventDefault();
+      handleMove(e.touches[0].clientX);
+    }
+  };
+
+  const handleEnd = () => {
     setRightDividerDragging(false);
   };
 
   document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
+  document.addEventListener('mouseup', handleEnd);
+  document.addEventListener('touchmove', handleTouchMove, { passive: false });
+  document.addEventListener('touchend', handleEnd);
 
   return () => {
     document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener('mouseup', handleEnd);
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleEnd);
   };
 }, [rightDividerDragging, leftWidthDesktop]);
 
@@ -2634,16 +2690,19 @@ return (
 {isBroadcastLeftCollapsed && (
   <button 
     onClick={() => {
+      // CRITICAL: Use setTimeout to ensure state updates BEFORE re-rendering memebox
       setIsBroadcastLeftCollapsed(false);
       setBroadcastLeftWidth(33);
       setBroadcastRightWidth(67);
       setBroadcastCarouselImageCount(3);
-      // Force re-render of meme box
-      const memeBoxContainer = document.getElementById('TheReactMemeImplementationConnection001');
-      if (memeBoxContainer) {
-        memeBoxContainer.innerHTML = '';
-        renderTheMemeBox(broadcasts['UnionNews#14']);
-      }
+      
+      // Wait for state to update, then unmount and re-render
+      setTimeout(() => {
+        unmountTheMemeBox(); // Clean up first
+        setTimeout(() => {
+          renderTheMemeBox(broadcasts['UnionNews#14']); // Then render fresh
+        }, 100);
+      }, 50);
     }}
     className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
     title="Restore left content"
@@ -2920,10 +2979,11 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
       </div>
       
       {/* LEFT DIVIDER - ONLY SHOW IF LEFT NOT COLLAPSED */}
-      <div
-        className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
-        onMouseDown={() => setLeftDividerDragging(true)}
-      />
+<div
+  className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
+  onMouseDown={() => setLeftDividerDragging(true)}
+  onTouchStart={() => setLeftDividerDragging(true)}
+/>
     </>
   )}
 
@@ -2933,12 +2993,13 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
   </div>
 
   {/* RIGHT DIVIDER - ONLY SHOW IF RIGHT NOT COLLAPSED */}
-  {!isRightSectionCollapsed && (
-    <div
-      className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
-      onMouseDown={() => setRightDividerDragging(true)}
-    />
-  )}
+{!isRightSectionCollapsed && (
+  <div
+    className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
+    onMouseDown={() => setRightDividerDragging(true)}
+    onTouchStart={() => setRightDividerDragging(true)}
+  />
+)}
 
   {/* RIGHT SECTION - ONLY SHOW IF NOT COLLAPSED */}
   {!isRightSectionCollapsed && (
