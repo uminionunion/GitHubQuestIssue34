@@ -958,7 +958,7 @@ const submitComment = async () => {
       gap: "12px",
     },
     navButton: {
-      backgroundColor: "#555555",
+      backgroundColor: "#222222",
       color: "#ffffff",
       border: "none",
       padding: "8px 16px",
@@ -1417,14 +1417,30 @@ const submitComment = async () => {
         <div style={styles.postInfo}>
   <h2 style={styles.postTitle}>{displayPost.title}</h2>
   <p style={styles.postDescription}>{displayPost.description}</p>
-  <p style={{ 
-    fontSize: "13px", 
-    color: "#0099ff",
-    margin: "6px 0 8px 0",
-    fontWeight: "500"
-  }}>
-    By: {displayPost.username || "Anonymous"}
-  </p>
+  {displayPost.username && (
+    <div style={{
+      fontSize: "13px",
+      margin: "6px 0 8px 0",
+      fontWeight: "500",
+    }}>
+      By:{" "}
+      <button
+        style={{
+          fontSize: "13px",
+          color: "#0099ff",
+          fontWeight: "bold",
+          backgroundColor: "transparent",
+          border: "none",
+          cursor: "pointer",
+          padding: "0",
+          textDecoration: "underline",
+        }}
+        onClick={() => openUserProfile(displayPost.username)}
+      >
+        {displayPost.username}
+      </button>
+    </div>
+  )}
   <p style={styles.postTime}>{getTimeElapsed(displayPost.timestamp)}</p>
 </div>
 
@@ -1764,31 +1780,44 @@ const renderViewCommentsDialog = () => {
   }}
 >
   <div>
-    <button
-  style={{
-    fontSize: "12px",
-    color: "#0099ff",
-    fontWeight: "bold",
-    backgroundColor: "transparent",
-    border: "none",
-    cursor: "pointer",
-    padding: "0",
-    textDecoration: "underline",
-  }}
-  onClick={() => openUserProfile(comment.username)}
->
-  {comment.username}
-</button>
-    <h3
+  {comment.is_deleted ? (
+    <span
       style={{
-        margin: "4px 0 0 0",
-        color: "#00ff00",
-        fontSize: "14px",
+        fontSize: "12px",
+        color: "#999999",
+        fontWeight: "bold",
+        fontStyle: "italic",
       }}
     >
-      {comment.title}
-    </h3>
-  </div>
+      Author Deleted Comment
+    </span>
+  ) : (
+    <button
+      style={{
+        fontSize: "12px",
+        color: "#0099ff",
+        fontWeight: "bold",
+        backgroundColor: "transparent",
+        border: "none",
+        cursor: "pointer",
+        padding: "0",
+        textDecoration: "underline",
+      }}
+      onClick={() => openUserProfile(comment.username)}
+    >
+      {comment.username}
+    </button>
+  )}
+  <h3
+    style={{
+      margin: "4px 0 0 0",
+      color: "#00ff00",
+      fontSize: "14px",
+    }}
+  >
+    {comment.title}
+  </h3>
+</div>
   <span style={{ fontSize: "11px", color: "#999999" }}>
     {getTimeElapsed(comment.timestamp)}
   </span>
