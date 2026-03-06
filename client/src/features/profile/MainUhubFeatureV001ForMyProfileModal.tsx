@@ -1732,7 +1732,7 @@ useEffect(() => {
     const rect = container.getBoundingClientRect();
     const newLeftPercent = ((e.clientX - rect.left) / rect.width) * 100;
 
-    // Check if should collapse (drag far left)
+    // ALLOW COLLAPSE - Check if should collapse (drag far left)
     if (newLeftPercent < 5) {
       // Collapse the left section completely
       setIsLeftSectionCollapsed(true);
@@ -1742,7 +1742,7 @@ useEffect(() => {
       // Don't allow dragging past 35%
       return;
     } else {
-      // Normal drag behavior
+      // Normal drag behavior - always allow this range
       setIsLeftSectionCollapsed(false);
       setLeftWidthDesktop(newLeftPercent);
       setCenterWidthDesktop(100 - newLeftPercent - rightWidthDesktop);
@@ -1762,6 +1762,9 @@ useEffect(() => {
   };
 }, [leftDividerDragging, rightWidthDesktop]);
 
+
+  
+
 // Handle right divider (Broadcasts ↔ UnionSAM#20)
 useEffect(() => {
   if (!rightDividerDragging) return;
@@ -1774,7 +1777,7 @@ useEffect(() => {
     const rightEdgePercent = ((e.clientX - rect.left) / rect.width) * 100;
     const newRightPercent = 100 - rightEdgePercent;
 
-    // Check if should collapse (drag far right)
+    // ALLOW COLLAPSE - Check if should collapse (drag far right)
     if (newRightPercent < 5) {
       // Collapse the right section completely
       setIsRightSectionCollapsed(true);
@@ -1784,7 +1787,7 @@ useEffect(() => {
       // Don't allow dragging past 35%
       return;
     } else {
-      // Normal drag behavior
+      // Normal drag behavior - always allow this range
       setIsRightSectionCollapsed(false);
       setRightWidthDesktop(newRightPercent);
       setCenterWidthDesktop(rightEdgePercent - leftWidthDesktop);
@@ -2632,9 +2635,15 @@ return (
   <button 
     onClick={() => {
       setIsBroadcastLeftCollapsed(false);
-      setBroadcastLeftWidth(65);
-      setBroadcastRightWidth(35);
-      setBroadcastCarouselImageCount(1);
+      setBroadcastLeftWidth(33);
+      setBroadcastRightWidth(67);
+      setBroadcastCarouselImageCount(3);
+      // Force re-render of meme box
+      const memeBoxContainer = document.getElementById('TheReactMemeImplementationConnection001');
+      if (memeBoxContainer) {
+        memeBoxContainer.innerHTML = '';
+        renderTheMemeBox(broadcasts['UnionNews#14']);
+      }
     }}
     className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
     title="Restore left content"
@@ -2884,52 +2893,67 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
 
         {/* Center Section */}
 <div className="flex-grow flex overflow-hidden" data-profile-main-container>
-  <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : `${leftWidthDesktop}%` }}>
-    <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
-    <div className="grid grid-cols-2 gap-1 md:gap-2">
-      {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
-        <div key={num} className="relative">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="md:h-auto h-6 text-xs w-full" 
-            onClick={() => handleUHomeHubClick(num)}
-          >
-            #{String(num).padStart(2, '0')}
-          </Button>
-          
-          {/* Green unread message badge */}
-          {unreadChatrooms.has(num) && (
-            <div className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-green-600 z-10"></div>
-          )}
+  {/* LEFT SECTION - ONLY SHOW IF NOT COLLAPSED */}
+  {!isLeftSectionCollapsed && (
+    <>
+      <div id="MainUhubFeatureV001ForMyProfileSettingsCenterLeftSection" className="md:border-r overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${leftWidthMobile}%` : `${leftWidthDesktop}%` }}>
+        <h3 className="text-center font-bold mb-2 md:mb-4 text-xs md:text-base">uHome-Hub:</h3>
+        <div className="grid grid-cols-2 gap-1 md:gap-2">
+          {MainUhubFeatureV001ForUHomeHubButtons.map(num => (
+            <div key={num} className="relative">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="md:h-auto h-6 text-xs w-full" 
+                onClick={() => handleUHomeHubClick(num)}
+              >
+                #{String(num).padStart(2, '0')}
+              </Button>
+              
+              {/* Green unread message badge */}
+              {unreadChatrooms.has(num) && (
+                <div className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-green-600 z-10"></div>
+              )}
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      </div>
+      
+      {/* LEFT DIVIDER - ONLY SHOW IF LEFT NOT COLLAPSED */}
+      <div
+        className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
+        onMouseDown={() => setLeftDividerDragging(true)}
+      />
+    </>
+  )}
+
+  {/* CENTER SECTION */}
+  <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : `${centerWidthDesktop}%` }}>
+    {renderCenterContent()}
   </div>
-           <div
-  className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
-  onMouseDown={() => setLeftDividerDragging(true)}
-/>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="p-2 md:p-4 overflow-y-auto" style={{ width: window.innerWidth < 768 ? `${centerWidthMobile}%` : `${centerWidthDesktop}%` }}>
-             {renderCenterContent()}
-           </div>
-           {!isRightSectionCollapsed && (
-  <div
-    className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
-    onMouseDown={() => setRightDividerDragging(true)}
-  />
-)}
-           <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:border-l overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : `${rightWidthDesktop}%` }}>
-             <div className="flex items-center justify-center mb-2 md:mb-4">
-                 <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
-                 <h3 className="text-center font-bold mx-1 md:mx-2 text-xs md:text-base">{centerRightView.displayName}</h3>
-                 <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
-             </div>
-             <div className="space-y-1 md:space-y-4">
-               {renderCenterRightContent()}
-             </div>
-           </div>
-         </div>
+
+  {/* RIGHT DIVIDER - ONLY SHOW IF RIGHT NOT COLLAPSED */}
+  {!isRightSectionCollapsed && (
+    <div
+      className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors"
+      onMouseDown={() => setRightDividerDragging(true)}
+    />
+  )}
+
+  {/* RIGHT SECTION - ONLY SHOW IF NOT COLLAPSED */}
+  {!isRightSectionCollapsed && (
+    <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:border-l overflow-y-auto p-2 md:p-4" style={{ width: window.innerWidth < 768 ? `${rightWidthMobile}%` : `${rightWidthDesktop}%` }}>
+      <div className="flex items-center justify-center mb-2 md:mb-4">
+        <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('left')}><ChevronLeft className="h-3 w-3 md:h-4 md:w-4" /></Button>
+        <h3 className="text-center font-bold mx-1 md:mx-2 text-xs md:text-base">{centerRightView.displayName}</h3>
+        <Button variant="ghost" size="icon" className="h-6 w-6 md:h-10 md:w-10 p-1" onClick={() => navigateCenterRight('right')}><ChevronRight className="h-3 w-3 md:h-4 md:w-4" /></Button>
+      </div>
+      <div className="space-y-1 md:space-y-4">
+        {renderCenterRightContent()}
+      </div>
+    </div>
+  )}
+</div>
 
           {/* Bottom Section */}
           <div className="flex border-t md:h-auto h-12">
