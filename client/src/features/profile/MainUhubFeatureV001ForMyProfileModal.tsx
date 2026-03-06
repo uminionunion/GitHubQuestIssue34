@@ -2748,6 +2748,12 @@ return (
           if (window.innerWidth >= 768) {
             setLeftWidthDesktop(20);
             setCenterWidthDesktop(60);
+          } else {
+            // On mobile, scroll to top when expanding left section
+            const container = document.querySelector('[data-profile-main-container]');
+            if (container) {
+              container.scrollTop = 0;
+            }
           }
         }}
         className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
@@ -2765,6 +2771,12 @@ return (
           if (window.innerWidth >= 768) {
             setRightWidthDesktop(20);
             setCenterWidthDesktop(60);
+          } else {
+            // On mobile, scroll to top when expanding right section
+            const container = document.querySelector('[data-profile-main-container]');
+            if (container) {
+              container.scrollTop = 0;
+            }
           }
         }}
         className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
@@ -3178,13 +3190,15 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
         </div>
 
       {activeChatModal !== null && (
-        <MainUhubFeatureV001ForChatModal
-            isOpen={activeChatModal !== null}
-            onClose={handleCloseChatModal}
-            pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-            backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-            modalNumber={activeChatModal}
-          />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40, overflow: window.innerWidth < 768 ? 'auto' : 'hidden', paddingTop: window.innerWidth < 768 ? '600px' : 0 }}>
+          <MainUhubFeatureV001ForChatModal
+              isOpen={activeChatModal !== null}
+              onClose={handleCloseChatModal}
+              pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+              backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+              modalNumber={activeChatModal}
+            />
+        </div>
         )}
         {isAddProductModalOpen && (
   <MainUhubFeatureV001ForAddProductModal 
