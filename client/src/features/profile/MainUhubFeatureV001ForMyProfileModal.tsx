@@ -426,22 +426,18 @@ const BroadcastView = ({
           )}
 
           {/* CAROUSEL - Shows limited images based on width */}
-          <div className="flex-1 overflow-hidden">
-            {isBroadcastCarouselCollapsed ? (
-              <div className="flex items-center justify-center h-full bg-gray-800 rounded text-gray-400">
-                Carousel collapsed
-              </div>
-            ) : (
-              <BroadcastCarousel 
-                items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
-                isAdmin={user?.is_high_high_high_admin === 1}
-                onReorderLeft={handleReorderLeft}
-                onReorderRight={handleReorderRight}
-                onImageZoom={handleCarouselImageZoom}
-                maxVisibleItems={broadcastCarouselImageCount}
-              />
-            )}
-          </div>
+{!isBroadcastCarouselCollapsed && (
+  <div className="flex-1 overflow-hidden">
+    <BroadcastCarousel 
+      items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
+      isAdmin={user?.is_high_high_high_admin === 1}
+      onReorderLeft={handleReorderLeft}
+      onReorderRight={handleReorderRight}
+      onImageZoom={handleCarouselImageZoom}
+      maxVisibleItems={broadcastCarouselImageCount}
+    />
+  </div>
+)}
         </div>
       </div>
 
@@ -2674,19 +2670,19 @@ return (
     {broadcastView === 'UnionNews#14' && (
       <>
         {isBroadcastCarouselCollapsed && (
-          <button 
-            onClick={() => {
-              setBroadcastCarouselCollapsed(false);
-              setBroadcastRightWidth(67);
-              setBroadcastLeftWidth(33);
-              setBroadcastCarouselImageCount(3);
-            }}
-            className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-            title="Restore carousel"
-          >
-            📸
-          </button>
-        )}
+  <button 
+    onClick={() => {
+      setIsBroadcastCarouselCollapsed(false);
+      setBroadcastRightWidth(67);
+      setBroadcastLeftWidth(33);
+      setBroadcastCarouselImageCount(3);
+    }}
+    className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+    title="Restore carousel"
+  >
+    📸
+  </button>
+)}
 {isBroadcastLeftCollapsed && (
   <button 
     onClick={() => {
