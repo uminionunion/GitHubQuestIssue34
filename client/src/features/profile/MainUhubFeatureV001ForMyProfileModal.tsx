@@ -1301,7 +1301,7 @@ const storePages = buildStorePages();
                   key={product.id}
                   className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
                   style={{
-                    backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #00ff00, #00ff00)',
+                    backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                   }}
@@ -1482,7 +1482,7 @@ const storePages = buildStorePages();
     key={product.id}
     className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
     style={{
-      backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #00ff00, #00ff00)',
+      backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
       backgroundSize: 'cover',
       backgroundPosition: 'center'
     }}
@@ -3108,7 +3108,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
   {/* CENTER SECTION */}
   <div id="MainUhubFeatureV001ForMyProfileSettingsCenterCenterSection" className="p-2 md:p-4 overflow-y-auto" style={{ 
     width: window.innerWidth < 768 ? '100%' : `${centerWidthDesktop}%`,
-    height: window.innerWidth < 768 ? 'auto' : 'auto',
+    height: window.innerWidth < 768 ? '60000px' : '60000px',
     display: 'flex',
     flexDirection: 'column'
   }}>
@@ -3128,7 +3128,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
   {!isRightSectionCollapsed && (
     <div id="MainUhubFeatureV001ForMyProfileSettingsCenterRightSection" className="md:border-l overflow-y-auto p-2 md:p-4" style={{ 
       width: window.innerWidth < 768 ? '100%' : `${rightWidthDesktop}%`,
-      height: window.innerWidth < 768 ? 'auto' : 'auto',
+      height: window.innerWidth < 768 ? '60000px' : '60000px',
       borderTop: window.innerWidth < 768 ? '1px solid #374151' : 'none'
     }}>
       <div className="flex items-center justify-center mb-2 md:mb-4">
