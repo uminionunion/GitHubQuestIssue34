@@ -1301,7 +1301,7 @@ const storePages = buildStorePages();
                   key={product.id}
                   className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
                   style={{
-                    backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+                    backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #00ff00, #00ff00)',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                   }}
@@ -1482,7 +1482,7 @@ const storePages = buildStorePages();
     key={product.id}
     className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
     style={{
-      backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
+      backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #00ff00, #00ff00)',
       backgroundSize: 'cover',
       backgroundPosition: 'center'
     }}
@@ -2576,7 +2576,7 @@ const resetRightSection = () => {
             key={product.id}
             className="border rounded-md p-2 relative h-24 group hover:border-orange-400 transition cursor-pointer"
             style={{
-              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #00ff00)',
+              backgroundImage: product.image_url ? `url('${product.image_url}')` : 'linear-gradient(to bottom, #2a2a2a, #1a1a1a)',
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
