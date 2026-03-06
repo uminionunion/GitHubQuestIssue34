@@ -435,6 +435,15 @@ const BroadcastView = ({
             </div>
           </div>
         )}
+        
+        {/* DIVIDER - ONLY RENDER IF CAROUSEL NOT COLLAPSED */}
+        {!isBroadcastCarouselCollapsed && !isBroadcastLeftCollapsed && (
+          <div
+            className="w-1 bg-gray-500 hover:bg-orange-400 cursor-col-resize transition-colors active:bg-orange-400"
+            onMouseDown={handleDividerMouseDown}
+            onTouchStart={handleDividerMouseDown}
+          />
+        )}
       </div>
 
       {/* COLLAPSED BANNERS - Below main content */}
