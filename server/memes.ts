@@ -65,9 +65,9 @@ const postsWithImages = await Promise.all(
 
     return {
       ...post,
-      images: images.map((img) => img.image_url), // ✅ Array of URLs
+      images: images.map((img) => img.image_url),
       username: author?.username || 'Anonymous', // ✅ ADD THIS
-      isFavorited, // ✅ Add favorite status
+      isFavorited,
     };
   })
 );
