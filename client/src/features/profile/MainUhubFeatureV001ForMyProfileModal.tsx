@@ -186,8 +186,9 @@ const BroadcastView = ({
   setIsBroadcastLeftCollapsed,
   isBroadcastCarouselCollapsed,
   setIsBroadcastCarouselCollapsed,
+  // NEW PROPS FOR MOBILE CHAT
   activeChatModal,
-  handleCloseChatModal,
+  onCloseChatModal,
   MainUhubFeatureV001ForSisterUnionPages,
   MainUhubFeatureV001ForModalColors,
 }) => {
@@ -464,34 +465,16 @@ const BroadcastView = ({
         </button>
       )}
 
-      {/* BOTTOM: Chat Modal (MOBILE ONLY - passed via props) */}
-      {/* This will be rendered by parent if isMobile && activeChatModal !== null */}
-
-            {/* BOTTOM: Chat Modal Container (Mobile Only) */}
-      {window.innerWidth < 768 && activeChatModal !== null && (
-        <div className="flex-shrink-0 w-full px-4 py-4 border-t border-gray-700">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-semibold text-sm">Chat #{activeChatModal}</h4>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={handleCloseChatModal}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Chat Modal Inline */}
-          <div className="border rounded-md overflow-hidden" style={{ minHeight: '300px' }}>
-            <MainUhubFeatureV001ForChatModal
-              isOpen={true}
-              onClose={handleCloseChatModal}
-              pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-              backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-              modalNumber={activeChatModal}
-            />
-          </div>
+      {/* BOTTOM: uHome-Hub Chat Modal (MOBILE ONLY) - NOW INTEGRATED INSIDE */}
+      {activeChatModal !== null && (
+        <div className="flex-shrink-0 flex flex-col w-full border-t border-gray-700 mt-4">
+          <MainUhubFeatureV001ForChatModal
+            isOpen={activeChatModal !== null}
+            onClose={onCloseChatModal}
+            pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+            backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+            modalNumber={activeChatModal}
+          />
         </div>
       )}
 
@@ -2904,7 +2887,7 @@ return (
   isBroadcastCarouselCollapsed={isBroadcastCarouselCollapsed}
   setIsBroadcastCarouselCollapsed={setIsBroadcastCarouselCollapsed}
   activeChatModal={activeChatModal}
-  handleCloseChatModal={handleCloseChatModal}
+  onCloseChatModal={handleCloseChatModal}
   MainUhubFeatureV001ForSisterUnionPages={MainUhubFeatureV001ForSisterUnionPages}
   MainUhubFeatureV001ForModalColors={MainUhubFeatureV001ForModalColors}
 /> : <p>Broadcast not found.</p>)
