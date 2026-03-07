@@ -1359,13 +1359,13 @@ const submitComment = async () => {
   const renderNavbar = () => (
     <div style={styles.navbar}>
       <div style={styles.navbarContent}>
-        <h1 style={styles.navbarTitle}>🎬 TheMemeBox</h1>
+        <h1 style={styles.navbarTitle}><img src="/EmojisForUminionWebsite/GreenEmoji009MemeBox.png" width="24" /> </h1> //Removed title "TheMemeBox" for now -3:25am on 3/7/26
         <div style={styles.navbarButtons}>
           <button style={styles.navButton} onClick={openUploadDialog}>
-            📤 Upload
+            <img src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png" width="24" /> Upload
           </button>
           <button style={styles.navButton} onClick={handlePageNavigation}>
-            📄 {getPageTitle()}
+            <img src="/EmojisForUminionWebsite/GreenEmoji007UserPost.png" width="24" /> {getPageTitle()}
           </button>
           <button style={styles.navButton} onClick={showFavoritesGrid}>
             <img src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png" width="24" /> Favorites ({favoritesPosts.length})
@@ -2195,7 +2195,7 @@ const renderUserProfileModal = () => {
   
   const renderFooter = () => (
     <div style={styles.footer}>
-      <p style={styles.footerText}>TheMemeBox v1.0 • {allPosts.length} posts • {favoritesPosts.length} favorites</p>
+      <p style={styles.footerText}>A GEMMS Creation: "The MemeBox (A place to share Memes while dealing with no ads)"</p>
     </div>
   );
 
