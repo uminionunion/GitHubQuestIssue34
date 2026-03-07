@@ -969,10 +969,8 @@ const submitComment = async () => {
       transition: "all 0.3s ease",
     },
     postViewerContainer: {
-      flex: 1,
       display: "flex",
       flexDirection: "column",
-      overflow: "auto",
       padding: "20px",
     },
     // ✅ NEW: Stack images vertically
