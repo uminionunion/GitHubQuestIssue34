@@ -1520,10 +1520,10 @@ const submitComment = async () => {
 
         <div style={styles.navigationButtons}>
           <button style={styles.navArrowButton} onClick={showPreviousPost}>
-            ⬆ Previous Post
+            <img src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png" width="24" /> Previous Post
           </button>
           <button style={styles.navArrowButton} onClick={showNextPost}>
-            ⬇ Next Post
+            <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" /> Next Post
           </button>
         </div>
       </div>
