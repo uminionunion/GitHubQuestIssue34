@@ -927,11 +927,11 @@ const submitComment = async () => {
     container: {
       display: "flex",
       flexDirection: "column",
-      height: "100vh",
+      minheight: "100vh",
       backgroundColor: "#1a1a1a",
       color: "#ffffff",
       fontFamily: "inherit",
-      overflow: "hidden",
+      overflow: "auto",
     },
     navbar: {
       backgroundColor: "#222222",
