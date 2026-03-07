@@ -186,6 +186,10 @@ const BroadcastView = ({
   setIsBroadcastLeftCollapsed,
   isBroadcastCarouselCollapsed,
   setIsBroadcastCarouselCollapsed,
+  activeChatModal,
+  handleCloseChatModal,
+  MainUhubFeatureV001ForSisterUnionPages,
+  MainUhubFeatureV001ForModalColors,
 }) => {
   const handleReorderLeft = async (imageId: number) => {
     try {
@@ -425,7 +429,7 @@ const BroadcastView = ({
         </button>
       )}
 
-      {/* BOTTOM: Memebox */}
+      {/* MIDDLE: Memebox */}
       {!isBroadcastLeftCollapsed && (
         <div className="flex-shrink-0 flex flex-col w-full px-4 py-4">
           <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
@@ -458,6 +462,37 @@ const BroadcastView = ({
         >
           🎁 Content
         </button>
+      )}
+
+      {/* BOTTOM: Chat Modal (MOBILE ONLY - passed via props) */}
+      {/* This will be rendered by parent if isMobile && activeChatModal !== null */}
+
+            {/* BOTTOM: Chat Modal Container (Mobile Only) */}
+      {window.innerWidth < 768 && activeChatModal !== null && (
+        <div className="flex-shrink-0 w-full px-4 py-4 border-t border-gray-700">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-semibold text-sm">Chat #{activeChatModal}</h4>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={handleCloseChatModal}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Chat Modal Inline */}
+          <div className="border rounded-md overflow-hidden" style={{ minHeight: '300px' }}>
+            <MainUhubFeatureV001ForChatModal
+              isOpen={true}
+              onClose={handleCloseChatModal}
+              pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+              backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+              modalNumber={activeChatModal}
+            />
+          </div>
+        </div>
       )}
 
       {/* SPACER for bottom padding */}
@@ -2868,6 +2903,10 @@ return (
   setIsBroadcastLeftCollapsed={setIsBroadcastLeftCollapsed}
   isBroadcastCarouselCollapsed={isBroadcastCarouselCollapsed}
   setIsBroadcastCarouselCollapsed={setIsBroadcastCarouselCollapsed}
+  activeChatModal={activeChatModal}
+  handleCloseChatModal={handleCloseChatModal}
+  MainUhubFeatureV001ForSisterUnionPages={MainUhubFeatureV001ForSisterUnionPages}
+  MainUhubFeatureV001ForModalColors={MainUhubFeatureV001ForModalColors}
 /> : <p>Broadcast not found.</p>)
     }
   </>
@@ -3191,17 +3230,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
           </div>
         </div>
 
-      {activeChatModal !== null && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40, overflow: window.innerWidth < 768 ? 'auto' : 'hidden', paddingTop: window.innerWidth < 768 ? '600px' : 0 }}>
-          <MainUhubFeatureV001ForChatModal
-              isOpen={activeChatModal !== null}
-              onClose={handleCloseChatModal}
-              pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-              backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-              modalNumber={activeChatModal}
-            />
-        </div>
-        )}
+      
         {isAddProductModalOpen && (
   <MainUhubFeatureV001ForAddProductModal 
     isOpen={isAddProductModalOpen} 
