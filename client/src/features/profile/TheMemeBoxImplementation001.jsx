@@ -942,11 +942,11 @@ const submitComment = async () => {
     navbarContent: {
   maxWidth: "1400px",
   margin: "0 auto",
-  padding: "0 20px", 
+  padding: "0 5px", 
   display: "flex",
   flexWrap: "wrap",          // ⭐ allows second line to drop
   justifyContent: "center",  // ⭐ centers both rows
-  gap: "12px",               // optional, looks nicer
+  gap: "5px",               // optional, looks nicer
 },
 
     navbarTitle: {
@@ -957,7 +957,7 @@ const submitComment = async () => {
     },
     navbarButtons: {
   display: "flex",
-  gap: "12px",
+  gap: "5px",
   width: "100%",            // ⭐ forces new line
   justifyContent: "center", // ⭐ centers the buttons
 },
