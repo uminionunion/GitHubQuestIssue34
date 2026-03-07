@@ -1106,7 +1106,7 @@ const submitComment = async () => {
       justifyContent: "center",
     },
     navArrowButton: {
-      backgroundColor: "#333333",
+      backgroundColor: "#222222",
       color: "#ffffff",
       border: "none",
       padding: "10px 20px",
@@ -1365,6 +1365,9 @@ const submitComment = async () => {
   <button style={styles.navArrowButton} onClick={showPreviousPost}>
             <img src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png" width="24" /> Previous Post
           </button>
+  <button style={styles.navArrowButton} onClick={showNextPost}>
+            <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" /> Next Post
+          </button>
   </div>
         
         <div style={styles.navbarButtons}>
@@ -1378,11 +1381,9 @@ const submitComment = async () => {
             <img src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png" width="24" /> Favorites ({favoritesPosts.length})
           </button>
 
-<div style={styles.navigationButtons}>
-          <button style={styles.navArrowButton} onClick={showNextPost}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" /> Next Post
-          </button>
-        </div>
+
+          
+
           
         </div>
       </div>
