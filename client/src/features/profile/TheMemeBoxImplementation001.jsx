@@ -940,13 +940,15 @@ const submitComment = async () => {
       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
     },
     navbarContent: {
-      maxWidth: "1400px",
-      margin: "0 auto",
-      padding: "0 20px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
+  maxWidth: "1400px",
+  margin: "0 auto",
+  padding: "0 20px", 
+  display: "flex",
+  flexWrap: "wrap",          // ⭐ allows second line to drop
+  justifyContent: "center",  // ⭐ centers both rows
+  gap: "12px",               // optional, looks nicer
+},
+
     navbarTitle: {
       fontSize: "28px",
       fontWeight: "bold",
