@@ -956,9 +956,12 @@ const submitComment = async () => {
       color: "#00ff00",
     },
     navbarButtons: {
-      display: "flex",
-      gap: "12px",
-    },
+  display: "flex",
+  gap: "12px",
+  width: "100%",            // ⭐ forces new line
+  justifyContent: "center", // ⭐ centers the buttons
+},
+
     navButton: {
       backgroundColor: "#222222",
       color: "#ffffff",
