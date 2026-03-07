@@ -341,7 +341,7 @@ const BroadcastView = ({
       <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
           <div className="w-1/3">
-            <h4 className="font-semibold whitespace-pre-line">{broadcast.subtitle}</h4>
+            <h4 className="font-semibold whitespace-pre-line text-center">{broadcast.subtitle}</h4>
             <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{ backgroundImage: `url(${broadcast.logo})` }}></div>
             <div className="flex justify-between items-center">
               <Button variant="ghost" size="icon"><ChevronLeft /></Button>
@@ -434,7 +434,7 @@ if (isMobile) {
       {/* MIDDLE: Memebox */}
       {!isBroadcastLeftCollapsed && (
         <div className="flex-shrink-0 flex flex-col w-full px-4 py-4">
-          <h4 className="font-semibold whitespace-pre-line text-sm">{broadcast.subtitle}</h4>
+          <h4 className="font-semibold whitespace-pre-line text-center text-sm">{broadcast.subtitle}</h4>
           <div
             id="TheReactMemeImplementationConnection001"
             className="bg-muted rounded-md my-2"
@@ -497,7 +497,7 @@ if (isMobile) {
         {!isBroadcastLeftCollapsed && (
           <>
             <div style={{ width: `${broadcastLeftWidth}%` }} className="flex flex-col overflow-hidden">
-              <h4 className="font-semibold whitespace-pre-line text-sm">{broadcast.subtitle}</h4>
+              <h4 className="font-semibold whitespace-pre-line text-center text-sm">{broadcast.subtitle}</h4>
               <div
                 id="TheReactMemeImplementationConnection001"
                 className="flex-1 bg-muted rounded-md my-2 overflow-hidden"
