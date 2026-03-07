@@ -927,7 +927,7 @@ const submitComment = async () => {
     container: {
       display: "flex",
       flexDirection: "column",
-      minheight: "100vh",
+      maxheight: "60000px",
       backgroundColor: "#1a1a1a",
       color: "#ffffff",
       fontFamily: "inherit",
@@ -969,8 +969,10 @@ const submitComment = async () => {
       transition: "all 0.3s ease",
     },
     postViewerContainer: {
+      flex: 1,
       display: "flex",
       flexDirection: "column",
+      overflow: "auto",
       padding: "20px",
     },
     // ✅ NEW: Stack images vertically
