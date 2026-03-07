@@ -341,7 +341,7 @@ const BroadcastView = ({
       <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
           <div className="w-1/3">
-            <h4 className="font-semibold">{broadcast.subtitle}</h4>
+            <h4 className="font-semibold whitespace-pre-line">{broadcast.subtitle}</h4>
             <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{ backgroundImage: `url(${broadcast.logo})` }}></div>
             <div className="flex justify-between items-center">
               <Button variant="ghost" size="icon"><ChevronLeft /></Button>
@@ -434,7 +434,7 @@ if (isMobile) {
       {/* MIDDLE: Memebox */}
       {!isBroadcastLeftCollapsed && (
         <div className="flex-shrink-0 flex flex-col w-full px-4 py-4">
-          <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
+          <h4 className="font-semibold whitespace-pre-line text-sm">{broadcast.subtitle}</h4>
           <div
             id="TheReactMemeImplementationConnection001"
             className="bg-muted rounded-md my-2"
@@ -497,7 +497,7 @@ if (isMobile) {
         {!isBroadcastLeftCollapsed && (
           <>
             <div style={{ width: `${broadcastLeftWidth}%` }} className="flex flex-col overflow-hidden">
-              <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
+              <h4 className="font-semibold whitespace-pre-line text-sm">{broadcast.subtitle}</h4>
               <div
                 id="TheReactMemeImplementationConnection001"
                 className="flex-1 bg-muted rounded-md my-2 overflow-hidden"
@@ -1741,7 +1741,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [leftDividerDragging, setLeftDividerDragging] = useState(false);
   const [rightDividerDragging, setRightDividerDragging] = useState(false);
   const broadcasts = {
-      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'GEMMS#25', subtitle: 'Share & Enjoy: "Ad-Free Memes" Provided by: The Uminion Union', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://www.facebook.com/groups/1615679026489537' },
+      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'GEMMS#25', subtitle: 'Share & Enjoy: "Ad-Free Memes"\nProvided by: The Uminion Union', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
