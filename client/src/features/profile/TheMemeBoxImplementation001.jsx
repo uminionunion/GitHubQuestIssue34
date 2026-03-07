@@ -1373,7 +1373,7 @@ const submitComment = async () => {
           </button>
   </div>
 
-        <br />
+        
         
         <div style={styles.navbarButtons}>
           <button style={styles.navButton} onClick={openUploadDialog}>
