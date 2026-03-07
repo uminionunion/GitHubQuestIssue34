@@ -384,7 +384,7 @@ const BroadcastView = ({
     if (isMobile) {
   // MOBILE LAYOUT: Vertical stack with proper scrolling
   return (
-    <div className="flex flex-col h-full w-full overflow-y-auto">
+    <div className="flex flex-col w-full">
       {/* TOP: Broadcast Carousel */}
       {!isBroadcastCarouselCollapsed && (
         <div className="flex-shrink-0 flex flex-col w-[100%] mx-auto py-4">
