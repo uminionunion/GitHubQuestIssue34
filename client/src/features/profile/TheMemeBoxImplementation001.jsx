@@ -2195,7 +2195,7 @@ const renderUserProfileModal = () => {
   
   const renderFooter = () => (
     <div style={styles.footer}>
-      <p style={styles.footerText}>A GEMMS Creation: "The MemeBox (A place to share Memes while dealing with no ads)"</p>
+      <p style={styles.footerText}>A GEMMS#25 Creation: "The MemeBox"</p>
     </div>
   );
 
