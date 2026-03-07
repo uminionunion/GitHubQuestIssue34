@@ -1115,6 +1115,9 @@ const submitComment = async () => {
       fontSize: "14px",
       fontWeight: "500",
       minWidth: "120px",
+      display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
     },
     overlay: {
       position: "fixed",
@@ -1363,22 +1366,22 @@ const submitComment = async () => {
 
 <div style={styles.navigationButtons}>
   <button style={styles.navArrowButton} onClick={showPreviousPost}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png" width="24" /> Previous Post
+            <img src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png" width="24" style={{ marginBottom: 4 }} /> Previous Post
           </button>
   <button style={styles.navArrowButton} onClick={showNextPost}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" /> Next Post
+            <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" style={{ marginBottom: 4 }} /> Next Post
           </button>
   </div>
         
         <div style={styles.navbarButtons}>
           <button style={styles.navButton} onClick={openUploadDialog}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png" width="24" /> Upload
+            <img src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png" width="24" style={{ marginBottom: 4 }} /> Upload
           </button>
           <button style={styles.navButton} onClick={handlePageNavigation}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji007UserPost.png" width="24" /> {getPageTitle()}
+            <img src="/EmojisForUminionWebsite/GreenEmoji007UserPost.png" width="24" style={{ marginBottom: 4 }} /> {getPageTitle()}
           </button>
           <button style={styles.navButton} onClick={showFavoritesGrid}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png" width="24" /> Favorites ({favoritesPosts.length})
+            <img src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png" width="24" style={{ marginBottom: 4 }} /> Favorites ({favoritesPosts.length})
           </button>
 
 
