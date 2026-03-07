@@ -1359,7 +1359,7 @@ const submitComment = async () => {
   const renderNavbar = () => (
     <div style={styles.navbar}>
       <div style={styles.navbarContent}>
-        <h1 style={styles.navbarTitle}><img src="/EmojisForUminionWebsite/GreenEmoji009MemeBox.png" width="24" /> </h1> //Removed title "TheMemeBox" for now -3:25am on 3/7/26
+        <h1 style={styles.navbarTitle}><img src="/EmojisForUminionWebsite/GreenEmoji009MemeBox.png" width="24" /> </h1>
         <div style={styles.navbarButtons}>
           <button style={styles.navButton} onClick={openUploadDialog}>
             <img src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png" width="24" /> Upload
