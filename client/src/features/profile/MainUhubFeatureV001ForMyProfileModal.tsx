@@ -437,7 +437,7 @@ const BroadcastView = ({
           <div
             id="TheReactMemeImplementationConnection001"
             className="bg-muted rounded-md my-2"
-            style={{ maxHeight: '50000px' }}
+            style={{ minHeight: '400px' }}
           />
           <div className="flex justify-between items-center">
             <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronLeft className="h-4 w-4" /></Button>
