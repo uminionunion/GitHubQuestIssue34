@@ -1106,7 +1106,7 @@ const submitComment = async () => {
       justifyContent: "center",
     },
     navArrowButton: {
-      backgroundColor: "#555555",
+      backgroundColor: "#333333",
       color: "#ffffff",
       border: "none",
       padding: "10px 20px",
@@ -1569,10 +1569,10 @@ const submitComment = async () => {
         {/* ✅ FIXED: Navigation buttons for posts only, not images */}
         <div style={styles.zoomControls}>
           <button style={styles.zoomButton_control} onClick={zoomPreviousPost}>
-            ⬆ Prev Post
+            <img src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png" width="24" /> Prev Post
           </button>
           <button style={styles.zoomButton_control} onClick={zoomNextPost}>
-            ⬇ Next Post
+            <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" /> Next Post
           </button>
           <button style={styles.zoomButton_control} onClick={closeZoomModal}>
             ✕ Close
