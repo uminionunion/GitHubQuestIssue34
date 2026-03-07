@@ -927,7 +927,7 @@ const submitComment = async () => {
     container: {
       display: "flex",
       flexDirection: "column",
-      maxheight: "60000px",
+      minHeight: "100vh",
       backgroundColor: "#1a1a1a",
       color: "#ffffff",
       fontFamily: "inherit",
