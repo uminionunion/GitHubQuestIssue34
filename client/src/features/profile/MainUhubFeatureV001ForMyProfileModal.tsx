@@ -382,20 +382,33 @@ const BroadcastView = ({
   const isMobile = window.innerWidth < 768;
 
     if (isMobile) {
-  // MOBILE LAYOUT: Vertical stack with proper scrolling
   return (
-    <div className="flex flex-col h-full w-full overflow-y-auto">
+    <div className="flex flex-col w-full min-h-screen">
+      
       {/* TOP: Broadcast Carousel */}
       {!isBroadcastCarouselCollapsed && (
-        <div className="flex-shrink-0 flex flex-col w-[100%] mx-auto py-4">
+        <div className="flex flex-col w-full mx-auto py-4">
           <div className="flex items-center gap-2 mb-2">
-            <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
-            <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
+            <Button variant="outline" size="icon" className="h-8 w-8">
+              <Play className="h-4 w-4" />
+            </Button>
+            <p className="text-xs text-muted-foreground flex-grow">
+              {broadcast.description}
+            </p>
           </div>
+
           <div className="flex items-center gap-2 mb-2">
-            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
+            <a
+              href={broadcast.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-400 hover:underline text-xs"
+            >
+              Visit Website
+            </a>
+
             {user?.is_high_high_high_admin === 1 && (
-              <Button 
+              <Button
                 className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
                 onClick={() => onOpenUnionNews14Modal()}
               >
@@ -404,10 +417,9 @@ const BroadcastView = ({
             )}
           </div>
 
-          {/* CAROUSEL CONTENT - NO overflow-hidden */}
-          <div className="flex-shrink-0">
-            <BroadcastCarousel 
-              items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
+          <div>
+            <BroadcastCarousel
+              items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []}
               isAdmin={user?.is_high_high_high_admin === 1}
               onReorderLeft={handleReorderLeft}
               onReorderRight={handleReorderRight}
@@ -432,17 +444,26 @@ const BroadcastView = ({
 
       {/* MIDDLE: Memebox */}
       {!isBroadcastLeftCollapsed && (
-        <div className="flex-shrink-0 flex flex-col w-full px-4 py-4">
+        <div className="flex flex-col w-full px-4 py-4">
           <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
+
+          {/* IMPORTANT: This must NOT be flex-shrink-0 */}
           <div
             id="TheReactMemeImplementationConnection001"
             className="bg-muted rounded-md my-2"
-            style={{ minHeight: '400px' }}
+            style={{ minHeight: "400px" }}
           />
+
           <div className="flex justify-between items-center">
-            <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronLeft className="h-4 w-4" /></Button>
-            <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
-            <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronRight className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              by {broadcast.creator}
+            </span>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -454,7 +475,7 @@ const BroadcastView = ({
             setTimeout(() => {
               unmountTheMemeBox();
               setTimeout(() => {
-                renderTheMemeBox(broadcasts['UnionNews#14']);
+                renderTheMemeBox(broadcasts["UnionNews#14"]);
               }, 100);
             }, 50);
           }}
@@ -465,9 +486,9 @@ const BroadcastView = ({
         </button>
       )}
 
-      {/* BOTTOM: uHome-Hub Chat Modal (MOBILE ONLY) - NOW INTEGRATED INSIDE */}
+      {/* BOTTOM: uHome-Hub Chat Modal */}
       {activeChatModal !== null && (
-        <div className="flex-shrink-0 flex flex-col w-full border-t border-gray-700 mt-4">
+        <div className="flex flex-col w-full border-t border-gray-700 mt-4">
           <MainUhubFeatureV001ForChatModal
             isOpen={activeChatModal !== null}
             onClose={onCloseChatModal}
@@ -478,11 +499,12 @@ const BroadcastView = ({
         </div>
       )}
 
-      {/* SPACER for bottom padding */}
-      <div className="h-8 flex-shrink-0" />
+      {/* SPACER */}
+      <div className="h-8" />
     </div>
   );
 }
+
 
   // DESKTOP LAYOUT: Horizontal split with draggable divider (UNCHANGED)
   return (
