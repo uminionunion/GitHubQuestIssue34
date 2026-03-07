@@ -1372,6 +1372,8 @@ const submitComment = async () => {
             <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" style={{ marginBottom: 4 }} /> Next Post
           </button>
   </div>
+
+        <br>
         
         <div style={styles.navbarButtons}>
           <button style={styles.navButton} onClick={openUploadDialog}>
