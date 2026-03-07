@@ -1360,6 +1360,13 @@ const submitComment = async () => {
     <div style={styles.navbar}>
       <div style={styles.navbarContent}>
         <h1 style={styles.navbarTitle}><img src="/EmojisForUminionWebsite/GreenEmoji009MemeBox.png" width="24" /> </h1>
+
+<div style={styles.navigationButtons}>
+  <button style={styles.navArrowButton} onClick={showPreviousPost}>
+            <img src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png" width="24" /> Previous Post
+          </button>
+  </div>
+        
         <div style={styles.navbarButtons}>
           <button style={styles.navButton} onClick={openUploadDialog}>
             <img src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png" width="24" /> Upload
@@ -1370,10 +1377,20 @@ const submitComment = async () => {
           <button style={styles.navButton} onClick={showFavoritesGrid}>
             <img src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png" width="24" /> Favorites ({favoritesPosts.length})
           </button>
+
+<div style={styles.navigationButtons}>
+          <button style={styles.navArrowButton} onClick={showNextPost}>
+            <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" /> Next Post
+          </button>
+        </div>
+          
         </div>
       </div>
     </div>
   );
+
+   
+          
 
   const renderPostViewer = () => {
     if (!displayPost) {
@@ -1518,14 +1535,7 @@ const submitComment = async () => {
   )}
 </div>
 
-        <div style={styles.navigationButtons}>
-          <button style={styles.navArrowButton} onClick={showPreviousPost}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png" width="24" /> Previous Post
-          </button>
-          <button style={styles.navArrowButton} onClick={showNextPost}>
-            <img src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png" width="24" /> Next Post
-          </button>
-        </div>
+       
       </div>
     );
   };
