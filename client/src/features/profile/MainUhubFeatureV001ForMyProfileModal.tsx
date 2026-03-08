@@ -467,17 +467,18 @@ if (isMobile) {
       )}
 
       {/* BOTTOM: uHome-Hub Chat Modal (MOBILE ONLY) - NOW INTEGRATED INSIDE */}
-      {activeChatModal !== null && (
-        <div className="flex-shrink-0 flex flex-col w-full border-t border-gray-700 mt-4">
-          <MainUhubFeatureV001ForChatModal
-            isOpen={activeChatModal !== null}
-            onClose={onCloseChatModal}
-            pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-            backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-            modalNumber={activeChatModal}
-          />
-        </div>
-      )}
+{activeChatModal !== null && (
+  <div className="flex-shrink-0 flex flex-col w-full border-t border-gray-700 mt-4" style={{ position: 'relative' }}>
+    <MainUhubFeatureV001ForChatModal
+      isOpen={activeChatModal !== null}
+      onClose={onCloseChatModal}
+      pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+      backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+      modalNumber={activeChatModal}
+      isMobileLayout={true}
+    />
+  </div>
+)}
 
       {/* SPACER for bottom padding */}
       <div className="h-8 flex-shrink-0" />
