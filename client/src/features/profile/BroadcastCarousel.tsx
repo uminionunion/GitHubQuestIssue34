@@ -36,12 +36,22 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
   };
 
   const handlePrevious = () => {
-    setCurrentPage(prev => (prev === 0 ? totalPages - 1 : prev - 1));
-  };
+  console.log('[CAROUSEL] Previous clicked, current page:', currentPage, 'total pages:', totalPages);
+  setCurrentPage(prev => {
+    const newPage = prev === 0 ? totalPages - 1 : prev - 1;
+    console.log('[CAROUSEL] Moving to page:', newPage);
+    return newPage;
+  });
+};
 
-  const handleNext = () => {
-    setCurrentPage(prev => (prev === totalPages - 1 ? 0 : prev + 1));
-  };
+const handleNext = () => {
+  console.log('[CAROUSEL] Next clicked, current page:', currentPage, 'total pages:', totalPages);
+  setCurrentPage(prev => {
+    const newPage = prev === totalPages - 1 ? 0 : prev + 1;
+    console.log('[CAROUSEL] Moving to page:', newPage);
+    return newPage;
+  });
+};
 
   const handleReorderLeft = async (item: BroadcastItem, index: number) => {
     if (!onReorderLeft || isReordering) return;
@@ -108,14 +118,18 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
   <div className="flex items-center justify-between gap-2 md:gap-4 p-4 bg-muted rounded-lg">
     {/* Left Arrow - Mobile Optimized */}
     <Button
-      variant="outline"
-      size="icon"
-      onClick={handlePrevious}
-      className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0"
-      type="button"
-    >
-      <ChevronLeft className="h-5 w-5 md:h-4 md:w-4" />
-    </Button>
+  variant="outline"
+  size="icon"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handlePrevious();
+  }}
+  className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0 active:scale-95 transition-transform"
+  type="button"
+>
+  <ChevronLeft className="h-5 w-5 md:h-4 md:w-4" />
+</Button>
 
     {/* Images with Admin Controls */}
     <div className="flex gap-2 md:gap-4 flex-1 justify-center min-w-0">
@@ -189,14 +203,18 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
 
     {/* Right Arrow - Mobile Optimized */}
     <Button
-      variant="outline"
-      size="icon"
-      onClick={handleNext}
-      className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0"
-      type="button"
-    >
-      <ChevronRight className="h-5 w-5 md:h-4 md:w-4" />
-    </Button>
+  variant="outline"
+  size="icon"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleNext();
+  }}
+  className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0 active:scale-95 transition-transform"
+  type="button"
+>
+  <ChevronRight className="h-5 w-5 md:h-4 md:w-4" />
+</Button>
   </div>
 );
 };
