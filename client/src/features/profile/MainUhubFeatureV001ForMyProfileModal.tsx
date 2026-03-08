@@ -186,11 +186,6 @@ const BroadcastView = ({
   setIsBroadcastLeftCollapsed,
   isBroadcastCarouselCollapsed,
   setIsBroadcastCarouselCollapsed,
-  // NEW PROPS FOR MOBILE CHAT
-  activeChatModal,
-  onCloseChatModal,
-  MainUhubFeatureV001ForSisterUnionPages,
-  MainUhubFeatureV001ForModalColors,
 }) => {
   const handleReorderLeft = async (imageId: number) => {
     try {
@@ -341,7 +336,7 @@ const BroadcastView = ({
       <div className="flex flex-col gap-4 h-full">
         <div className="flex gap-6 flex-1">
           <div className="w-1/3">
-            <h4 className="font-semibold whitespace-pre-line text-center">{broadcast.subtitle}</h4>
+            <h4 className="font-semibold">{broadcast.subtitle}</h4>
             <div className="aspect-square bg-muted rounded-md my-2 bg-cover bg-center" style={{ backgroundImage: `url(${broadcast.logo})` }}></div>
             <div className="flex justify-between items-center">
               <Button variant="ghost" size="icon"><ChevronLeft /></Button>
@@ -352,7 +347,7 @@ const BroadcastView = ({
           <div className="w-2/3 flex flex-col">
             <div className="flex items-center gap-2 mb-2">
               <Button variant="outline" size="icon"><Play /></Button>
-              <p className="text-sm text-muted-foreground flex-grow text-center">{broadcast.description}</p>
+              <p className="text-sm text-muted-foreground flex-grow">{broadcast.description}</p>
             </div>
             <div className="flex items-center gap-2 mb-4">
               <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
@@ -381,8 +376,7 @@ const BroadcastView = ({
   // UnionNews#14 layout with mobile-responsive stacking
   const isMobile = window.innerWidth < 768;
 
-    
-if (isMobile) {
+    if (isMobile) {
   // MOBILE LAYOUT: Vertical stack with proper scrolling
   return (
     <div className="flex flex-col h-full w-full overflow-y-auto">
@@ -391,7 +385,7 @@ if (isMobile) {
         <div className="flex-shrink-0 flex flex-col w-[100%] mx-auto py-4">
           <div className="flex items-center gap-2 mb-2">
             <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
-            <p className="text-xs text-muted-foreground flex-grow text-center">{broadcast.description}</p>
+            <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
           </div>
           <div className="flex items-center gap-2 mb-2">
             <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
@@ -431,10 +425,10 @@ if (isMobile) {
         </button>
       )}
 
-      {/* MIDDLE: Memebox */}
+      {/* BOTTOM: Memebox */}
       {!isBroadcastLeftCollapsed && (
         <div className="flex-shrink-0 flex flex-col w-full px-4 py-4">
-          <h4 className="font-semibold whitespace-pre-line text-center text-sm">{broadcast.subtitle}</h4>
+          <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
           <div
             id="TheReactMemeImplementationConnection001"
             className="bg-muted rounded-md my-2"
@@ -466,28 +460,11 @@ if (isMobile) {
         </button>
       )}
 
-      {/* BOTTOM: uHome-Hub Chat Modal (MOBILE ONLY) - NOW INTEGRATED INSIDE */}
-      {activeChatModal !== null && (
-        <div className="flex-shrink-0 flex flex-col w-full border-t border-gray-700 mt-4">
-          <MainUhubFeatureV001ForChatModal
-            isOpen={activeChatModal !== null}
-            onClose={onCloseChatModal}
-            pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-            backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-            modalNumber={activeChatModal}
-          />
-        </div>
-      )}
-
       {/* SPACER for bottom padding */}
       <div className="h-8 flex-shrink-0" />
     </div>
   );
 }
-
-
-
-
 
   // DESKTOP LAYOUT: Horizontal split with draggable divider (UNCHANGED)
   return (
@@ -497,7 +474,7 @@ if (isMobile) {
         {!isBroadcastLeftCollapsed && (
           <>
             <div style={{ width: `${broadcastLeftWidth}%` }} className="flex flex-col overflow-hidden">
-              <h4 className="font-semibold whitespace-pre-line text-center text-sm">{broadcast.subtitle}</h4>
+              <h4 className="font-semibold text-sm">{broadcast.subtitle}</h4>
               <div
                 id="TheReactMemeImplementationConnection001"
                 className="flex-1 bg-muted rounded-md my-2 overflow-hidden"
@@ -524,7 +501,7 @@ if (isMobile) {
           <div style={{ width: `${broadcastRightWidth}%` }} className="flex flex-col overflow-hidden">
             <div className="flex items-center gap-2 mb-2">
               <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
-              <p className="text-xs text-muted-foreground flex-grow text-center">{broadcast.description}</p>
+              <p className="text-xs text-muted-foreground flex-grow">{broadcast.description}</p>
             </div>
             <div className="flex items-center gap-2 mb-2">
               <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
@@ -1741,7 +1718,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [leftDividerDragging, setLeftDividerDragging] = useState(false);
   const [rightDividerDragging, setRightDividerDragging] = useState(false);
   const broadcasts = {
-      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'GEMMS#25', subtitle: 'Share & Enjoy: "Ad-Free Memes"\nProvided by: The Uminion Union', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://www.facebook.com/groups/1615679026489537' },
+      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union News #14: The latest news.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
@@ -2891,10 +2868,6 @@ return (
   setIsBroadcastLeftCollapsed={setIsBroadcastLeftCollapsed}
   isBroadcastCarouselCollapsed={isBroadcastCarouselCollapsed}
   setIsBroadcastCarouselCollapsed={setIsBroadcastCarouselCollapsed}
-  activeChatModal={activeChatModal}
-  onCloseChatModal={handleCloseChatModal}
-  MainUhubFeatureV001ForSisterUnionPages={MainUhubFeatureV001ForSisterUnionPages}
-  MainUhubFeatureV001ForModalColors={MainUhubFeatureV001ForModalColors}
 /> : <p>Broadcast not found.</p>)
     }
   </>
@@ -3218,7 +3191,17 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
           </div>
         </div>
 
-      
+      {activeChatModal !== null && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40, overflow: window.innerWidth < 768 ? 'auto' : 'hidden', paddingTop: window.innerWidth < 768 ? '600px' : 0 }}>
+          <MainUhubFeatureV001ForChatModal
+              isOpen={activeChatModal !== null}
+              onClose={handleCloseChatModal}
+              pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+              backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+              modalNumber={activeChatModal}
+            />
+        </div>
+        )}
         {isAddProductModalOpen && (
   <MainUhubFeatureV001ForAddProductModal 
     isOpen={isAddProductModalOpen} 
