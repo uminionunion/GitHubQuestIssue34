@@ -35,6 +35,8 @@ interface MainUhubFeatureV001ForChatModalProps {
   backgroundColor: string;
   // Modal number (1-24) that identifies which Sister Union chatroom
   modalNumber: number;
+   // NEW: Flag to render as part of flow instead of fixed overlay on mobile
+  isMobileLayout?: boolean;
 }
 
 interface Message {
@@ -76,15 +78,14 @@ const backgroundGradients = [
 
 const fontColors = ['#FFFFFF', '#E0E0E0', '#F5F5F5', '#B0BEC5', '#CFD8DC', '#ECEFF1', '#FFD180', '#C8E6C9', '#B3E5FC', '#D1C4E9'];
 
-const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalProps> = (
-   {
-    isOpen,
-    onClose,
-    pageName,
-    backgroundColor,
-    modalNumber,
-  }
-) => {
+const MainUhubFeatureV001ForChatModal: React.FC<MainUhubFeatureV001ForChatModalProps> = ({
+  isOpen,
+  onClose,
+  pageName,
+  backgroundColor,
+  modalNumber,
+  isMobileLayout = false,
+}) => {
 const [activeTab, setActiveTab] = useState(0);
 const [password, setPassword] = useState('');
 const [isUnlocked, setIsUnlocked] = useState(false);
@@ -399,7 +400,73 @@ const handleViewProfile = (username: string) => {
 
 
 
+// Mobile layout: render as part of the flow instead of fixed overlay
+  if (isMobileLayout && isOpen) {
+    return (
+      <div className="flex flex-col w-full h-[600px] overflow-hidden bg-white/5 rounded">
+        {/* Chat Header */}
+        <div className="p-4 border-b border-white/20 flex-shrink-0">
+          <h3 style={{ color: currentFontColor }}>{pageName} Chat</h3>
+        </div>
 
+        {/* Chat Tabs */}
+        <div className="overflow-x-auto flex border-b border-white/20 flex-shrink-0">
+          {getChatTabs().map((tab, i) => (
+            <Button
+              key={i}
+              variant={activeTab === i ? 'secondary' : 'ghost'}
+              className="rounded-none text-white flex-shrink-0 text-xs"
+              onClick={() => handleTabClick(i)}
+              disabled={tab.isLoginRequired && !user}
+            >
+              {tab.label} {tab.isProtected ? ' (P)' : ''}
+            </Button>
+          ))}
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-grow overflow-y-auto p-4" style={{ color: currentFontColor }}>
+          {isChatDisabled ? (
+            <div className="flex items-center justify-center h-full">
+              {activeTab === 2 && !isUnlocked ? (
+                <div>
+                  <h3 className="text-sm font-semibold mb-2">Password protected</h3>
+                  <div className="flex gap-2">
+                    <Input type="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} size={28} />
+                    <Button onClick={handlePasswordSubmit} size="sm">Enter</Button>
+                  </div>
+                </div>
+              ) : (
+                <h3 className="text-sm font-semibold">Login required</h3>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3 flex flex-col">
+              {messages.map((msg) => (
+                <div key={msg.id}>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-xs font-bold cursor-pointer hover:underline" style={{ color: msg.is_anonymous ? '#fb923c' : currentFontColor }} onClick={() => handleViewProfile(msg.username)}>
+                      {msg.username}
+                    </span>
+                    <span className="text-xs text-gray-400">-</span>
+                    <span className="text-xs text-gray-400">{formatMessageTime(msg.timestamp)}</span>
+                  </div>
+                  <span className={`text-xs ${msg.is_anonymous ? 'text-orange-400' : ''}`}>{msg.content}</span>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
+
+        {/* Message Input */}
+        <div className="p-4 border-t border-white/20 flex gap-2 flex-shrink-0">
+          <Input placeholder="Type..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} disabled={isChatDisabled} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()} className="text-white text-xs" />
+          <Button onClick={handleSendMessage} disabled={isChatDisabled} size="sm">Send</Button>
+        </div>
+      </div>
+    );
+  }
 
 
 
