@@ -101,6 +101,19 @@ const MainUhubFeatureV001ForSocialIcon = ({ href, children }: { href: string, ch
   </a>
 );
 
+
+interface BroadcastItem {
+  id: number;
+  image_url: string;
+  title: string;
+  created_at: string;
+  order_index: number;
+}
+
+
+
+
+
 interface Product {
   id: number;
   name: string;
@@ -116,6 +129,8 @@ interface Product {
   user_store_id?: number;
   user_store_name?: string;
 }
+
+
 
 const ProductBox = ({ product, onMagnify, onAddToCart }) => {
     const [inCart, setInCart] = useState(false);
@@ -186,6 +201,8 @@ const BroadcastView = ({
   setIsBroadcastLeftCollapsed,
   isBroadcastCarouselCollapsed,
   setIsBroadcastCarouselCollapsed,
+  onResetToDefaultPosition,
+  onResetToPosition002,
 }) => {
   const handleReorderLeft = async (imageId: number) => {
     try {
@@ -299,21 +316,7 @@ const BroadcastView = ({
     };
   }, [broadcastDividerDragging]);
 
-  const resetToDefaultPosition = () => {
-    setBroadcastLeftWidth(33);
-    setBroadcastRightWidth(67);
-    setBroadcastCarouselImageCount(3);
-    setIsBroadcastLeftCollapsed(false);
-    setIsBroadcastCarouselCollapsed(false);
-  };
-
-  const resetToPosition002 = () => {
-    setBroadcastLeftWidth(65);
-    setBroadcastRightWidth(35);
-    setBroadcastCarouselImageCount(1);
-    setIsBroadcastLeftCollapsed(false);
-    setIsBroadcastCarouselCollapsed(false);
-  };
+ 
 
   if (broadcastView !== 'UnionNews#14') {
     // For non-UnionNews#14 broadcasts, use original layout
@@ -451,6 +454,37 @@ const BroadcastView = ({
     </div>
   );
 };
+
+
+
+
+const createBroadcastHelpers = (
+  setBroadcastLeftWidth: (val: number) => void,
+  setBroadcastRightWidth: (val: number) => void,
+  setBroadcastCarouselImageCount: (val: number) => void,
+  setIsBroadcastLeftCollapsed: (val: boolean) => void,
+  setIsBroadcastCarouselCollapsed: (val: boolean) => void
+) => ({
+  resetToDefaultPosition: () => {
+    setBroadcastLeftWidth(33);
+    setBroadcastRightWidth(67);
+    setBroadcastCarouselImageCount(3);
+    setIsBroadcastLeftCollapsed(false);
+    setIsBroadcastCarouselCollapsed(false);
+  },
+  resetToPosition002: () => {
+    setBroadcastLeftWidth(65);
+    setBroadcastRightWidth(35);
+    setBroadcastCarouselImageCount(1);
+    setIsBroadcastLeftCollapsed(false);
+    setIsBroadcastCarouselCollapsed(false);
+  },
+});
+
+
+
+
+
 
 // QUADRANTS MODAL - PAGE 1 REDESIGNED
 interface QuadrantsModalProps {
@@ -1586,9 +1620,9 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [isLoadingFriendsStores, setIsLoadingFriendsStores] = useState(false);  
   const [isQuadrantViewOpen, setQuadrantViewOpen] = useState(false);
   const [broadcastView, setBroadcastView] = useState('UnionNews#14');
-  const [broadcastLeftWidth, setBroadcastLeftWidth] = useState(33);
-  const [broadcastRightWidth, setBroadcastRightWidth] = useState(67);
-  const [broadcastCarouselImageCount, setBroadcastCarouselImageCount] = useState(3);
+  const [broadcastLeftWidth, setBroadcastLeftWidth] = useState(65);
+  const [broadcastRightWidth, setBroadcastRightWidth] = useState(35);
+  const [broadcastCarouselImageCount, setBroadcastCarouselImageCount] = useState(1);
   const [isBroadcastLeftCollapsed, setIsBroadcastLeftCollapsed] = useState(false);
   const [isBroadcastCarouselCollapsed, setIsBroadcastCarouselCollapsed] = useState(false);
   const [broadcastDividerDragging, setBroadcastDividerDragging] = useState(false);
@@ -1608,6 +1642,16 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
 const [isUnionNews14ModalOpen, setIsUnionNews14ModalOpen] = useState(false);
 const [unionNews14Images, setUnionNews14Images] = useState<BroadcastItem[]>([]);
 
+
+
+  
+const broadcastHelpers = createBroadcastHelpers(
+  setBroadcastLeftWidth,
+  setBroadcastRightWidth,
+  setBroadcastCarouselImageCount,
+  setIsBroadcastLeftCollapsed,
+  setIsBroadcastCarouselCollapsed
+);
 
   
   const [broadcastZoomState, setBroadcastZoomState] = useState<{
@@ -1847,19 +1891,15 @@ useEffect(() => {
 
 
   
-
-// When you want to render UnionNews#14:
 useEffect(() => {
-  if (isOpen && broadcasts['UnionNews#14']) {
-    renderTheMemeBox(broadcasts['UnionNews#14']);
+  if (isOpen) {
+    renderTheMemeBox(); 
   }
   
   return () => {
     unmountTheMemeBox();
   };
 }, [isOpen]);
-
-
 
 
 
@@ -2486,37 +2526,25 @@ return (
 
       {/* Show collapsed banner buttons in title bar */}
       {broadcastView === 'UnionNews#14' && (
-        <div className="flex gap-1">
-          {isBroadcastCarouselCollapsed && (
-            <button 
-              onClick={() => {
-                setBroadcastCarouselCollapsed(false);
-                setBroadcastRightWidth(67);
-                setBroadcastLeftWidth(33);
-                setBroadcastCarouselImageCount(3);
-              }}
-              className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-              title="Restore carousel"
-            >
-              📸
-            </button>
-          )}
-          {isBroadcastLeftCollapsed && (
-            <button 
-              onClick={() => {
-                setBroadcastLeftCollapsed(false);
-                setBroadcastLeftWidth(65);
-                setBroadcastRightWidth(35);
-                setBroadcastCarouselImageCount(1);
-              }}
-              className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
-              title="Restore left content"
-            >
-              🎁
-            </button>
-          )}
-        </div>
-      )}
+  <div className="flex gap-1">
+    {isBroadcastCarouselCollapsed && (
+  <button 
+    onClick={onResetToDefaultPosition}
+    className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+  >
+    <span>📸 Carousel</span>
+  </button>
+)}
+{isBroadcastLeftCollapsed && (
+  <button 
+    onClick={onResetToPosition002}
+    className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition"
+  >
+    <span>🎁 Content</span>
+  </button>
+)}
+  </div>
+)}
     </div>
     {broadcastView === 'MyBroadcasts' ? 
       (user ? <CreateBroadcastView /> : <p className="text-center text-muted-foreground">You must be logged in to create a broadcast.</p>) 
@@ -2527,15 +2555,15 @@ return (
   unionNews14Images={unionNews14Images}
   onOpenUnionNews14Modal={() => setIsUnionNews14ModalOpen(true)}
   onImageZoom={(imageUrl: string, title: string, items: BroadcastItem[], currentIndex: number) => {
-    console.log('[PROFILE MODAL] Broadcast carousel image zoom:', title, 'Index:', currentIndex);
-    setBroadcastZoomState({
-      isOpen: true,
-      imageUrl,
-      title,
-      items,
-      currentIndex,
-    });
-  }}
+  console.log('[BROADCAST VIEW] Carousel image zoom requested:', title, 'Index:', currentIndex);
+  setBroadcastZoomState({
+    isOpen: true,
+    imageUrl,
+    title,
+    items,
+    currentIndex,
+  });
+}}
   broadcastDividerDragging={broadcastDividerDragging}
   setBroadcastDividerDragging={setBroadcastDividerDragging}
   broadcastLeftWidth={broadcastLeftWidth}
@@ -2548,6 +2576,8 @@ return (
   setIsBroadcastLeftCollapsed={setIsBroadcastLeftCollapsed}
   isBroadcastCarouselCollapsed={isBroadcastCarouselCollapsed}
   setIsBroadcastCarouselCollapsed={setIsBroadcastCarouselCollapsed}
+  onResetToDefaultPosition={broadcastHelpers.resetToDefaultPosition}
+  onResetToPosition002={broadcastHelpers.resetToPosition002}
 /> : <p>Broadcast not found.</p>)
     }
   </>
