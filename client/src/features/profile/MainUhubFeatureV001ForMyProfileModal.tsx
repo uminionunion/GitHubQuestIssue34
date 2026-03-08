@@ -432,43 +432,43 @@ if (isMobile) {
       )}
 
       {/* MIDDLE: Memebox */}
-      {!isBroadcastLeftCollapsed && (
-        <div className="flex-shrink-0 flex flex-col w-full px-4 py-4">
-          <h4 className="font-semibold whitespace-pre-line text-center text-sm">{broadcast.subtitle}</h4>
-          <div
-            id="TheReactMemeImplementationConnection001"
-            className="bg-muted rounded-md my-2"
-            style={{ minHeight: '400px' }}
-          />
-          <div className="flex justify-between items-center">
-            <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronLeft className="h-4 w-4" /></Button>
-            <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
-            <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronRight className="h-4 w-4" /></Button>
-          </div>
-        </div>
-      )}
+{!isBroadcastLeftCollapsed && (
+  <div className="flex-shrink-0 flex flex-col w-full px-4 py-4 border-b border-gray-700">
+    <h4 className="font-semibold whitespace-pre-line text-center text-sm">{broadcast.subtitle}</h4>
+    <div
+      id="TheReactMemeImplementationConnection001"
+      className="bg-muted rounded-md my-2"
+      style={{ minHeight: '400px' }}
+    />
+    <div className="flex justify-between items-center">
+      <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronLeft className="h-4 w-4" /></Button>
+      <span className="text-xs text-muted-foreground">by {broadcast.creator}</span>
+      <Button variant="ghost" size="icon" className="h-6 w-6"><ChevronRight className="h-4 w-4" /></Button>
+    </div>
+  </div>
+)}
 
-      {isBroadcastLeftCollapsed && (
-        <button
-          onClick={() => {
-            setIsBroadcastLeftCollapsed(false);
-            setTimeout(() => {
-              unmountTheMemeBox();
-              setTimeout(() => {
-                renderTheMemeBox(broadcasts['UnionNews#14']);
-              }, 100);
-            }, 50);
-          }}
-          className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition m-4"
-          title="Restore content"
-        >
-          🎁 Content
-        </button>
-      )}
+{isBroadcastLeftCollapsed && (
+  <button
+    onClick={() => {
+      setIsBroadcastLeftCollapsed(false);
+      setTimeout(() => {
+        unmountTheMemeBox();
+        setTimeout(() => {
+          renderTheMemeBox(broadcasts['UnionNews#14']);
+        }, 100);
+      }, 50);
+    }}
+    className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition m-4"
+    title="Restore content"
+  >
+    🎁 Content
+  </button>
+)}
 
-      {/* BOTTOM: uHome-Hub Chat Modal (MOBILE ONLY) - NOW INTEGRATED INSIDE */}
+{/* BOTTOM: uHome-Hub Chat Modal (MOBILE ONLY) - APPEARS BELOW MEMEBOX */}
 {activeChatModal !== null && (
-  <div className="flex-shrink-0 flex flex-col w-full border-t border-gray-700 mt-4" style={{ position: 'relative' }}>
+  <div className="flex-shrink-0 flex flex-col w-full border-t border-gray-700 pt-4 px-4">
     <MainUhubFeatureV001ForChatModal
       isOpen={activeChatModal !== null}
       onClose={onCloseChatModal}
