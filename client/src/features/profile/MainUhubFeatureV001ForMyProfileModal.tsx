@@ -408,14 +408,12 @@ if (isMobile) {
           {/* CAROUSEL CONTENT - NO overflow-hidden */}
           <div className="flex-shrink-0">
             <BroadcastCarousel 
-  items={unionNews14Images}
-  maxVisibleItems={broadcastCarouselImageCount}
-              isAdmin={user?.is_high_high_high_admin === 1}
-              onReorderLeft={handleReorderLeft}
-              onReorderRight={handleReorderRight}
-              onImageZoom={handleCarouselImageZoom}
-              maxVisibleItems={broadcastCarouselImageCount}
-            />
+  items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])}
+  isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
+  onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
+  onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
+  onImageZoom={handleCarouselImageZoom}
+/>
           </div>
         </div>
       )}
@@ -542,13 +540,12 @@ if (isMobile) {
             {/* CAROUSEL - Shows limited images based on width */}
             <div className="flex-1 overflow-hidden">
               <BroadcastCarousel 
-                items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
-                isAdmin={user?.is_high_high_high_admin === 1}
-                onReorderLeft={handleReorderLeft}
-                onReorderRight={handleReorderRight}
-                onImageZoom={handleCarouselImageZoom}
-                maxVisibleItems={broadcastCarouselImageCount}
-              />
+  items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])}
+  isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
+  onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
+  onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
+  onImageZoom={handleCarouselImageZoom}
+/>
             </div>
           </div>
         )}
