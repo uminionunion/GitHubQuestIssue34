@@ -466,19 +466,7 @@ if (isMobile) {
   </button>
 )}
 
-{/* BOTTOM: uHome-Hub Chat Modal (MOBILE ONLY) - APPEARS BELOW MEMEBOX */}
-{activeChatModal !== null && (
-  <div className="flex-shrink-0 flex flex-col w-full border-t border-gray-700 pt-4 px-4">
-    <MainUhubFeatureV001ForChatModal
-      isOpen={activeChatModal !== null}
-      onClose={onCloseChatModal}
-      pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
-      backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
-      modalNumber={activeChatModal}
-      isMobileLayout={true}
-    />
-  </div>
-)}
+
 
       {/* SPACER for bottom padding */}
       <div className="h-8 flex-shrink-0" />
@@ -3096,7 +3084,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
            </div>
          </div>
 
-        {/* Center Section */}
+        {/* Center Section - Desktop/Tablet */}
 <div className="flex-grow flex overflow-hidden" data-profile-main-container style={{ flexDirection: window.innerWidth < 768 ? 'column' : 'row' }}>
   {/* LEFT SECTION - ONLY SHOW IF NOT COLLAPSED */}
   {!isLeftSectionCollapsed && (
@@ -3172,6 +3160,20 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
     </div>
   )}
 </div>
+
+        {/* MOBILE ONLY: ALL 30 CHATROOMS BELOW BROADCAST - FORCES THEM TO BOTTOM */}
+        {window.innerWidth < 768 && broadcastView === 'UnionNews#14' && activeChatModal !== null && (
+          <div className="flex-shrink-0 w-full border-t border-gray-700 pt-4 px-4 pb-4 bg-gray-900/30">
+            <MainUhubFeatureV001ForChatModal
+              isOpen={true}
+              onClose={handleCloseChatModal}
+              pageName={MainUhubFeatureV001ForSisterUnionPages[activeChatModal - 1]}
+              backgroundColor={MainUhubFeatureV001ForModalColors[activeChatModal - 1]}
+              modalNumber={activeChatModal}
+              isMobileLayout={true}
+            />
+          </div>
+        )}
 
           {/* Bottom Section */}
           <div className="flex border-t md:h-auto h-12">
