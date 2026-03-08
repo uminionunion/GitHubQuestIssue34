@@ -28,7 +28,7 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [isReordering, setIsReordering] = useState(false);
   const itemsPerPage = 3;
-  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
 
   const getCurrentItems = () => {
     const start = currentPage * itemsPerPage;
@@ -36,22 +36,22 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
   };
 
   const handlePrevious = () => {
-  console.log('[CAROUSEL] Previous clicked, current page:', currentPage, 'total pages:', totalPages);
-  setCurrentPage(prev => {
-    const newPage = prev === 0 ? totalPages - 1 : prev - 1;
-    console.log('[CAROUSEL] Moving to page:', newPage);
-    return newPage;
-  });
-};
+    console.log('[CAROUSEL] Previous clicked', { currentPage, totalPages, itemsCount: items.length });
+    setCurrentPage(prev => {
+      const newPage = prev === 0 ? totalPages - 1 : prev - 1;
+      console.log('[CAROUSEL] Moving previous to page:', newPage);
+      return newPage;
+    });
+  };
 
-const handleNext = () => {
-  console.log('[CAROUSEL] Next clicked, current page:', currentPage, 'total pages:', totalPages);
-  setCurrentPage(prev => {
-    const newPage = prev === totalPages - 1 ? 0 : prev + 1;
-    console.log('[CAROUSEL] Moving to page:', newPage);
-    return newPage;
-  });
-};
+  const handleNext = () => {
+    console.log('[CAROUSEL] Next clicked', { currentPage, totalPages, itemsCount: items.length });
+    setCurrentPage(prev => {
+      const newPage = prev === totalPages - 1 ? 0 : prev + 1;
+      console.log('[CAROUSEL] Moving next to page:', newPage);
+      return newPage;
+    });
+  };
 
   const handleReorderLeft = async (item: BroadcastItem, index: number) => {
     if (!onReorderLeft || isReordering) return;
@@ -83,14 +83,11 @@ const handleNext = () => {
     }
   };
 
-  // NEW: Handle image click for zoom (UPGRADED: pass all items and index)
   const handleImageClick = (e: React.MouseEvent, item: BroadcastItem) => {
-    // If image has a clickUrl, allow navigation
     if (item.clickUrl) {
-      return; // Let the link handle it
+      return;
     }
     
-    // Otherwise, show zoom overlay
     e.preventDefault();
     e.stopPropagation();
     
@@ -103,7 +100,6 @@ const handleNext = () => {
 
   const currentItems = getCurrentItems();
 
-  // If no items, show empty state
   if (items.length === 0) {
     return (
       <div className="flex items-center justify-center gap-4 p-4 bg-muted rounded-lg h-48">
@@ -114,109 +110,104 @@ const handleNext = () => {
     );
   }
 
- return (
-  <div className="flex items-center justify-between gap-2 md:gap-4 p-4 bg-muted rounded-lg">
-    {/* Left Arrow - Mobile Optimized */}
-    <Button
-  variant="outline"
-  size="icon"
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handlePrevious();
-  }}
-  className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0 active:scale-95 transition-transform"
-  type="button"
->
-  <ChevronLeft className="h-5 w-5 md:h-4 md:w-4" />
-</Button>
+  return (
+    <div className="flex items-center justify-between gap-2 md:gap-4 p-2 md:p-4 bg-muted rounded-lg w-full">
+      {/* Left Arrow - Mobile Optimized */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handlePrevious();
+        }}
+        className="h-12 w-12 md:h-10 md:w-10 flex-shrink-0 flex items-center justify-center rounded border border-gray-400 hover:bg-gray-700 active:bg-gray-600 transition-colors touch-none select-none"
+        type="button"
+        title="Previous page"
+        aria-label="Previous carousel page"
+      >
+        <ChevronLeft className="h-6 w-6 md:h-5 md:w-5" />
+      </button>
 
-    {/* Images with Admin Controls */}
-    <div className="flex gap-2 md:gap-4 flex-1 justify-center min-w-0">
-      {currentItems.map((item, index) => (
-        <div
-          key={item.id}
-          className="cursor-pointer hover:opacity-80 transition-opacity relative group flex-shrink-0"
-          title={item.title}
-        >
-          {/* Wrapper div instead of <a> tag for better control */}
-          <div className="h-24 w-24 md:h-32 md:w-32 rounded-md overflow-hidden bg-background border relative">
-            <img
-              src={item.imageUrl}
-              alt={item.title}
-              className="h-full w-full object-cover cursor-pointer"
-              onClick={(e) => handleImageClick(e, item)}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/128?text=Image';
-              }}
-            />
-            
-            {/* Admin Overlay Controls - Only visible to admins */}
-            {isAdmin && (
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-between px-2 opacity-0 group-hover:opacity-100">
-                {/* Left Arrow */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleReorderLeft(item, index);
-                  }}
-                  disabled={isReordering}
-                  type="button"
-                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white rounded-full p-1.5 transition"
-                  title="Move left"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
+      {/* Images with Admin Controls */}
+      <div className="flex gap-2 md:gap-4 flex-1 justify-center min-w-0 overflow-hidden">
+        {currentItems.map((item, index) => (
+          <div
+            key={item.id}
+            className="cursor-pointer hover:opacity-80 transition-opacity relative group flex-shrink-0"
+            title={item.title}
+          >
+            <div className="h-24 w-24 md:h-32 md:w-32 rounded-md overflow-hidden bg-background border relative">
+              <img
+                src={item.imageUrl}
+                alt={item.title}
+                className="h-full w-full object-cover cursor-pointer"
+                onClick={(e) => handleImageClick(e, item)}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/128?text=Image';
+                }}
+              />
+              
+              {isAdmin && (
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-between px-2 opacity-0 group-hover:opacity-100">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleReorderLeft(item, index);
+                    }}
+                    disabled={isReordering}
+                    type="button"
+                    className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white rounded-full p-1.5 transition"
+                    title="Move left"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
 
-                {/* Right Arrow */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleReorderRight(item, index);
-                  }}
-                  disabled={isReordering}
-                  type="button"
-                  className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white rounded-full p-1.5 transition"
-                  title="Move right"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleReorderRight(item, index);
+                    }}
+                    disabled={isReordering}
+                    type="button"
+                    className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white rounded-full p-1.5 transition"
+                    title="Move right"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {item.clickUrl && (
+              <a
+                href={item.clickUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 rounded-md"
+                title="Open external link"
+              />
             )}
           </div>
+        ))}
+      </div>
 
-          {/* External link handler if URL exists */}
-          {item.clickUrl && (
-            <a
-              href={item.clickUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute inset-0 rounded-md"
-              title="Open external link"
-            />
-          )}
-        </div>
-      ))}
+      {/* Right Arrow - Mobile Optimized */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleNext();
+        }}
+        className="h-12 w-12 md:h-10 md:w-10 flex-shrink-0 flex items-center justify-center rounded border border-gray-400 hover:bg-gray-700 active:bg-gray-600 transition-colors touch-none select-none"
+        type="button"
+        title="Next page"
+        aria-label="Next carousel page"
+      >
+        <ChevronRight className="h-6 w-6 md:h-5 md:w-5" />
+      </button>
     </div>
-
-    {/* Right Arrow - Mobile Optimized */}
-    <Button
-  variant="outline"
-  size="icon"
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleNext();
-  }}
-  className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0 active:scale-95 transition-transform"
-  type="button"
->
-  <ChevronRight className="h-5 w-5 md:h-4 md:w-4" />
-</Button>
-  </div>
-);
+  );
 };
 
 export default BroadcastCarousel;
