@@ -408,7 +408,7 @@ if (isMobile) {
           {/* CAROUSEL CONTENT - NO overflow-hidden */}
           <div className="flex-shrink-0">
             <BroadcastCarousel 
-              items={unionNews14Images.slice(0, broadcastCarouselImageCount) || []} 
+              items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])}
               isAdmin={user?.is_high_high_high_admin === 1}
               onReorderLeft={handleReorderLeft}
               onReorderRight={handleReorderRight}
