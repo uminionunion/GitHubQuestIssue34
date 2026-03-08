@@ -28,7 +28,13 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [isReordering, setIsReordering] = useState(false);
   const itemsPerPage = 3;
-  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
+  
+  // FIX: Calculate totalPages correctly
+  // If items.length = 0, totalPages = 0
+  // If items.length = 1-3, totalPages = 1
+  // If items.length = 4-6, totalPages = 2
+  // etc.
+  const totalPages = items.length === 0 ? 0 : Math.ceil(items.length / itemsPerPage);
 
   const getCurrentItems = () => {
     const start = currentPage * itemsPerPage;
@@ -36,19 +42,27 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
   };
 
   const handlePrevious = () => {
-    console.log('[CAROUSEL] Previous clicked', { currentPage, totalPages, itemsCount: items.length });
+    console.log(`[CAROUSEL] handlePrevious clicked: currentPage=${currentPage}, totalPages=${totalPages}`);
+    if (totalPages <= 1) {
+      console.log('[CAROUSEL] Cannot paginate - only 1 page or less');
+      return;
+    }
     setCurrentPage(prev => {
       const newPage = prev === 0 ? totalPages - 1 : prev - 1;
-      console.log('[CAROUSEL] Moving previous to page:', newPage);
+      console.log(`[CAROUSEL] Page changed: ${prev} → ${newPage}`);
       return newPage;
     });
   };
 
   const handleNext = () => {
-    console.log('[CAROUSEL] Next clicked', { currentPage, totalPages, itemsCount: items.length });
+    console.log(`[CAROUSEL] handleNext clicked: currentPage=${currentPage}, totalPages=${totalPages}`);
+    if (totalPages <= 1) {
+      console.log('[CAROUSEL] Cannot paginate - only 1 page or less');
+      return;
+    }
     setCurrentPage(prev => {
       const newPage = prev === totalPages - 1 ? 0 : prev + 1;
-      console.log('[CAROUSEL] Moving next to page:', newPage);
+      console.log(`[CAROUSEL] Page changed: ${prev} → ${newPage}`);
       return newPage;
     });
   };
@@ -100,6 +114,7 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
 
   const currentItems = getCurrentItems();
 
+  // If no items, show empty state
   if (items.length === 0) {
     return (
       <div className="flex items-center justify-center gap-4 p-4 bg-muted rounded-lg h-48">
@@ -111,24 +126,21 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 md:gap-4 p-2 md:p-4 bg-muted rounded-lg w-full">
-      {/* Left Arrow - Mobile Optimized */}
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handlePrevious();
-        }}
-        className="h-12 w-12 md:h-10 md:w-10 flex-shrink-0 flex items-center justify-center rounded border border-gray-400 hover:bg-gray-700 active:bg-gray-600 transition-colors touch-none select-none"
+    <div className="flex items-center justify-between gap-2 md:gap-4 p-4 bg-muted rounded-lg">
+      {/* Left Arrow - DISABLED if only 1 page */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={handlePrevious}
+        disabled={totalPages <= 1}
+        className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0"
         type="button"
-        title="Previous page"
-        aria-label="Previous carousel page"
       >
-        <ChevronLeft className="h-6 w-6 md:h-5 md:w-5" />
-      </button>
+        <ChevronLeft className="h-5 w-5 md:h-4 md:w-4" />
+      </Button>
 
       {/* Images with Admin Controls */}
-      <div className="flex gap-2 md:gap-4 flex-1 justify-center min-w-0 overflow-hidden">
+      <div className="flex gap-2 md:gap-4 flex-1 justify-center min-w-0">
         {currentItems.map((item, index) => (
           <div
             key={item.id}
@@ -146,6 +158,7 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
                 }}
               />
               
+              {/* Admin Overlay Controls */}
               {isAdmin && (
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-between px-2 opacity-0 group-hover:opacity-100">
                   <button
@@ -192,20 +205,17 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
         ))}
       </div>
 
-      {/* Right Arrow - Mobile Optimized */}
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handleNext();
-        }}
-        className="h-12 w-12 md:h-10 md:w-10 flex-shrink-0 flex items-center justify-center rounded border border-gray-400 hover:bg-gray-700 active:bg-gray-600 transition-colors touch-none select-none"
+      {/* Right Arrow - DISABLED if only 1 page */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={handleNext}
+        disabled={totalPages <= 1}
+        className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0"
         type="button"
-        title="Next page"
-        aria-label="Next carousel page"
       >
-        <ChevronRight className="h-6 w-6 md:h-5 md:w-5" />
-      </button>
+        <ChevronRight className="h-5 w-5 md:h-4 md:w-4" />
+      </Button>
     </div>
   );
 };
