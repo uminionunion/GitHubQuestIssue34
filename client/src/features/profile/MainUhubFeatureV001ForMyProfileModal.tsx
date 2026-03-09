@@ -3106,7 +3106,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
         onClick={() => setIsQuadrantsModalOpen(true)}
       >
         <Mountain className="h-3 w-3" />
-        <span className="text-xxs">Mountain</span>
+        <span className="text-xxs">YourStore</span>
       </Button>
 
       <Button
