@@ -741,10 +741,10 @@ const closeCommentImageZoom = () => {
   // =====================================================
 
   const submitUpload = async () => {
-    if (!uploadTitle.trim() || uploadedImages.length === 0) {
-      alert("Please enter a title and select at least one image");
-      return;
-    }
+    if (uploadedImages.length === 0) {
+  alert("Please enter a title and select at least one image");
+  return;
+}
 
     try {
       console.log("[MEMEBOX] Uploading post with", uploadedImages.length, "images...");
