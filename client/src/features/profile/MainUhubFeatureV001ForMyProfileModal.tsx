@@ -432,7 +432,7 @@ if (isMobile) {
     >
       {/* LEFT ARROW OVERLAY */}
       <button
-        onClick={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
+        onClick={handleReorderLeft} 
         style={{
           position: "absolute",
           left: 0,
@@ -473,7 +473,7 @@ if (isMobile) {
 
       {/* RIGHT ARROW OVERLAY */}
       <button
-        onClick={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
+        onClick={handleReorderRight} 
         style={{
           position: "absolute",
           right: 0,
