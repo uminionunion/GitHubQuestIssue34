@@ -149,7 +149,7 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
             title={item.title}
           >
             {/* NEW: Wrapper div instead of <a> tag for better control */}
-            <div className="w-3/3 aspect-square md:h-32 md:w-32 rounded-md overflow-hidden bg-background border relative">
+            <div className="h-32 w-32 rounded-md overflow-hidden bg-background border relative">
               <img
                 src={item.imageUrl}
                 alt={item.title}
