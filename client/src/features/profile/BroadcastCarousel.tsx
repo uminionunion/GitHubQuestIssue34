@@ -105,16 +105,40 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 p-4 bg-muted rounded-lg">
+  <div
+    className="flex items-center justify-between gap-4 p-4 bg-muted rounded-lg"
+    style={{ position: "relative" }}
+  >
+
+
+
+    
       {/* Left Arrow */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={handlePrevious}
-        className="h-8 w-8"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+<Button
+  variant="outline"
+  size="icon"
+  onClick={handlePrevious}
+  className="h-8 w-8"
+  style={{
+    // DEFAULT (desktop)
+    position: "static",
+
+    // MOBILE OVERRIDE
+    ...(window.innerWidth <= 768 && {
+      position: "absolute",
+      left: 0,
+      top: "50%",
+      transform: "translateY(-50%)",
+      zIndex: 20,
+    }),
+  }}
+>
+  <ChevronLeft className="h-4 w-4" />
+</Button>
+
+
+
+    
 
       {/* Images with Admin Controls */}
       <div className="flex gap-4 flex-1 justify-center">
@@ -184,15 +208,37 @@ export const BroadcastCarousel: React.FC<BroadcastCarouselProps> = ({
         ))}
       </div>
 
-      {/* Right Arrow */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={handleNext}
-        className="h-8 w-8"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
+
+
+
+{/* Right Arrow */}
+<Button
+  variant="outline"
+  size="icon"
+  onClick={handleNext}
+  className="h-8 w-8"
+  style={{
+    // DEFAULT (desktop)
+    position: "static",
+
+    // MOBILE OVERRIDE
+    ...(window.innerWidth <= 768 && {
+      position: "absolute",
+      right: 0,
+      top: "50%",
+      transform: "translateY(-50%)",
+      zIndex: 20,
+    }),
+  }}
+>
+  <ChevronRight className="h-4 w-4" />
+</Button>
+
+
+
+
+
+    
     </div>
   );
 };
