@@ -1739,7 +1739,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [leftDividerDragging, setLeftDividerDragging] = useState(false);
   const [rightDividerDragging, setRightDividerDragging] = useState(false);
   const broadcasts = {
-      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'GEMMS#25', subtitle: 'Share & Enjoy: "Ad-Free Memes"\nProvided by: The Uminion Union', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://www.facebook.com/groups/1615679026489537' },
+      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts- UnionNews#14', creator: 'GEMMS#25', subtitle: 'Got Memes? Share Memes. No-Ads.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://www.facebook.com/groups/1615679026489537' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
@@ -3066,7 +3066,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
   <div className="md:hidden flex flex-col p-2 border-b gap-2">
     <div className="flex gap-2 items-center">
 
-      {/* Button Row (now full-width since avatar is gone) */}
+      {/* Button Row (UPDATE: now full-width since avatar is gone) */}
       <div className="flex gap-1 flex-1">
 
         <Button
@@ -3126,6 +3126,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
           className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1"
           title="Cart"
           onClick={() => {}}
+          disabled
         >
           <Anvil className="h-3 w-3" />
           <span className="text-xxs">Coming Soon</span>
