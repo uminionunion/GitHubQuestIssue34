@@ -3062,7 +3062,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
          </div>
 
          {/* Mobile Top Row */}
-<div className="md:hidden flex flex-col p-2 border-b gap-2">
+<div className="md:hidden flex flex-col p-2 border-b">
   <div className="flex gap-2 items-center">
     <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
       <Avatar className="h-14 w-14">
