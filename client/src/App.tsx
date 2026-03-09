@@ -136,19 +136,47 @@ useEffect(() => {
         </div>
       </header>
 
-      <main className="flex-grow relative container mx-auto px-4 py-8 flex justify-center items-start">
-        <Routes>
-          <Route path="/" element={
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4">welcome to uminion</h1>
-              <p className="text-lg text-muted-foreground">Click the uHub button below to get started.</p>
-              <Link to="/SisterUnion001NewEngland">
-                <Button className="mt-4">Go to a Sister Union Page</Button>
-              </Link>
-            </div>
-          } />
-          <Route path="/*" element={<MainUhubFeatureV001ForSisterUnionRoutes />} />
-        </Routes>
+     <main className="flex-grow relative container mx-auto px-4 py-8 flex justify-center items-start">
+  <Routes>
+    <Route
+      path="/"
+      element={
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">welcome to uminion</h1>
+          <p className="text-lg text-muted-foreground">
+            Click the uHub button below to get started.
+          </p>
+
+          {/* Working external link button */}
+          <a
+            href="https://www.facebook.com/groups/uminion/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button className="mt-4">
+              Find us on FB!
+            </Button>
+          </a>
+
+          {/* 
+            UNDER CONSTRUCTION — internal Sister Union page button disabled for now
+          */}
+          {/*
+          <Link to="/SisterUnion001NewEngland">
+            <Button className="mt-4" disabled>
+              Go to a Sister Union Page
+            </Button>
+          </Link>
+          */}
+
+        </div>
+      }
+    />
+
+    <Route path="/*" element={<MainUhubFeatureV001ForSisterUnionRoutes />} />
+  </Routes>
+
+
 
         
 
