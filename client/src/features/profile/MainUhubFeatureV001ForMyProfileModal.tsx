@@ -3062,7 +3062,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
          </div>
 
          {/* Mobile Top Row */}
-<div className="md:hidden flex flex-col p-2 border-b">
+<div className="md:hidden flex flex-col p-2 border-b gap-2">
   <div className="flex gap-2 items-center">
     <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
       <Avatar className="h-14 w-14">
@@ -3092,7 +3092,18 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
       </Button>
     </div>
   </div>
-  <div className="h-24 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/StoreProductsAndImagery/UminionLogo28.2024Classic.png')" }}>
+
+  {/* Commenting out the banner section here to see if it works better without it on mobile; and if it does; then we'll replug it back in in the future but make it bettah. -9:05pm on 3/8/26 HAPPY INTERNATIONAL WOMAN'S DAY! */}
+  {/* 
+<div
+  className="h-24 bg-cover bg-center rounded-md relative"
+  style={{ backgroundImage: "url('...')" }}
+>
+  {user && <Button className="absolute bottom-1 right-1 text-xs h-6">Change</Button>}
+</div>
+*/}
+
+  
     {user && <Button className="absolute bottom-1 right-1 text-xs h-6" size="sm">Change</Button>}
   </div>
 </div>
