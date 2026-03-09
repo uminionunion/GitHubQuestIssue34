@@ -1364,40 +1364,44 @@ const submitComment = async () => {
   // RENDER FUNCTIONS
   // =====================================================
 
-  const renderNavbar = () => (
-  <div style={styles.navbar}>
-    <div style={styles.navbarContent}>
+const renderNavbar = () => {
+  const isMobile = window.innerWidth < 768;
 
-      {/* A.) COMMENTED OUT MEMEBOX TITLE */}
-      {/*
-      <h1 style={styles.navbarTitle}>
-        <img src="/EmojisForUminionWebsite/GreenEmoji009MemeBox.png" width="24" />
-      </h1>
-      */}
-
-      {/* B.) TOP LINE — PREVIOUS / NEXT */}
-      <div style={styles.navigationButtons}>
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          ...styles.navbar,
+          overflowX: "auto",
+          whiteSpace: "nowrap",
+          display: "flex",
+          flexDirection: "row",
+          gap: 12,
+          padding: "8px 12px",
+          alignItems: "center"
+        }}
+      >
+        {/* Previous */}
         <button style={styles.navArrowButton} onClick={showPreviousPost}>
           <img
             src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png"
             width="24"
             style={{ marginBottom: 4 }}
           />
-          Previous Post
+          Prev
         </button>
 
+        {/* Next */}
         <button style={styles.navArrowButton} onClick={showNextPost}>
           <img
             src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png"
             width="24"
             style={{ marginBottom: 4 }}
           />
-          Next Post
+          Next
         </button>
-      </div>
 
-      {/* C.) SECOND LINE — UPLOAD / USER POSTS / FAVORITES */}
-      <div style={styles.navbarButtons}>
+        {/* Upload */}
         <button style={styles.navButton} onClick={openUploadDialog}>
           <img
             src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png"
@@ -1407,6 +1411,7 @@ const submitComment = async () => {
           Upload
         </button>
 
+        {/* User Posts */}
         <button style={styles.navButton} onClick={handlePageNavigation}>
           <img
             src="/EmojisForUminionWebsite/GreenEmoji007UserPost.png"
@@ -1416,6 +1421,7 @@ const submitComment = async () => {
           {getPageTitle()}
         </button>
 
+        {/* Favorites */}
         <button style={styles.navButton} onClick={showFavoritesGrid}>
           <img
             src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png"
@@ -1425,11 +1431,68 @@ const submitComment = async () => {
           Favorites ({favoritesPosts.length})
         </button>
       </div>
+    );
+  }
 
+  // DESKTOP VERSION (unchanged)
+  return (
+    <div style={styles.navbar}>
+      <div style={styles.navbarContent}>
+        {/* your original 2‑row layout */}
+        {/* B.) TOP LINE — PREVIOUS / NEXT */}
+        <div style={styles.navigationButtons}>
+          <button style={styles.navArrowButton} onClick={showPreviousPost}>
+            <img
+              src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png"
+              width="24"
+              style={{ marginBottom: 4 }}
+            />
+            Previous Post
+          </button>
+
+          <button style={styles.navArrowButton} onClick={showNextPost}>
+            <img
+              src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png"
+              width="24"
+              style={{ marginBottom: 4 }}
+            />
+            Next Post
+          </button>
+        </div>
+
+        {/* C.) SECOND LINE — UPLOAD / USER POSTS / FAVORITES */}
+        <div style={styles.navbarButtons}>
+          <button style={styles.navButton} onClick={openUploadDialog}>
+            <img
+              src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png"
+              width="24"
+              style={{ marginBottom: 4 }}
+            />
+            Upload
+          </button>
+
+          <button style={styles.navButton} onClick={handlePageNavigation}>
+            <img
+              src="/EmojisForUminionWebsite/GreenEmoji007UserPost.png"
+              width="24"
+              style={{ marginBottom: 4 }}
+            />
+            {getPageTitle()}
+          </button>
+
+          <button style={styles.navButton} onClick={showFavoritesGrid}>
+            <img
+              src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png"
+              width="24"
+              style={{ marginBottom: 4 }}
+            />
+            Favorites ({favoritesPosts.length})
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-);
-
+  );
+};
 
    
           
