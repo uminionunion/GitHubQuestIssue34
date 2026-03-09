@@ -355,7 +355,7 @@ const BroadcastView = ({
               <p className="text-sm text-muted-foreground flex-grow text-center">{broadcast.description}</p>
             </div>
             <div className="flex items-center gap-2 mb-4">
-              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Our union also teaches people how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
+              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Learn how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
               {user?.is_high_high_high_admin === 1 && (
                 <Button 
                   className="bg-green-700 hover:bg-green-800 text-white text-sm"
@@ -394,7 +394,7 @@ if (isMobile) {
             <p className="text-xs text-muted-foreground flex-grow text-center">{broadcast.description}</p>
           </div>
           <div className="flex items-center gap-2 mb-2">
-            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Our union also teaches people how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
+            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Learn how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
             {user?.is_high_high_high_admin === 1 && (
               <Button 
                 className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
@@ -539,7 +539,7 @@ if (isMobile) {
               <p className="text-xs text-muted-foreground flex-grow text-center">{broadcast.description}</p>
             </div>
             <div className="flex items-center gap-2 mb-2">
-              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Our union also teaches people how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
+              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Learn how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
               {user?.is_high_high_high_admin === 1 && (
                 <Button 
                   className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
