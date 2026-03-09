@@ -406,15 +406,25 @@ if (isMobile) {
           </div>
 
           {/* CAROUSEL CONTENT - NO overflow-hidden */}
-          <div className="flex-shrink-0">
-            <BroadcastCarousel 
-  items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])}
-  isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
-  onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
-  onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
-  onImageZoom={handleCarouselImageZoom}
-/>
-          </div>
+          <div
+  className="flex w-full overflow-hidden"
+  style={{
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "nowrap",
+    justifyContent: "space-between",
+    alignItems: "center",
+  }}
+>
+  <BroadcastCarousel
+    items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])}
+    isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
+    onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
+    onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
+    onImageZoom={handleCarouselImageZoom}
+  />
+</div>
+
         </div>
       )}
 
