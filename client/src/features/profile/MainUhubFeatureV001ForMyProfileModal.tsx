@@ -355,7 +355,7 @@ const BroadcastView = ({
               <p className="text-sm text-muted-foreground flex-grow text-center">{broadcast.description}</p>
             </div>
             <div className="flex items-center gap-2 mb-4">
-              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Visit Website</a>
+              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-sm">Our union also teaches people how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
               {user?.is_high_high_high_admin === 1 && (
                 <Button 
                   className="bg-green-700 hover:bg-green-800 text-white text-sm"
@@ -394,7 +394,7 @@ if (isMobile) {
             <p className="text-xs text-muted-foreground flex-grow text-center">{broadcast.description}</p>
           </div>
           <div className="flex items-center gap-2 mb-2">
-            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
+            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Our union also teaches people how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
             {user?.is_high_high_high_admin === 1 && (
               <Button 
                 className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
@@ -539,7 +539,7 @@ if (isMobile) {
               <p className="text-xs text-muted-foreground flex-grow text-center">{broadcast.description}</p>
             </div>
             <div className="flex items-center gap-2 mb-2">
-              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
+              <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Our union also teaches people how to code for Free- (takes less than 5min!) over at our GitHub here:</a>
               {user?.is_high_high_high_admin === 1 && (
                 <Button 
                   className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
@@ -1752,7 +1752,7 @@ const MainUhubFeatureV001ForMyProfileModal: React.FC<MainUhubFeatureV001ForMyPro
   const [leftDividerDragging, setLeftDividerDragging] = useState(false);
   const [rightDividerDragging, setRightDividerDragging] = useState(false);
   const broadcasts = {
-      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts & Ad-Free Memes- Provided by: UnionNews#14 & GEMMMS#25', creator: 'GEMMMS#25', subtitle: 'Got Memes? Share Memes. No-Ads.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://www.facebook.com/groups/1615679026489537' },
+      'UnionNews#14': { memeBoxId: 'TheReactMemeImplementationConnection001', title: 'Broadcasts & Ad-Free Memes- Provided by: UnionNews#14 & GEMMMS#25', creator: 'GEMMMS#25', subtitle: 'Got Memes? Share Memes. No-Ads.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.15-Made-on-NC-JPEG.png', extraImages: ['https://page001.uminion.com/StoreProductsAndImagery/TapestryVersion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/Tshirtbatchversion001.png', 'https://page001.uminion.com/StoreProductsAndImagery/UkraineLogo001.png'], description: 'Welcome to the Uminion Union! We have Rallies every 24th of the month, stores built by unionFolk, chats & voting, & even a meme section below!', website: 'https://github.com/uminionunion/UminionsWebsite/discussions/13' },
       'UnionRadio#15': { title: 'Broadcasts- UnionRadio#15', creator: 'StorytellingSalem', subtitle: 'Under Construction- Union Radio #15.', logo: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.16-Made-on-NC-JPEG.png', extraImages: [], description: 'Union Radio #15 (along with uminionClassic) is still live, but now over at our SisterPage: \"https://page001.uminion.com/\"!', website: 'https://uminion.com' },
   };
   const broadcastKeys = ['MyBroadcasts', ...Object.keys(broadcasts)];
