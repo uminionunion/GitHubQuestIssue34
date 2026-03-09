@@ -3062,36 +3062,40 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
          </div>
 
          {/* Mobile Top Row */}
-         <div className="md:hidden flex flex-col p-2 border-b gap-2">
-           <div className="flex gap-2 items-center">
-             <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
-               <Avatar className="h-14 w-14">
-                 <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
-                 <AvatarFallback>U</AvatarFallback>
-               </Avatar>
-             </div>
-             <div className="flex gap-1 flex-1">
-               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
-                 {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
-                 <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
-               </Button>
-               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => setCenterView('broadcasts')}>
-                 <Megaphone className="h-3 w-3" /><span className="text-xxs">Broadcast</span>
-               </Button>
-               <a href="https://github.com/uminionunion/uminionswebsite" target="_blank" rel="noopener noreferrer" className="flex-1">
-                 <Button variant="outline" className="w-full h-10 flex flex-col items-center justify-center text-xs p-1" title="Code" disabled={!user}>
-                   <Code className="h-3 w-3" /><span className="text-xxs">Code</span>
-                 </Button>
-               </a>
-               <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}>
-                 <Settings className="h-3 w-3" /><span className="text-xxs">Settings</span>
-               </Button>
-             </div>
-           </div>
-           <div className="h-24 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/StoreProductsAndImagery/UminionLogo28.2024Classic.png')" }}>
-             {user && <Button className="absolute bottom-1 right-1 text-xs h-6" size="sm">Change</Button>}
-           </div>
-         </div>
+<div className="md:hidden flex flex-col p-2 border-b gap-2">
+  <div className="flex gap-2 items-center">
+    <div onClick={handleProfileImageClick} className="cursor-pointer flex-shrink-0">
+      <Avatar className="h-14 w-14">
+        <AvatarImage src={user?.profile_image_url || "https://uminion.com/wp-content/uploads/2025/02/iArt06532.png"} alt="Profile" />
+        <AvatarFallback>U</AvatarFallback>
+      </Avatar>
+    </div>
+    <div className="flex gap-1 flex-1">
+      <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Friends" onClick={() => handleTopLeftButtonClick('friends')} disabled={!user}>
+        {pendingFriendRequests.length > 0 && <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>}
+        <Users className="h-3 w-3" /><span className="text-xxs">Friends</span>
+      </Button>
+      <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Broadcast" onClick={() => setCenterView('broadcasts')}>
+        <Megaphone className="h-3 w-3" /><span className="text-xxs">Broadcast</span>
+      </Button>
+      <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Mountain" onClick={() => setIsQuadrantsModalOpen(true)}>
+        <Mountain className="h-3 w-3" /><span className="text-xxs">Mountain</span>
+      </Button>
+      <Button variant="outline" className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1" title="Home" onClick={() => {
+        if (!user) {
+          alert("You must be logged in to use this feature.");
+          return;
+        }
+        setIsHomeModalOpen(true);
+      }} disabled={!user}>
+        <Home className="h-3 w-3" /><span className="text-xxs">Home</span>
+      </Button>
+    </div>
+  </div>
+  <div className="h-24 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/StoreProductsAndImagery/UminionLogo28.2024Classic.png')" }}>
+    {user && <Button className="absolute bottom-1 right-1 text-xs h-6" size="sm">Change</Button>}
+  </div>
+</div>
 
         {/* Center Section */}
 <div className="flex-grow flex overflow-hidden" data-profile-main-container style={{ flexDirection: window.innerWidth < 768 ? 'column' : 'row' }}>
