@@ -386,126 +386,49 @@ if (isMobile) {
   // MOBILE LAYOUT: Vertical stack with proper scrolling
   return (
     <div className="flex flex-col h-full w-full overflow-y-auto">      
-      {/* TOP: Broadcast Carousel */}
-{!isBroadcastCarouselCollapsed && (
-  <div className="flex-shrink-0 flex flex-col w-[100%] mx-auto py-4">
-    <div className="flex items-center gap-2 mb-2">
-      <Button variant="outline" size="icon" className="h-8 w-8">
-        <Play className="h-4 w-4" />
-      </Button>
-      <p className="text-xs text-muted-foreground flex-grow text-center">
-        {broadcast.description}
-      </p>
-    </div>
+            {/* TOP: Broadcast Carousel */}
+      {!isBroadcastCarouselCollapsed && (
+        <div className="flex-shrink-0 flex flex-col w-[100%] mx-auto py-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Button variant="outline" size="icon" className="h-8 w-8"><Play className="h-4 w-4" /></Button>
+            <p className="text-xs text-muted-foreground flex-grow text-center">{broadcast.description}</p>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <a href={broadcast.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline text-xs">Visit Website</a>
+            {user?.is_high_high_high_admin === 1 && (
+              <Button 
+                className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
+                onClick={() => onOpenUnionNews14Modal()}
+              >
+                Add
+              </Button>
+            )}
+          </div>
 
-    <div className="flex items-center gap-2 mb-2">
-      <a
-        href={broadcast.website}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-orange-400 hover:underline text-xs"
-      >
-        Visit Website
-      </a>
-
-      {user?.is_high_high_high_admin === 1 && (
-        <Button
-          className="bg-green-700 hover:bg-green-800 text-white text-xs h-8"
-          onClick={() => onOpenUnionNews14Modal()}
-        >
-          Add
-        </Button>
+          {/* CAROUSEL CONTENT - NO overflow-hidden */}
+          <div className="flex-shrink-0">
+            <BroadcastCarousel 
+  items={broadcastView === 'UnionNews#14' ? unionNews14Images : (broadcast.extraImages || [])}
+  isAdmin={broadcastView === 'UnionNews#14' && user?.is_high_high_high_admin === 1}
+  onReorderLeft={broadcastView === 'UnionNews#14' ? handleReorderLeft : undefined}
+  onReorderRight={broadcastView === 'UnionNews#14' ? handleReorderRight : undefined}
+  onImageZoom={handleCarouselImageZoom}
+/>
+          </div>
+        </div>
       )}
-    </div>
 
-    {/* CAROUSEL CONTENT WITH OVERLAY ARROWS */}
-    <div
-      className="flex w-full overflow-hidden"
-      style={{
-        position: "relative",          // ← enables overlay
-        display: "flex",
-        flexDirection: "row",
-        flexWrap: "nowrap",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      {/* LEFT ARROW OVERLAY */}
-      <button
-        onClick={handleReorderLeft} 
-        style={{
-          position: "absolute",
-          left: 0,
-          top: "50%",
-          transform: "translateY(-50%)",
-          background: "rgba(0,0,0,0.4)",
-          border: "none",
-          padding: 8,
-          borderRadius: "50%",
-          zIndex: 10,
-        }}
-      >
-        <img
-          src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png"
-          width="24"
-        />
-      </button>
-
-      {/* CAROUSEL ITSELF */}
-      <BroadcastCarousel
-        items={
-          broadcastView === "UnionNews#14"
-            ? unionNews14Images
-            : broadcast.extraImages || []
-        }
-        isAdmin={
-          broadcastView === "UnionNews#14" &&
-          user?.is_high_high_high_admin === 1
-        }
-        onReorderLeft={
-          broadcastView === "UnionNews#14" ? handleReorderLeft : undefined
-        }
-        onReorderRight={
-          broadcastView === "UnionNews#14" ? handleReorderRight : undefined
-        }
-        onImageZoom={handleCarouselImageZoom}
-      />
-
-      {/* RIGHT ARROW OVERLAY */}
-      <button
-        onClick={handleReorderRight} 
-        style={{
-          position: "absolute",
-          right: 0,
-          top: "50%",
-          transform: "translateY(-50%)",
-          background: "rgba(0,0,0,0.4)",
-          border: "none",
-          padding: 8,
-          borderRadius: "50%",
-          zIndex: 10,
-        }}
-      >
-        <img
-          src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png"
-          width="24"
-        />
-      </button>
-    </div>
-  </div>
-)}
-
-{isBroadcastCarouselCollapsed && (
-  <button
-    onClick={() => {
-      setIsBroadcastCarouselCollapsed(false);
-      setBroadcastCarouselImageCount(3);
-    }}
-    className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition m-4"
-  >
-    <span>📸 Carousel</span>
-  </button>
-)}
+      {isBroadcastCarouselCollapsed && (
+        <button
+          onClick={() => {
+            setIsBroadcastCarouselCollapsed(false);
+            setBroadcastCarouselImageCount(3);
+          }}
+          className="flex items-center gap-1 bg-green-700 hover:bg-green-800 text-white text-xs px-2 py-1 rounded transition m-4"
+        >
+          <span>📸 Carousel</span>
+        </button>
+      )}
 
 
       {/* MIDDLE: Memebox */}
