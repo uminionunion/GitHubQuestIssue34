@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
-import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain, Home, ChevronDown, ChevronUp, Trash2, Pencil } from 'lucide-react';
+import { Users, Megaphone, Code, Settings, Facebook, Youtube, Twitch, Instagram, Github, MessageSquare, ShoppingCart, Eye, ChevronLeft, ChevronRight, Plus, Minus, Search, Play, X, Mountain, Home, ChevronDown, ChevronUp, Trash2, Anvil, Pencil } from 'lucide-react';
 import MainUhubFeatureV001ForChatModal from '../uminion/MainUhubFeatureV001ForChatModal';
 import { useAuth } from '../../hooks/useAuth';
 import MainUhubFeatureV001ForAddProductModal from './MainUhubFeatureV001ForAddProductModal';
@@ -3061,7 +3061,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
 </div>
          </div>
 
-        (
+        
   {/* Mobile Top Row */}
   <div className="md:hidden flex flex-col p-2 border-b gap-2">
     <div className="flex gap-2 items-center">
@@ -3120,15 +3120,15 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
           <span className="text-xxs">Home</span>
         </Button>
 
-        {/* NEW CART BUTTON — same style, far right */}
+        {/* NEW CART BUTTON -TEMPORARILY BEING REPLACED BY ANVIL WITH A COMING SOON SIGN— same style, far right */}
         <Button
           variant="outline"
           className="flex-1 flex flex-col h-10 items-center justify-center text-xs p-1"
           title="Cart"
           onClick={() => {}}
         >
-          <ShoppingCart className="h-3 w-3" />
-          <span className="text-xxs">Cart</span>
+          <Anvil className="h-3 w-3" />
+          <span className="text-xxs">Coming Soon</span>
         </Button>
 
       </div>
@@ -3136,7 +3136,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
 
     {/* Banner removed safely */}
   </div>
-)
+
 
 
         {/* Center Section */}
