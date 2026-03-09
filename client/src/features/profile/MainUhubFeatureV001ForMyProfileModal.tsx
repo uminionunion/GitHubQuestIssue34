@@ -386,6 +386,79 @@ if (isMobile) {
   // MOBILE LAYOUT: Vertical stack with proper scrolling
   return (
     <div className="flex flex-col h-full w-full overflow-y-auto">
+
+
+{/* MOBILE NAVBAR — ONE SINGLE ROW */}
+<div 
+  style={{
+    display: "flex",
+    flexDirection: "row",
+    overflowX: "auto",
+    whiteSpace: "nowrap",
+    gap: 12,
+    padding: "8px 12px",
+    alignItems: "center",
+    background: "#111",
+    borderBottom: "1px solid #333"
+  }}
+>
+
+  {/* Previous */}
+  <button style={styles.navArrowButton} onClick={showPreviousPost}>
+    <img
+      src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png"
+      width="24"
+      style={{ marginBottom: 4 }}
+    />
+    Prev
+  </button>
+
+  {/* Next */}
+  <button style={styles.navArrowButton} onClick={showNextPost}>
+    <img
+      src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png"
+      width="24"
+      style={{ marginBottom: 4 }}
+    />
+    Next
+  </button>
+
+  {/* Upload */}
+  <button style={styles.navButton} onClick={openUploadDialog}>
+    <img
+      src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png"
+      width="24"
+      style={{ marginBottom: 4 }}
+    />
+    Upload
+  </button>
+
+  {/* User Posts / Page Title */}
+  <button style={styles.navButton} onClick={handlePageNavigation}>
+    <img
+      src="/EmojisForUminionWebsite/GreenEmoji007UserPost.png"
+      width="24"
+      style={{ marginBottom: 4 }}
+    />
+    {getPageTitle()}
+  </button>
+
+  {/* Favorites */}
+  <button style={styles.navButton} onClick={showFavoritesGrid}>
+    <img
+      src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png"
+      width="24"
+      style={{ marginBottom: 4 }}
+    />
+    Favorites ({favoritesPosts.length})
+  </button>
+
+</div>
+
+
+
+
+      
       {/* TOP: Broadcast Carousel */}
       {!isBroadcastCarouselCollapsed && (
         <div className="flex-shrink-0 flex flex-col w-[100%] mx-auto py-4">
