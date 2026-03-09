@@ -2994,48 +2994,48 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
 
-            {/* 8-Button Grid - SMALLER BUTTONS */}
-            <div className="md:w-1/4 flex justify-center items-center md:pl-4">
-              <div className="grid grid-cols-2 gap-1 w-fit">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
-                  onClick={() => setIsQuadrantsModalOpen(true)}
-                  title="HikingToAllStores"
-                >
-                  <Mountain className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
-                  onClick={() => {
-                    if (!user) {
-                      alert("You must be logged in to use this feature.");
-                      return;
-                    }
-                    setIsHomeModalOpen(true);
-                  }}
-                  title="Home"
-                  disabled={!user}
-                >
-                  <Home className="h-3 w-3" />
-                </Button>
-                {Array.from({ length: 6 }, (_, i) => (
-                  <Button
-                    key={i + 3}
-                    variant="outline"
-                    size="sm"
-                    className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
-                    onClick={() => setIsQuadrantsModalOpen(true)}
-                    title={`Custom ${i + 3}`}
-                  >
-                    {i + 3}
-                  </Button>
-                ))}
-              </div>
-            </div>
+            {/* 8-Button Grid - SMALLER BUTTONS - HIDDEN ON MOBILE */}
+<div className="hidden md:flex md:w-1/4 justify-center items-center md:pl-4">
+  <div className="grid grid-cols-2 gap-1 w-fit">
+    <Button
+      variant="outline"
+      size="sm"
+      className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
+      onClick={() => setIsQuadrantsModalOpen(true)}
+      title="HikingToAllStores"
+    >
+      <Mountain className="h-3 w-3" />
+    </Button>
+    <Button
+      variant="outline"
+      size="sm"
+      className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
+      onClick={() => {
+        if (!user) {
+          alert("You must be logged in to use this feature.");
+          return;
+        }
+        setIsHomeModalOpen(true);
+      }}
+      title="Home"
+      disabled={!user}
+    >
+      <Home className="h-3 w-3" />
+    </Button>
+    {Array.from({ length: 6 }, (_, i) => (
+      <Button
+        key={i + 3}
+        variant="outline"
+        size="sm"
+        className="flex flex-col items-center justify-center h-7 w-7 gap-0 text-xs"
+        onClick={() => setIsQuadrantsModalOpen(true)}
+        title={`Custom ${i + 3}`}
+      >
+        {i + 3}
+      </Button>
+    ))}
+  </div>
+</div>
 
           {/* Avatar */}
 <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
