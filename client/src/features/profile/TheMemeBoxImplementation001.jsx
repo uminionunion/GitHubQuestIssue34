@@ -1364,7 +1364,7 @@ const submitComment = async () => {
   // RENDER FUNCTIONS
   // =====================================================
 
-  const renderNavbar = () => (
+  
 
 
 const renderNavbar = () => {
