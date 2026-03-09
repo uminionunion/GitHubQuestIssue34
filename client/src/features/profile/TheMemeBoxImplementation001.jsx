@@ -1365,6 +1365,81 @@ const submitComment = async () => {
   // =====================================================
 
   const renderNavbar = () => (
+
+
+const renderNavbar = () => {
+  const isMobile = window.innerWidth < 768;
+
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          ...styles.navbar,
+          overflowX: "auto",
+          whiteSpace: "nowrap",
+          display: "flex",
+          flexDirection: "row",
+          gap: 12,
+          padding: "8px 12px",
+          alignItems: "center"
+        }}
+      >
+        {/* Previous */}
+        <button style={styles.navArrowButton} onClick={showPreviousPost}>
+          <img
+            src="/EmojisForUminionWebsite/GreenEmoji013ArrowPreviousPagePost.png"
+            width="24"
+            style={{ marginBottom: 4 }}
+          />
+          Prev
+        </button>
+
+        {/* Next */}
+        <button style={styles.navArrowButton} onClick={showNextPost}>
+          <img
+            src="/EmojisForUminionWebsite/GreenEmoji012ArrowNextPagePost.png"
+            width="24"
+            style={{ marginBottom: 4 }}
+          />
+          Next
+        </button>
+
+        {/* Upload */}
+        <button style={styles.navButton} onClick={openUploadDialog}>
+          <img
+            src="/EmojisForUminionWebsite/GreenEmoji010UploadIcon.png"
+            width="24"
+            style={{ marginBottom: 4 }}
+          />
+          Upload
+        </button>
+
+        {/* User Posts */}
+        <button style={styles.navButton} onClick={handlePageNavigation}>
+          <img
+            src="/EmojisForUminionWebsite/GreenEmoji007UserPost.png"
+            width="24"
+            style={{ marginBottom: 4 }}
+          />
+          {getPageTitle()}
+        </button>
+
+        {/* Favorites */}
+        <button style={styles.navButton} onClick={showFavoritesGrid}>
+          <img
+            src="/EmojisForUminionWebsite/GreenEmoji001ThumbsUpFavorites.png"
+            width="24"
+            style={{ marginBottom: 4 }}
+          />
+          Favorites ({favoritesPosts.length})
+        </button>
+      </div>
+    );
+  }
+
+  
+
+    {/* Above is Mobile Version, this below is Desktop Version -Salem 10:41pm on 3/8/26  */}
   <div style={styles.navbar}>
     <div style={styles.navbarContent}>
 
