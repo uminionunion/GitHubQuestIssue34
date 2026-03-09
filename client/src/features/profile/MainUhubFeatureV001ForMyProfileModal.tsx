@@ -2974,7 +2974,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
   return (
     <>
       <div className="bg-background text-foreground w-full h-full flex flex-col relative">
-        <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-50" onClick={onClose}>
+        <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-50" onClick={onClose}>
           <X className="h-6 w-6" />
           <span className="sr-only">Close</span>
         </Button>
