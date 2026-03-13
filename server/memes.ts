@@ -193,7 +193,8 @@ router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response)
 }
 
 // Title is optional — normalize empty titles
-const normalizedTitle = title?.trim() || null;
+const normalizedTitle = title?.trim() || "";
+
 
 
     console.log('[MEME API] Creating post for user', userId, 'with', imagesToAdd.length, 'images');
