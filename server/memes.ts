@@ -187,10 +187,14 @@ router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response)
     // ✅ FIXED: Handle both old format (images array of objects) and new format (imageBase64Array)
     const imagesToAdd = imageBase64Array || [];
 
-    if (!title || !imagesToAdd || imagesToAdd.length === 0) {
-      console.log('[MEME API] Missing title or images. Title:', title, 'Images count:', imagesToAdd.length);
-      return res.status(400).json({ error: 'Title and images required' });
-    }
+    if (!imagesToAdd || imagesToAdd.length === 0) {
+  console.log('[MEME API] Missing images. Images count:', imagesToAdd.length);
+  return res.status(400).json({ error: 'At least one image is required' });
+}
+
+// Title is optional — normalize empty titles
+const normalizedTitle = title?.trim() || null;
+
 
     console.log('[MEME API] Creating post for user', userId, 'with', imagesToAdd.length, 'images');
 
@@ -207,7 +211,7 @@ router.post('/api/memes/posts', requireAuth, async (req: Request, res: Response)
       .insertInto('MemeImplementation001Posts')
       .values({
         user_id: userId,
-        title,
+        title: normalizedTitle,
         description: description || null,
         upvotes: initialUpvotes, // ✅ NEW: Use bonus upvotes if user_id=3
         downvotes: 0,
