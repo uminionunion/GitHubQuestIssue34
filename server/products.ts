@@ -1248,7 +1248,7 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
     }
 
     // Handle banner image upload
-    let bannerUrl = 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png';
+    let bannerUrl = '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg';
     if ((req as any).files && (req as any).files.bannerImage) {
       await ensureUploadDir();
       const uploadedFile = (req as any).files.bannerImage;

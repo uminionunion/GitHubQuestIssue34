@@ -217,12 +217,12 @@ const MainUhubFeatureV001ForUserProfileModal: React.FC<MainUhubFeatureV001ForUse
     />
   ) : (
     <img
-      src="https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"
+      src="/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg"
       alt="default banner"
       className="h-6 rounded object-cover flex-grow ml-auto cursor-pointer hover:opacity-80 transition"
       style={{ minWidth: '80px', maxWidth: '150px' }}
       onClick={() => {
-        onBadgeZoomOpen?.({ url: "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", name: uStore.name });
+        onBadgeZoomOpen?.({ url: "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg", name: uStore.name });
       }}
       title="Click to zoom"
     />

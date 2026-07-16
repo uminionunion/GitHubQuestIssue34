@@ -922,13 +922,13 @@ const storePages = buildStorePages();
   {/* uBanner (right) - Takes remaining space */}
   <div className="h-6 rounded flex-grow ml-auto overflow-hidden flex items-center justify-center bg-gray-700" style={{ minWidth: '80px', maxWidth: '150px' }}>
     <img
-      src={uStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"}
+      src={uStore.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg"}
       alt={`${uStore.name} banner`}
       className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
       onClick={(e) => {
         e.stopPropagation();
         onBadgeZoomOpen?.({ 
-          url: uStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", 
+          url: uStore.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg", 
           name: uStore.name 
         });
       }}
@@ -936,7 +936,7 @@ const storePages = buildStorePages();
       onError={(e) => {
         console.log(`[FRIENDS STORES] Banner failed to load: ${uStore.banner_url}`);
         // Load default if custom fails
-        (e.currentTarget as HTMLImageElement).src = "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png";
+        (e.currentTarget as HTMLImageElement).src = "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg";
       }}
     />
   </div>
@@ -1309,20 +1309,20 @@ const storePages = buildStorePages();
           {/* uBanner (right) - Takes remaining space */}
           <div className="h-6 rounded flex-grow ml-auto overflow-hidden flex items-center justify-center bg-gray-700" style={{ minWidth: '80px', maxWidth: '150px' }}>
             <img
-              src={store.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"}
+              src={store.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg"}
               alt={`${store.name} banner`}
               className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
               onClick={(e) => {
                 e.stopPropagation();
                 onBadgeZoomOpen?.({ 
-                  url: store.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", 
+                  url: store.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg", 
                   name: store.name 
                 });
               }}
               title="Click to zoom"
               onError={(e) => {
                 console.log(`[PAGES 2-9] Banner failed to load: ${store.banner_url}`);
-                (e.currentTarget as HTMLImageElement).src = "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png";
+                (e.currentTarget as HTMLImageElement).src = "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg";
               }}
             />
           </div>
@@ -1471,13 +1471,13 @@ const storePages = buildStorePages();
               {/* uBanner (right) - Takes remaining space */}
               <div className="h-6 rounded flex-grow ml-auto overflow-hidden flex items-center justify-center bg-gray-700" style={{ minWidth: '80px', maxWidth: '150px' }}>
                 <img
-                  src={userStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"}
+                  src={userStore.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg"}
                   alt={`${userStore.name} banner`}
                   className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
                   onClick={(e) => {
                     e.stopPropagation();
                     onBadgeZoomOpen?.({ 
-                      url: userStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", 
+                      url: userStore.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg", 
                       name: userStore.name 
                     });
                   }}
@@ -1485,7 +1485,7 @@ const storePages = buildStorePages();
                   onError={(e) => {
                     console.log(`[PAGE 10+] Banner failed to load: ${userStore.banner_url}`);
                     // Load default if custom fails
-                    (e.currentTarget as HTMLImageElement).src = "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png";
+                    (e.currentTarget as HTMLImageElement).src = "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg";
                   }}
                 />
               </div>
@@ -3003,7 +3003,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
              </a>
              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="h-4 w-4 mb-1" /> Settings</Button>
            </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-2/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png')" }}>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-2/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg')" }}>
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
 
