@@ -32,37 +32,37 @@ interface MainUhubFeatureV001ForMyProfileModalProps {
 }
 
 const ALL_STORES = [
-  { id: 0, name: 'Union Main Store', number: 0, displayName: 'Union Main Store#0', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 1, name: 'NewEngland#01', number: 1, displayName: 'NewEngland#01', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 2, name: 'CentralEastCoast#02', number: 2, displayName: 'CentralEastCoast#02', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 3, name: 'SouthEast#03', number: 3, displayName: 'SouthEast#03', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 4, name: 'Appalachia&TheGreatLakes#04', number: 4, displayName: 'Appalachia&TheGreatLakes#04', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 5, name: 'CentralSouth&Mexico#05', number: 5, displayName: 'CentralSouth&Mexico#05', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 6, name: 'CentralNorth&Canada#06', number: 6, displayName: 'CentralNorth&Canada#06', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 7, name: 'SouthWest#07', number: 7, displayName: 'SouthWest#07', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 8, name: 'NorthWest#08', number: 8, displayName: 'NorthWest#08', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 9, name: 'International#09', number: 9, displayName: 'International#09', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 10, name: 'TheGreatHall#10', number: 10, displayName: 'TheGreatHall#10', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 11, name: 'UnionWaterfall#11', number: 11, displayName: 'UnionWaterfall#11', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 12, name: 'UnionEvent#12', number: 12, displayName: 'UnionEvent#12', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 13, name: 'UnionSupport#13', number: 13, displayName: 'UnionSupport#13', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 14, name: 'UnionNews#14', number: 14, displayName: 'UnionNews#14', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 15, name: 'UnionRadio#15', number: 15, displayName: 'UnionRadio#15', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 16, name: 'UnionDrive#16', number: 16, displayName: 'UnionDrive#16', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 17, name: 'UnionArchive&Education#17', number: 17, displayName: 'UnionArchive&Education#17', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 18, name: 'UnionTech#18', number: 18, displayName: 'UnionTech#18', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 19, name: 'UnionPolitic#19', number: 19, displayName: 'UnionPolitic#19', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 20, name: 'UnionSAM#20', number: 20, displayName: 'UnionSAM#20', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 21, name: 'UnionUkraine#21', number: 21, displayName: 'UnionUkraine#21', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 22, name: 'FestyLove#22', number: 22, displayName: 'FestyLove#22', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 23, name: 'UnionLegal#23', number: 23, displayName: 'UnionLegal#23', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 24, name: 'UnionMarket#24', number: 24, displayName: 'UnionMarket#24', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 25, name: 'UnionArena#25', number: 25, displayName: 'UnionArena#25', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 26, name: 'UnionTradeEnergy&CommunityWIFI#26', number: 26, displayName: 'UnionTradeEnergy&CommunityWIFI#26', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 27, name: 'UnionSecret#27', number: 27, displayName: 'UnionSecret#27', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 28, name: 'UnionSports#28', number: 28, displayName: 'UnionSports#28', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 29, name: 'UnionWheelsVehicles&eMods#29', number: 29, displayName: 'UnionWheelsVehicles&eMods#29', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
-  { id: 30, name: 'UnionHousing&Healthcare#30', number: 30, displayName: 'UnionHousing&Healthcare#30', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
+  { id: 0, name: 'Union Main Store', number: 0, displayName: 'Union Main Store#0', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 1, name: 'NewEngland#01', number: 1, displayName: 'NewEngland#01', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 2, name: 'CentralEastCoast#02', number: 2, displayName: 'CentralEastCoast#02', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 3, name: 'SouthEast#03', number: 3, displayName: 'SouthEast#03', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 4, name: 'Appalachia&TheGreatLakes#04', number: 4, displayName: 'Appalachia&TheGreatLakes#04', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 5, name: 'CentralSouth&Mexico#05', number: 5, displayName: 'CentralSouth&Mexico#05', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 6, name: 'CentralNorth&Canada#06', number: 6, displayName: 'CentralNorth&Canada#06', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 7, name: 'SouthWest#07', number: 7, displayName: 'SouthWest#07', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 8, name: 'NorthWest#08', number: 8, displayName: 'NorthWest#08', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 9, name: 'International#09', number: 9, displayName: 'International#09', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 10, name: 'TheGreatHall#10', number: 10, displayName: 'TheGreatHall#10', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 11, name: 'UnionWaterfall#11', number: 11, displayName: 'UnionWaterfall#11', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 12, name: 'UnionEvent#12', number: 12, displayName: 'UnionEvent#12', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 13, name: 'UnionSupport#13', number: 13, displayName: 'UnionSupport#13', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 14, name: 'UnionNews#14', number: 14, displayName: 'UnionNews#14', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 15, name: 'UnionRadio#15', number: 15, displayName: 'UnionRadio#15', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 16, name: 'UnionDrive#16', number: 16, displayName: 'UnionDrive#16', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 17, name: 'UnionArchive&Education#17', number: 17, displayName: 'UnionArchive&Education#17', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 18, name: 'UnionTech#18', number: 18, displayName: 'UnionTech#18', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 19, name: 'UnionPolitic#19', number: 19, displayName: 'UnionPolitic#19', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 20, name: 'UnionSAM#20', number: 20, displayName: 'UnionSAM#20', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 21, name: 'UnionUkraine#21', number: 21, displayName: 'UnionUkraine#21', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 22, name: 'FestyLove#22', number: 22, displayName: 'FestyLove#22', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 23, name: 'UnionLegal#23', number: 23, displayName: 'UnionLegal#23', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 24, name: 'UnionMarket#24', number: 24, displayName: 'UnionMarket#24', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 25, name: 'UnionArena#25', number: 25, displayName: 'UnionArena#25', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 26, name: 'UnionTradeEnergy&CommunityWIFI#26', number: 26, displayName: 'UnionTradeEnergy&CommunityWIFI#26', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 27, name: 'UnionSecret#27', number: 27, displayName: 'UnionSecret#27', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 28, name: 'UnionSports#28', number: 28, displayName: 'UnionSports#28', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 29, name: 'UnionWheelsVehicles&eMods#29', number: 29, displayName: 'UnionWheelsVehicles&eMods#29', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
+  { id: 30, name: 'UnionHousing&Healthcare#30', number: 30, displayName: 'UnionHousing&Healthcare#30', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
 ];
 
 const socialLinksLeft = [
@@ -922,13 +922,13 @@ const storePages = buildStorePages();
   {/* uBanner (right) - Takes remaining space */}
   <div className="h-6 rounded flex-grow ml-auto overflow-hidden flex items-center justify-center bg-gray-700" style={{ minWidth: '80px', maxWidth: '150px' }}>
     <img
-      src={uStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"}
+      src={uStore.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg"}
       alt={`${uStore.name} banner`}
       className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
       onClick={(e) => {
         e.stopPropagation();
         onBadgeZoomOpen?.({ 
-          url: uStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", 
+          url: uStore.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg", 
           name: uStore.name 
         });
       }}
@@ -936,7 +936,7 @@ const storePages = buildStorePages();
       onError={(e) => {
         console.log(`[FRIENDS STORES] Banner failed to load: ${uStore.banner_url}`);
         // Load default if custom fails
-        (e.currentTarget as HTMLImageElement).src = "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png";
+        (e.currentTarget as HTMLImageElement).src = "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg";
       }}
     />
   </div>
@@ -1309,20 +1309,20 @@ const storePages = buildStorePages();
           {/* uBanner (right) - Takes remaining space */}
           <div className="h-6 rounded flex-grow ml-auto overflow-hidden flex items-center justify-center bg-gray-700" style={{ minWidth: '80px', maxWidth: '150px' }}>
             <img
-              src={store.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"}
+              src={store.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg"}
               alt={`${store.name} banner`}
               className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
               onClick={(e) => {
                 e.stopPropagation();
                 onBadgeZoomOpen?.({ 
-                  url: store.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", 
+                  url: store.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg", 
                   name: store.name 
                 });
               }}
               title="Click to zoom"
               onError={(e) => {
                 console.log(`[PAGES 2-9] Banner failed to load: ${store.banner_url}`);
-                (e.currentTarget as HTMLImageElement).src = "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png";
+                (e.currentTarget as HTMLImageElement).src = "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg";
               }}
             />
           </div>
@@ -1471,13 +1471,13 @@ const storePages = buildStorePages();
               {/* uBanner (right) - Takes remaining space */}
               <div className="h-6 rounded flex-grow ml-auto overflow-hidden flex items-center justify-center bg-gray-700" style={{ minWidth: '80px', maxWidth: '150px' }}>
                 <img
-                  src={userStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png"}
+                  src={userStore.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg"}
                   alt={`${userStore.name} banner`}
                   className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition"
                   onClick={(e) => {
                     e.stopPropagation();
                     onBadgeZoomOpen?.({ 
-                      url: userStore.banner_url || "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png", 
+                      url: userStore.banner_url || "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg", 
                       name: userStore.name 
                     });
                   }}
@@ -1485,7 +1485,7 @@ const storePages = buildStorePages();
                   onError={(e) => {
                     console.log(`[PAGE 10+] Banner failed to load: ${userStore.banner_url}`);
                     // Load default if custom fails
-                    (e.currentTarget as HTMLImageElement).src = "https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png";
+                    (e.currentTarget as HTMLImageElement).src = "/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg";
                   }}
                 />
               </div>
@@ -3003,7 +3003,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
              </a>
              <Button variant="outline" className="flex flex-col h-full items-center justify-center text-xs" title="Settings" onClick={() => handleTopLeftButtonClick('settings')} disabled={!user}><Settings className="h-4 w-4 mb-1" /> Settings</Button>
            </div>
-           <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-2/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png')" }}>
+           <div id="MainUhubFeatureV001ForMyProfileSettingsTopMiddleSection" className="md:w-2/5 h-32 md:h-40 bg-cover bg-center rounded-md relative" style={{ backgroundImage: "url('/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg')" }}>
              {user && <Button className="absolute bottom-2 right-2" size="sm">Change Cover</Button>}
            </div>
 
@@ -3054,7 +3054,7 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
 <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
   <div onClick={handleProfileImageClick} className="cursor-pointer relative group">
     <Avatar className="h-24 w-24 md:h-32 md:w-32 border-2 border-orange-400 group-hover:border-orange-600 transition">
-      <AvatarImage src={user?.profile_image_url || "https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg"} alt="Profile" />
+      <AvatarImage src={user?.profile_image_url || "/defaultUminionUassets/defaultUminionUbadge.png"} alt="Profile" />
       <AvatarFallback>U</AvatarFallback>
     </Avatar>
     {user && (
