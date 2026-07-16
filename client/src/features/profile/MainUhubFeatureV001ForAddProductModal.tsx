@@ -693,7 +693,7 @@ const MainUhubFeatureV001ForAddProductModal: React.FC<MainUhubFeatureV001ForAddP
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold mb-1">Store Badge Image (optional)</label>
+                        <label className="block text-xs font-semibold mb-1">Store Badge Image (Required)</label>
                         <div className="border-2 border-dashed border-border rounded p-2 text-center mb-2">
                           {newStoreBadgeImage ? (
                             <div className="flex flex-col items-center gap-1">
