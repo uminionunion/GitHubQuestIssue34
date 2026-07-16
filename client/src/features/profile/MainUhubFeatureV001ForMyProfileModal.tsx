@@ -3050,11 +3050,11 @@ const getRandomizedProducts = (products: Product[]): Product[] => {
   </div>
 </div>
 
-          {/* Avatar */}
+          {/* Avatar (this is apparently how to modify avatar for users default image(? and then some? or thats it?) EXTRA EXTRA QUEST Do i want to remove avatar fallback)*/}
 <div id="MainUhubFeatureV001ForMyProfileSettingsTopRightSection" className="md:w-1/5 flex justify-center md:justify-end items-start md:pl-4 relative">
   <div onClick={handleProfileImageClick} className="cursor-pointer relative group">
     <Avatar className="h-24 w-24 md:h-32 md:w-32 border-2 border-orange-400 group-hover:border-orange-600 transition">
-      <AvatarImage src={user?.profile_image_url || "https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg"} alt="Profile" />
+      <AvatarImage src={user?.profile_image_url || "/defaultUminionUassets/defaultUminionUbadge.png"} alt="Profile" />
       <AvatarFallback>U</AvatarFallback>
     </Avatar>
     {user && (

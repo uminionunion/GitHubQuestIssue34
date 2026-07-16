@@ -1230,8 +1230,8 @@ router.post('/user/:userId/stores', authenticate, async (req, res) => {
       return;
     }
 
-    // Handle badge image upload
-    let badgeUrl = 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg';
+    // Handle badge image upload (for default image of when user creates a store? of that yes? maybe more too?)
+    let badgeUrl = '/defaultUminionUassets/defaultUminionUbadge.png';
     if ((req as any).files && (req as any).files.badgeImage) {
       await ensureUploadDir();
       const uploadedFile = (req as any).files.badgeImage;
