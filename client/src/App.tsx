@@ -154,7 +154,7 @@ useEffect(() => {
             rel="noopener noreferrer"
           >
             <Button className="mt-4">
-              Find us on FB!
+              Find us on FB!!
             </Button>
           </a>
 
