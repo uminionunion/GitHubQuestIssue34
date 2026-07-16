@@ -32,7 +32,7 @@ interface MainUhubFeatureV001ForMyProfileModalProps {
 }
 
 const ALL_STORES = [
-  { id: 0, name: 'Union Main Store', number: 0, displayName: 'Union Main Store#0', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
+  { id: 0, name: 'Union Main Store', number: 0, displayName: 'Union Main Store#0', badge_url: '/defaultUminionUassets/defaultUminionUbadge.png', banner_url: '/defaultUminionUassets/defaultUminionUbanneriArt06,505.19.jpg' },
   { id: 1, name: 'NewEngland#01', number: 1, displayName: 'NewEngland#01', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
   { id: 2, name: 'CentralEastCoast#02', number: 2, displayName: 'CentralEastCoast#02', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
   { id: 3, name: 'SouthEast#03', number: 3, displayName: 'SouthEast#03', badge_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/Uminion-U-Logo.jpg', banner_url: 'https://page001.uminion.com/wp-content/uploads/2025/12/iArt06505.19-Made-on-NC-JPEG.png' },
